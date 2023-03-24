@@ -8,7 +8,7 @@ const Loader = () => {
 
 	return (
 		<Backdrop sx={{ zIndex: 1500 }} open={loading}>
-			<Rings height='150' width='150' color={theme.palette.secondary.main} />
+			<Rings height='150' width='150' color={theme.palette.primary.main} />
 		</Backdrop>
 	);
 };

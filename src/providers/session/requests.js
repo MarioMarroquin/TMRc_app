@@ -5,7 +5,7 @@ const GET_USER_BY_TOKEN = gql`
 		userByToken {
 			id
 			userName
-			overallRole
+			role
 			createdAt
 		}
 	}

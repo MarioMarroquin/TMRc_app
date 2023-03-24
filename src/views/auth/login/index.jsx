@@ -14,6 +14,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useLoading } from '@providers/loading';
 import { authClient } from '@utils/auth';
 import { useSession } from '@providers/session';
+import toast from 'react-hot-toast';
 
 const InitialLoginForm = {
 	userName: '',
@@ -47,8 +48,14 @@ const Login = () => {
 				setLoading(false);
 			});
 		} catch (err) {
+			toast.error('Revisa el correo y/o la contraseña');
 			setLoading(false);
 		}
+	};
+
+	const onEnter = (e) => {
+		if (loginForm.userName && loginForm.password && e.key === 'Enter')
+			onFinish(e);
 	};
 
 	return (
@@ -85,9 +92,7 @@ const Login = () => {
 						fullWidth
 						value={loginForm.userName}
 						onChange={handleInputChange}
-						onKeyDown={(e) => {
-							if (e.key === 'Enter') onFinish(e);
-						}}
+						onKeyDown={onEnter}
 					/>
 					<TextField
 						id={'password'}
@@ -98,9 +103,7 @@ const Login = () => {
 						fullWidth
 						value={loginForm.password}
 						onChange={handleInputChange}
-						onKeyDown={(e) => {
-							if (e.key === 'Enter') onFinish(e);
-						}}
+						onKeyDown={onEnter}
 						InputProps={{
 							endAdornment: (
 								<InputAdornment position='end'>
@@ -112,7 +115,11 @@ const Login = () => {
 						}}
 					/>
 
-					<Button onClick={null} sx={{ mx: 'auto', mt: 2, mb: 2 }}>
+					<Button
+						onClick={onFinish}
+						disabled={!(loginForm.userName && loginForm.password)}
+						sx={{ mx: 'auto', mt: 2, mb: 2 }}
+					>
 						Iniciar Sesión
 					</Button>
 				</Box>

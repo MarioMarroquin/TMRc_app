@@ -51,7 +51,7 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						'&.Mui-selected': {
-							backgroundColor: '#f8f9fa',
+							backgroundColor: '#f2f3f4',
 						},
 					},
 				},

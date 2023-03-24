@@ -7,7 +7,8 @@ import cookies from 'react-cookies';
 import PropTypes from 'prop-types';
 import { GET_USER_BY_TOKEN } from './requests';
 import { useLoading } from '@providers/loading';
-import { Typography } from '@mui/material';
+import { Avatar, Box, Typography } from '@mui/material';
+import TMRLogo from '@utils/logo/TMR_logo.svg';
 
 const SessionContext = createContext({});
 
@@ -99,7 +100,26 @@ const SessionProvider = ({ children }) => {
 				user,
 			}}
 		>
-			{isLogged ? user ? children : <h1>lol</h1> : children}
+			{isLogged ? (
+				user ? (
+					children
+				) : (
+					<Box
+						sx={{
+							height: '100vh',
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							py: 40,
+							px: 10,
+						}}
+					>
+						<img src={TMRLogo} alt={'TMR Logo'} />
+					</Box>
+				)
+			) : (
+				children
+			)}
 		</SessionContext.Provider>
 	);
 };
