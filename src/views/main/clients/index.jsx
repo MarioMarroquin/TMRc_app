@@ -1,23 +1,39 @@
-import { Fragment, useState } from 'react';
-import { Card, CardContent, CardHeader } from '@mui/material';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import {
+	Avatar,
+	Box,
+	Button,
+	Card,
+	CardContent,
+	CardHeader,
+	Collapse,
+	Grid,
+	Toolbar,
+	Typography,
+} from '@mui/material';
 import Chart from 'react-apexcharts';
 import CustomDataGrid from '@components/customDataGrid';
+import NewClientDialog from '@views/main/clients/components/newClientDialog';
+import { useQuery } from '@apollo/client';
+import { GET_CLIENTS } from '@views/main/clients/requests';
+import moment from 'moment';
 
 const Clients = () => {
-	const headers = [
-		{
-			field: 'createdAt',
-			headerName: 'Fecha',
-			headerAlign: 'center',
-			align: 'center',
-			width: 200,
-			valueFormatter: (params) => {
-				const date = new Date(params.value);
-				const formattedDate = moment(date).format('DD/MM/YYYY hh:mm a');
+	const [clients, setClients] = useState([]);
+	const [checked, setChecked] = useState(true);
 
-				return formattedDate;
-			},
-		},
+	const ref = useRef();
+
+	const { data, refetch } = useQuery(GET_CLIENTS);
+
+	useEffect(() => {
+		if (data) {
+			const aux = data.clients.results;
+			setClients(aux);
+		}
+	}, [data]);
+
+	const headers = [
 		{
 			field: 'user',
 			headerName: 'Nombre de usuario',
@@ -29,70 +45,71 @@ const Clients = () => {
 				if (params.row.client === null) {
 					return 'Sin cliente';
 				} else {
-					return (
-						params.row.user.firstName + ' ' + params.row.user.firstLastName
-					);
+					return params.row.firstName + ' ' + params.row.lastName;
 				}
 			},
 		},
+
 		{
-			field: 'method',
-			headerName: 'Canal',
+			field: 'phoneNumber',
+			headerName: 'Teléfono',
 			headerAlign: 'center',
 			align: 'center',
-			width: 150,
-			valueFormatter: (params) => {
-				if (params.value === 'DEPOSIT') {
-					return 'Deposito';
-				}
-				return 'Tarjeta';
-			},
+			width: 200,
 		},
 		{
-			field: 'status',
-			headerName: 'Status',
+			field: 'createdAt',
+			headerName: 'Actualizado',
 			headerAlign: 'center',
 			align: 'center',
 			width: 200,
 			valueFormatter: (params) => {
-				if (params.value === 'SUCCEEDED') {
-					return 'Exitoso';
-				}
-				if (params.value === 'FAILED') {
-					return 'Fallido';
-				}
-				if (params.value === 'PROCESSING') {
-					return 'En proceso';
-				}
+				const date = new Date(params.value);
+				const formattedDate = moment(date).format('DD/MM/YYYY hh:mm a');
 
-				return 'Inicializado';
-			},
-		},
-		{
-			field: 'amount',
-			headerName: 'Monto ($)',
-			headerAlign: 'center',
-			align: 'center',
-			width: 150,
-			valueFormatter: (params) => {
-				const aux = params.value;
-
-				return aux.toLocaleString('en-US', {
-					style: 'currency',
-					currency: 'USD',
-				});
+				return formattedDate;
 			},
 		},
 	];
 
 	return (
 		<Fragment>
-			<Card>
-				<CardHeader title='Clientes' subheader='Total' />
-				<CardContent>
-					<CustomDataGrid rows={[]} columns={headers} />
-				</CardContent>
-			</Card>
+			<Toolbar variant={'dense'} sx={{ mb: 2 }}>
+				<NewClientDialog reloadClients={refetch} />
+				<Button onClick={() => setChecked((prev) => !prev)}>clik</Button>
+
+				<Button
+					onClick={() => ref.current?.scrollIntoView({ behavior: 'smooth' })}
+				>
+					clik
+				</Button>
+			</Toolbar>
+
+			<Grid container spacing={2}>
+				<Grid item xs={12} md={8}>
+					<Card>
+						<CardHeader title='Clientes' subheader='Total' />
+						<CardContent>
+							<CustomDataGrid rows={clients} columns={headers} />
+						</CardContent>
+					</Card>
+				</Grid>
+
+				<Grid item xs={12} md={4}>
+					<Collapse in={checked} collapsedSize={60}>
+						<Card ref={ref}>
+							<CardHeader
+								title='Detalles'
+								titleTypographyProps={{ align: 'center' }}
+							/>
+							<CardContent>
+								<Avatar sx={{ width: 68, height: 68 }} />
+							</CardContent>
+						</Card>
+					</Collapse>
+					<Typography align={'center'}>Selecciona un cliente.</Typography>
+				</Grid>
+			</Grid>
 		</Fragment>
 	);
 };

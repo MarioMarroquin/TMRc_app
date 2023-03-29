@@ -1,5 +1,7 @@
 import { createTheme } from '@mui/material';
 import { esES } from '@mui/material/locale';
+import { esES as esESX } from '@mui/x-data-grid';
+
 import createTypography from '@mui/material/styles/createTypography';
 import createPalette from '@mui/material/styles/createPalette';
 
@@ -71,7 +73,8 @@ const theme = createTheme(
 			// },
 		},
 	},
-	esES
+	esES,
+	esESX
 );
 
 export default theme;

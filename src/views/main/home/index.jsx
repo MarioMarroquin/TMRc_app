@@ -58,6 +58,21 @@ const Home = () => {
 		],
 	});
 
+	const optionss = {
+		series: [44, 55, 13, 43, 22],
+		options: {
+			labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
+			theme: {
+				monochrome: {
+					enabled: true,
+					color: '#2D3748',
+					shadeTo: 'light',
+					shadeIntensity: 0.65,
+				},
+			},
+		},
+	};
+
 	return (
 		<Fragment>
 			<Grid container rowSpacing={3} columnSpacing={{ xs: 0, sm: 4 }} mt={2}>
@@ -75,7 +90,19 @@ const Home = () => {
 					</Card>
 				</Grid>
 
-				<Grid item xs></Grid>
+				<Grid item xs>
+					<Card>
+						<CardHeader title='Gráfica' subheader='Ejemplo %' />
+						<CardContent>
+							<Chart
+								options={optionss.options}
+								series={optionss.series}
+								type='pie'
+								height={300}
+							/>
+						</CardContent>
+					</Card>
+				</Grid>
 			</Grid>
 		</Fragment>
 	);
