@@ -17,11 +17,11 @@ const ClientDetails = ({ client }) => {
 			<CardHeader title='Detalles' titleTypographyProps={{ align: 'center' }} />
 			<CardContent>
 				{client ? (
-					<Fragment>
+					<Stack alignItems={'center'}>
 						<Avatar sx={{ width: 68, height: 68 }} />
 						<Typography>{client.firstName}</Typography>
 						<Typography>{client.phoneNumbers}</Typography>
-					</Fragment>
+					</Stack>
 				) : (
 					<Stack alignItems={'center'}>
 						<NoAccounts sx={{ width: 68, height: 68, color: grey[500] }} />

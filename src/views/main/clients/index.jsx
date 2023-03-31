@@ -79,7 +79,6 @@ const Clients = () => {
 
 	const handleClick = (selection) => {
 		setSelectionModel(selection);
-
 		if (!selection.length) setSelectedClient();
 	};
 
@@ -97,31 +96,36 @@ const Clients = () => {
 			</Toolbar>
 
 			<Grid container spacing={2}>
-				<Grid item xs={12} md={8}>
+				<Grid item xs={12} md={9}>
 					<Card>
 						<CardHeader title='Clientes' subheader='Total' />
 						<CardContent>
-							<ClickAwayListener
-								onClickAway={() => {
-									// handleClick([]);
-								}}
-							>
-								<div>
-									<CustomDataGrid
-										rows={clients}
-										columns={headers}
-										onRowClick={(data) => setSelectedClient(data.row)}
-										// onRowSelectionModelChange={handleClick}
-										// rowSelectionModel={selectionModel}
-									/>
-								</div>
-							</ClickAwayListener>
+							<div>
+								<CustomDataGrid
+									rows={clients}
+									columns={headers}
+									onRowClick={(data, e) => {
+										setSelectedClient(data.row);
+										e.stopPropagation();
+									}}
+									onRowSelectionModelChange={handleClick}
+									rowSelectionModel={selectionModel}
+								/>
+							</div>
 						</CardContent>
 					</Card>
 				</Grid>
 
-				<Grid ref={ref} item xs={12} md={4}>
-					<ClientDetails client={selectedClient} />
+				<Grid ref={ref} item xs={12} md={3}>
+					<ClickAwayListener
+						onClickAway={() => {
+							handleClick([]);
+						}}
+					>
+						<div>
+							<ClientDetails client={selectedClient} />
+						</div>
+					</ClickAwayListener>
 				</Grid>
 			</Grid>
 		</Fragment>
