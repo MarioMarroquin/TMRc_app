@@ -6,6 +6,7 @@ import {
 	Card,
 	CardContent,
 	CardHeader,
+	ClickAwayListener,
 	Collapse,
 	Grid,
 	Toolbar,
@@ -17,10 +18,14 @@ import NewClientDialog from '@views/main/clients/components/newClientDialog';
 import { useQuery } from '@apollo/client';
 import { GET_CLIENTS } from '@views/main/clients/requests';
 import moment from 'moment';
+import ClientDetails from '@views/main/clients/components/clientDetails';
+import { useGridApiRef } from '@mui/x-data-grid';
 
 const Clients = () => {
 	const [clients, setClients] = useState([]);
 	const [checked, setChecked] = useState(true);
+	const [selectionModel, setSelectionModel] = useState([]);
+	const [selectedClient, setSelectedClient] = useState();
 
 	const ref = useRef();
 
@@ -72,11 +77,17 @@ const Clients = () => {
 		},
 	];
 
+	const handleClick = (selection) => {
+		setSelectionModel(selection);
+
+		if (!selection.length) setSelectedClient();
+	};
+
 	return (
 		<Fragment>
 			<Toolbar variant={'dense'} sx={{ mb: 2 }}>
 				<NewClientDialog reloadClients={refetch} />
-				<Button onClick={() => setChecked((prev) => !prev)}>clik</Button>
+				<Button onClick={() => setChecked((prev) => !prev)}>clic</Button>
 
 				<Button
 					onClick={() => ref.current?.scrollIntoView({ behavior: 'smooth' })}
@@ -90,24 +101,27 @@ const Clients = () => {
 					<Card>
 						<CardHeader title='Clientes' subheader='Total' />
 						<CardContent>
-							<CustomDataGrid rows={clients} columns={headers} />
+							<ClickAwayListener
+								onClickAway={() => {
+									// handleClick([]);
+								}}
+							>
+								<div>
+									<CustomDataGrid
+										rows={clients}
+										columns={headers}
+										onRowClick={(data) => setSelectedClient(data.row)}
+										// onRowSelectionModelChange={handleClick}
+										// rowSelectionModel={selectionModel}
+									/>
+								</div>
+							</ClickAwayListener>
 						</CardContent>
 					</Card>
 				</Grid>
 
-				<Grid item xs={12} md={4}>
-					<Collapse in={checked} collapsedSize={60}>
-						<Card ref={ref}>
-							<CardHeader
-								title='Detalles'
-								titleTypographyProps={{ align: 'center' }}
-							/>
-							<CardContent>
-								<Avatar sx={{ width: 68, height: 68 }} />
-							</CardContent>
-						</Card>
-					</Collapse>
-					<Typography align={'center'}>Selecciona un cliente.</Typography>
+				<Grid ref={ref} item xs={12} md={4}>
+					<ClientDetails client={selectedClient} />
 				</Grid>
 			</Grid>
 		</Fragment>

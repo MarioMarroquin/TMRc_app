@@ -1,9 +1,40 @@
 import PropTypes from 'prop-types';
+import {
+	Avatar,
+	Card,
+	CardContent,
+	CardHeader,
+	Stack,
+	Typography,
+} from '@mui/material';
+import { Fragment } from 'react';
+import { NoAccounts } from '@mui/icons-material';
+import { grey } from '@mui/material/colors';
 
-const ClientDetails = (props) => {
-	return <div></div>;
+const ClientDetails = ({ client }) => {
+	return (
+		<Card>
+			<CardHeader title='Detalles' titleTypographyProps={{ align: 'center' }} />
+			<CardContent>
+				{client ? (
+					<Fragment>
+						<Avatar sx={{ width: 68, height: 68 }} />
+						<Typography>{client.firstName}</Typography>
+						<Typography>{client.phoneNumbers}</Typography>
+					</Fragment>
+				) : (
+					<Stack alignItems={'center'}>
+						<NoAccounts sx={{ width: 68, height: 68, color: grey[500] }} />
+						<Typography color={'secondary'}>No hay selección</Typography>
+					</Stack>
+				)}
+			</CardContent>
+		</Card>
+	);
 };
 
-ClientDetails.propTypes = {};
+ClientDetails.propTypes = {
+	client: PropTypes.object,
+};
 
 export default ClientDetails;
