@@ -23,7 +23,6 @@ import { useGridApiRef } from '@mui/x-data-grid';
 
 const Clients = () => {
 	const [clients, setClients] = useState([]);
-	const [checked, setChecked] = useState(true);
 	const [selectionModel, setSelectionModel] = useState([]);
 	const [selectedClient, setSelectedClient] = useState();
 
@@ -86,13 +85,6 @@ const Clients = () => {
 		<Fragment>
 			<Toolbar variant={'dense'} sx={{ mb: 2 }}>
 				<NewClientDialog reloadClients={refetch} />
-				<Button onClick={() => setChecked((prev) => !prev)}>clic</Button>
-
-				<Button
-					onClick={() => ref.current?.scrollIntoView({ behavior: 'smooth' })}
-				>
-					clik
-				</Button>
 			</Toolbar>
 
 			<Grid container spacing={2}>
@@ -106,6 +98,7 @@ const Clients = () => {
 									columns={headers}
 									onRowClick={(data, e) => {
 										setSelectedClient(data.row);
+										ref.current?.scrollIntoView({ behavior: 'smooth' });
 										e.stopPropagation();
 									}}
 									onRowSelectionModelChange={handleClick}

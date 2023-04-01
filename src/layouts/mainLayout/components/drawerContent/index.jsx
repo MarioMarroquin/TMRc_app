@@ -20,6 +20,7 @@ import {
 	MiscellaneousServices,
 	Payments,
 	Person,
+	SettingsPhone,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
@@ -81,6 +82,16 @@ const DrawerContent = () => {
 						<Message sx={{ color: isSelected('/messages') }} />
 					</ListItemIcon>
 					<ListItemText primary={'Mensajes'} />
+				</ListItemButton>
+
+				<ListItemButton
+					selected={location === '/calls'}
+					onClick={() => navigate('calls', { replace: true })}
+				>
+					<ListItemIcon>
+						<SettingsPhone sx={{ color: isSelected('/calls') }} />
+					</ListItemIcon>
+					<ListItemText primary={'Llamadas'} />
 				</ListItemButton>
 
 				<ListItemButton
