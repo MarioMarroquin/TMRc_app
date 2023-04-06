@@ -1,0 +1,30 @@
+.react-timerange-picker__wrapper {
+    border: none;
+}
+
+.react-timerange-picker__inputGroup {
+    min-width: calc((3px * 3) + 0.5em * 5    + 0.2em * 2);
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    flex-grow: 1;
+    padding: 0 3px;
+    background-color: azure;
+    border-radius: 8px;
+    box-sizing: content-box;
+}
+
+
+.react-timerange-picker__inputGroup__divider,
+.react-timerange-picker__inputGroup__leadingZero {
+    align-self: center;
+    margin: 2px 5px 0 2px;
+}
+
+.react-timerange-picker__inputGroup__input {
+    padding: 0 4px;
+}
+
+.react-timerange-picker__range-divider {
+    margin: 0 3px;
+}
