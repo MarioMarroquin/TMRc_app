@@ -35,6 +35,8 @@ const ClientDetails = ({ client }) => {
 								<Email />
 							</IconButton>
 						</Box>
+
+						<Typography>Ver cliente completo</Typography>
 					</Stack>
 				) : (
 					<Stack alignItems={'center'}>

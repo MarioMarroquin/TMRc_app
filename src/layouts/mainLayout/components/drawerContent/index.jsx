@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useEffect } from 'react';
 import {
 	Avatar,
 	Box,
@@ -24,11 +24,17 @@ import {
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
+import routes from '@layouts/mainLayout/components';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
 	const navigate = useNavigate();
 	const theme = useTheme();
+
+	useEffect(() => {
+		document.documentElement.scrollTop = 0;
+		document.scrollingElement.scrollTop = 0;
+	}, [location]);
 
 	const isSelected = (loc) => {
 		let color = '';
@@ -54,65 +60,20 @@ const DrawerContent = () => {
 			{/* <Divider /> */}
 
 			<List component={'nav'}>
-				<ListItemButton
-					selected={location === '/home'}
-					onClick={() => navigate('home', { replace: true })}
-				>
-					<ListItemIcon>
-						<Home sx={{ color: isSelected('/home') }} />
-					</ListItemIcon>
-					<ListItemText primary={'Inicio'} />
-				</ListItemButton>
-
-				<ListItemButton
-					selected={location === '/statistics'}
-					onClick={() => navigate('statistics', { replace: true })}
-				>
-					<ListItemIcon>
-						<Analytics sx={{ color: isSelected('/statistics') }} />
-					</ListItemIcon>
-					<ListItemText primary={'Estadísticas'} />
-				</ListItemButton>
-
-				<ListItemButton
-					selected={location === '/messages'}
-					onClick={() => navigate('messages', { replace: true })}
-				>
-					<ListItemIcon>
-						<Message sx={{ color: isSelected('/messages') }} />
-					</ListItemIcon>
-					<ListItemText primary={'Mensajes'} />
-				</ListItemButton>
-
-				<ListItemButton
-					selected={location === '/calls'}
-					onClick={() => navigate('calls', { replace: true })}
-				>
-					<ListItemIcon>
-						<SettingsPhone sx={{ color: isSelected('/calls') }} />
-					</ListItemIcon>
-					<ListItemText primary={'Llamadas'} />
-				</ListItemButton>
-
-				<ListItemButton
-					selected={location === '/reports'}
-					onClick={() => navigate('reports', { replace: true })}
-				>
-					<ListItemIcon>
-						<Assessment sx={{ color: isSelected('/reports') }} />
-					</ListItemIcon>
-					<ListItemText primary={'Reportes'} />
-				</ListItemButton>
-
-				<ListItemButton
-					selected={location === '/clients'}
-					onClick={() => navigate('clients', { replace: true })}
-				>
-					<ListItemIcon>
-						<Person sx={{ color: isSelected('/clients') }} />
-					</ListItemIcon>
-					<ListItemText primary={'Clientes'} />
-				</ListItemButton>
+				{routes.map(({ icon, name, path }) => {
+					return (
+						<ListItemButton
+							key={path}
+							selected={location === path}
+							onClick={() => navigate(path, { replace: true })}
+						>
+							<ListItemIcon sx={{ color: isSelected(path) }}>
+								{icon}
+							</ListItemIcon>
+							<ListItemText primary={name} />
+						</ListItemButton>
+					);
+				})}
 			</List>
 		</Fragment>
 	);

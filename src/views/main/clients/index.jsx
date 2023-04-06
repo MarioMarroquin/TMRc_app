@@ -9,6 +9,7 @@ import {
 	ClickAwayListener,
 	Collapse,
 	Grid,
+	Paper,
 	Toolbar,
 	Typography,
 } from '@mui/material';
@@ -19,7 +20,13 @@ import { useQuery } from '@apollo/client';
 import { GET_CLIENTS } from '@views/main/clients/requests';
 import moment from 'moment';
 import ClientDetails from '@views/main/clients/components/clientDetails';
-import { useGridApiRef } from '@mui/x-data-grid';
+import {
+	GridToolbar,
+	GridToolbarContainer,
+	GridToolbarQuickFilter,
+	useGridApiRef,
+} from '@mui/x-data-grid';
+import { Search } from '@mui/icons-material';
 
 const Clients = () => {
 	const [clients, setClients] = useState([]);
@@ -81,16 +88,25 @@ const Clients = () => {
 		if (!selection.length) setSelectedClient();
 	};
 
+	const CustomToolbar = () => (
+		<GridToolbarContainer sx={{ justifyContent: 'flex-end' }}>
+			<GridToolbarQuickFilter variant={'outlined'} margin={'dense'} />
+			<NewClientDialog reloadClients={refetch} />
+		</GridToolbarContainer>
+	);
+
 	return (
 		<Fragment>
-			<Toolbar variant={'dense'} sx={{ mb: 2 }}>
-				<NewClientDialog reloadClients={refetch} />
-			</Toolbar>
+			{/*<Paper>*/}
+			{/*	<Toolbar variant={'dense'} sx={{ mb: 2 }}>*/}
+			{/*		<NewClientDialog reloadClients={refetch} />*/}
+			{/*	</Toolbar>*/}
+			{/*</Paper>*/}
 
 			<Grid container spacing={2}>
 				<Grid item xs={12} md={9}>
 					<Card>
-						<CardHeader title='Clientes' subheader='Total' />
+						<CardHeader title='Clientes' subheader='Total' sx={{ pb: 0 }} />
 						<CardContent>
 							<div>
 								<CustomDataGrid
@@ -99,10 +115,10 @@ const Clients = () => {
 									onRowClick={(data, e) => {
 										setSelectedClient(data.row);
 										ref.current?.scrollIntoView({ behavior: 'smooth' });
-										e.stopPropagation();
 									}}
 									onRowSelectionModelChange={handleClick}
 									rowSelectionModel={selectionModel}
+									slots={{ toolbar: CustomToolbar }}
 								/>
 							</div>
 						</CardContent>
@@ -110,15 +126,7 @@ const Clients = () => {
 				</Grid>
 
 				<Grid ref={ref} item xs={12} md={3}>
-					<ClickAwayListener
-						onClickAway={() => {
-							handleClick([]);
-						}}
-					>
-						<div>
-							<ClientDetails client={selectedClient} />
-						</div>
-					</ClickAwayListener>
+					<ClientDetails client={selectedClient} />
 				</Grid>
 			</Grid>
 		</Fragment>

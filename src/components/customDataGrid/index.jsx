@@ -16,6 +16,8 @@ const CustomDataGrid = (props) => {
 			sx={{
 				'.MuiDataGrid-columnHeaders': {
 					borderBottom: 'none',
+					backgroundColor: 'rgba(222,222,222,0.15)',
+					borderRadius: 1,
 				},
 				'.MuiDataGrid-columnHeaderTitle': {
 					fontWeight: 'bold',

@@ -66,7 +66,7 @@ const Login = () => {
 				<Box
 					sx={{
 						backgroundColor: theme.palette.secondary.main,
-						borderRadius: '8px',
+						borderRadius: 1,
 						marginTop: -5,
 						boxShadow: 10,
 						color: 'white',

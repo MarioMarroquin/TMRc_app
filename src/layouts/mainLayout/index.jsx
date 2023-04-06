@@ -10,6 +10,7 @@ import { Outlet } from 'react-router-dom';
 import TopBar from './components/topBar';
 import MobileDrawer from '@layouts/mainLayout/components/mobileDrawer';
 import DesktopDrawer from '@layouts/mainLayout/components/desktopDrawer';
+import { pxToRem } from '@config/theme/functions';
 
 const drawerWidth = 240;
 
@@ -38,8 +39,8 @@ const MainLayout = () => {
 					overflow: 'auto',
 				}}
 			>
-				<Toolbar />
-				<Container maxWidth={'lg'} sx={{ my: 4 }}>
+				<Toolbar sx={{ mt: pxToRem(16) }} />
+				<Container maxWidth={'lg'} sx={{ my: pxToRem(16) }}>
 					<Outlet />
 				</Container>
 			</Box>

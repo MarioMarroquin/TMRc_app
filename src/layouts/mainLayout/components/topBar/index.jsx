@@ -26,6 +26,7 @@ import { useSession } from '@providers/session';
 import MobileDrawer from '@layouts/mainLayout/components/mobileDrawer';
 import DesktopDrawer from '@layouts/mainLayout/components/desktopDrawer';
 import CustomMenu from '@components/customMenu';
+import { pxToRem } from '@config/theme/functions';
 
 const TopBar = ({ open, toggleDrawer }) => {
 	const theme = useTheme();
@@ -44,7 +45,20 @@ const TopBar = ({ open, toggleDrawer }) => {
 		<AppBar
 			position={'absolute'} // fixed
 			sx={{
-				zIndex: (theme) => theme.zIndex.drawer + 1,
+				// ----------------------------------------------------------------
+				// borderBottomRightRadius: (theme) => theme.shape.borderRadius,
+				borderRadius: 1,
+				boxShadow: 'none',
+				top: 16,
+				right: { xs: 16, sm: 24 },
+				backdropFilter: `saturate(200%) blur(1.875rem)`,
+				backgroundColor: 'rgba(255,255,255,0.8)',
+				// ----------------------------------------------------------------
+				zIndex: 1200,
+				width: (theme) => ({
+					xs: `calc(100% - 30px)`,
+					sm: `calc(100% - ${theme.spacing(7)} - 32px - 48px)`,
+				}),
 				transition: (theme) =>
 					theme.transitions.create(['width', 'margin'], {
 						easing: theme.transitions.easing.sharp,
@@ -52,17 +66,19 @@ const TopBar = ({ open, toggleDrawer }) => {
 					}),
 				...(open && {
 					ml: { sm: drawerWidth },
-					width: { sm: `calc(100% - ${drawerWidth}px)` },
+					width: {
+						xs: `calc(100% - 32px)`,
+						sm: `calc(100% - ${drawerWidth}px - 32px - 48px)`,
+					},
 					transition: (theme) =>
 						theme.transitions.create(['width', 'margin'], {
 							easing: theme.transitions.easing.sharp,
 							duration: theme.transitions.duration.enteringScreen,
 						}),
 				}),
-				borderBottomRightRadius: (theme) => theme.shape.borderRadius,
 			}}
 		>
-			<Toolbar sx={{ pr: '24px' }}>
+			<Toolbar sx={{ pr: pxToRem(24) }}>
 				<IconButton sx={{ mr: 2 }} edge={'start'} onClick={toggleDrawer}>
 					{open ? <MenuOpen /> : <KeyboardArrowRight />}
 				</IconButton>
@@ -73,11 +89,7 @@ const TopBar = ({ open, toggleDrawer }) => {
 					color={theme.palette.secondary.main}
 					noWrap
 					ml={'auto'}
-				>
-					{/*{useMediaQuery(theme.breakpoints.down('sm'))*/}
-					{/*	? ''*/}
-					{/*	: `${user?.firstName} ${user?.firstLastName}`}*/}
-				</Typography>
+				></Typography>
 
 				<Box sx={{ flexGrow: 0 }}>
 					<Tooltip title={'Opciones'}>
