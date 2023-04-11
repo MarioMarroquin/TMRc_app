@@ -22,6 +22,8 @@ export const createShadow = (
 	const [x, y] = offset;
 	const [blur, spread] = radius;
 
+	console.log(color, opacity);
+
 	return `${inset} ${pxToRem(x)} ${pxToRem(y)} ${pxToRem(blur)} ${pxToRem(
 		spread
 	)} ${hexToRGBA(color, opacity)}`;

@@ -90,7 +90,7 @@ const Home = () => {
 					</Card>
 				</Grid>
 
-				<Grid item xs>
+				<Grid item xs={12}>
 					<Card>
 						<CardHeader title='Gráfica' subheader='Ejemplo %' />
 						<CardContent>

@@ -1,40 +1,20 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import {
-	Avatar,
-	Box,
 	List,
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
 	Toolbar,
-	Typography,
 	useTheme,
 } from '@mui/material';
-import {
-	Analytics,
-	Assessment,
-	BookOnline,
-	DriveEta,
-	Home,
-	Message,
-	MiscellaneousServices,
-	Payments,
-	Person,
-	SettingsPhone,
-} from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import routes from '@layouts/mainLayout/components';
+import routes from '../../../../routes';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
 	const navigate = useNavigate();
 	const theme = useTheme();
-
-	useEffect(() => {
-		document.documentElement.scrollTop = 0;
-		document.scrollingElement.scrollTop = 0;
-	}, [location]);
 
 	const isSelected = (loc) => {
 		let color = '';
@@ -65,7 +45,9 @@ const DrawerContent = () => {
 						<ListItemButton
 							key={path}
 							selected={location === path}
-							onClick={() => navigate(path, { replace: true })}
+							onClick={() => {
+								navigate(path, { replace: true });
+							}}
 						>
 							<ListItemIcon sx={{ color: isSelected(path) }}>
 								{icon}

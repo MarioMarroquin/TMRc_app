@@ -2,8 +2,15 @@ import PropTypes from 'prop-types';
 import { Drawer } from '@mui/material';
 import { drawerWidth } from '@layouts/mainLayout';
 import DrawerContent from '@layouts/mainLayout/components/drawerContent';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const MobileDrawer = ({ open, toggleDrawer }) => {
+	const location = useLocation().pathname;
+
+	useEffect(() => {
+		toggleDrawer();
+	}, [location]);
 	return (
 		<Drawer
 			variant={'temporary'}

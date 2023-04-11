@@ -3,8 +3,9 @@ import { Drawer } from '@mui/material';
 import { drawerWidth } from '@layouts/mainLayout';
 import DrawerContent from '@layouts/mainLayout/components/drawerContent';
 import shadows from '@config/theme/base/shadows';
+import { pxToRem } from '@config/theme/functions';
 
-const DesktopDrawer = ({ open, toggleDrawer }) => {
+const DesktopDrawer = ({ open }) => {
 	const { xxl } = shadows;
 
 	return (
@@ -14,7 +15,8 @@ const DesktopDrawer = ({ open, toggleDrawer }) => {
 			sx={{
 				'& .MuiDrawer-paper': {
 					borderRadius: 1,
-					position: 'relative',
+					position: 'sticky',
+					top: pxToRem(16),
 					width: drawerWidth,
 					height: `calc(100vh - 32px)`,
 					margin: 2,

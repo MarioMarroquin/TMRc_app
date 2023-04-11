@@ -3,35 +3,29 @@ import {
 	Avatar,
 	Box,
 	IconButton,
-	Menu,
 	MenuItem,
 	Toolbar,
 	Tooltip,
 	Typography,
-	useMediaQuery,
 	useTheme,
 } from '@mui/material';
-import {
-	FoodBank,
-	Hail,
-	Inventory2,
-	KeyboardArrowRight,
-	Logout,
-	MenuOpen,
-} from '@mui/icons-material';
+import { KeyboardArrowRight, Logout, MenuOpen } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { drawerWidth } from '@layouts/mainLayout';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from '@providers/session';
-import MobileDrawer from '@layouts/mainLayout/components/mobileDrawer';
-import DesktopDrawer from '@layouts/mainLayout/components/desktopDrawer';
 import CustomMenu from '@components/customMenu';
 import { pxToRem } from '@config/theme/functions';
+import colors from '@config/theme/base/colors';
+import shadows from '@config/theme/base/shadows';
 
 const TopBar = ({ open, toggleDrawer }) => {
 	const theme = useTheme();
 	const [anchorMenu, setAnchorMenu] = useState(null);
 	const { logout, user } = useSession();
+	const [transparent, setTransparent] = useState(true);
+
+	const { navbarBoxShadow } = shadows;
 
 	const handleOpenMenu = (event) => {
 		setAnchorMenu(event.currentTarget);
@@ -41,18 +35,33 @@ const TopBar = ({ open, toggleDrawer }) => {
 		setAnchorMenu(null);
 	};
 
+	useEffect(() => {
+		function handleTransparentNavbar() {
+			if (window.scrollY !== 0) {
+				setTransparent(false);
+			} else {
+				setTransparent(true);
+			}
+		}
+		window.addEventListener('scroll', handleTransparentNavbar);
+
+		return () => window.removeEventListener('scroll', handleTransparentNavbar);
+	}, []);
+
 	return (
 		<AppBar
-			position={'absolute'} // fixed
+			position={'fixed'} // fixed
 			sx={{
 				// ----------------------------------------------------------------
 				// borderBottomRightRadius: (theme) => theme.shape.borderRadius,
 				borderRadius: 1,
-				boxShadow: 'none',
+				boxShadow: transparent ? 'none' : navbarBoxShadow,
 				top: 16,
 				right: { xs: 16, sm: 24 },
 				backdropFilter: `saturate(200%) blur(1.875rem)`,
-				backgroundColor: 'rgba(255,255,255,0.8)',
+				backgroundColor: transparent
+					? `${colors.transparent.main} !important`
+					: 'rgba(255,255,255,0.8)',
 				// ----------------------------------------------------------------
 				zIndex: 1200,
 				width: (theme) => ({
