@@ -1,4 +1,6 @@
 import {
+	Autocomplete,
+	Box,
 	Button,
 	Dialog,
 	DialogActions,
@@ -7,19 +9,30 @@ import {
 	Grid,
 	InputAdornment,
 	TextField,
+	Typography,
 } from '@mui/material';
 import { useMutation } from '@apollo/client';
 import { CREATE_CLIENT } from '@views/main/clients/components/newClientDialog/requests';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useLoading } from '@providers/loading';
 import DraggablePaper from '@components/draggablePaper';
 import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
+import client from '@graphql';
+import { LocationOn } from '@mui/icons-material';
+import useGoogle from 'react-google-autocomplete/lib/usePlacesAutocompleteService';
+import { googleMapsApiKey } from '@config/environment';
 
 const InitialClientForm = {
 	firstName: '',
 	lastName: '',
 	phoneNumber: '',
+	addresses: {
+		alias: '',
+		formattedAddress: '',
+		info: '',
+		coordinates: [],
+	},
 };
 
 const NewClientDialog = ({ reloadClients }) => {
@@ -29,7 +42,24 @@ const NewClientDialog = ({ reloadClients }) => {
 	const [createClient] = useMutation(CREATE_CLIENT);
 	const [isVisible, setIsVisible] = useState(false);
 
-	const toggleDialog = () => setIsVisible(!isVisible);
+	const {
+		placesService,
+		placePredictions,
+		getPlacePredictions,
+		isPlacePredictionsLoading,
+	} = useGoogle({
+		apiKey: googleMapsApiKey,
+		options: {
+			componentRestrictions: { country: 'mx' },
+		},
+	});
+
+	const resetState = () => setClientForm(InitialClientForm);
+
+	const toggleDialog = () => {
+		setIsVisible(!isVisible);
+		resetState();
+	};
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
 
@@ -47,19 +77,119 @@ const NewClientDialog = ({ reloadClients }) => {
 		}
 	};
 
+	const handleInputChangeAddressData = (e) => {
+		const { name, value } = e.target;
+
+		setClientForm({
+			...clientForm,
+			addresses: { ...clientForm.addresses, [name]: value },
+		});
+	};
+
+	const handleInputChangeAddress = (event, value) => {
+		getPlacePredictions({ input: value });
+
+		let newAddress = { ...clientForm.addresses };
+
+		const lastDescription = clientForm.addresses.formattedAddress;
+		const actualCoordinates = clientForm.addresses.coordinates;
+
+		if (!value) {
+			newAddress = {
+				...newAddress,
+				formattedAddress: '',
+				coordinates: [],
+			};
+
+			setClientForm({
+				...clientForm,
+				addresses: newAddress,
+			});
+		} else if (
+			lastDescription.length > value.length ||
+			(lastDescription.length < value.length && actualCoordinates.length)
+		) {
+			newAddress = {
+				...newAddress,
+				formattedAddress: value,
+				coordinates: [],
+			};
+
+			setClientForm({
+				...clientForm,
+				addresses: newAddress,
+			});
+		} else {
+			newAddress = { ...newAddress, formattedAddress: value };
+
+			setClientForm({
+				...clientForm,
+				addresses: newAddress,
+			});
+		}
+	};
+
+	const handleInputOnChangeAddress = (event, value) => {
+		let newAddress = { ...clientForm.addresses };
+
+		if (!value) {
+			newAddress = {
+				...newAddress,
+				formattedAddress: '',
+				coordinates: [],
+			};
+
+			setClientForm({
+				...clientForm,
+				addresses: newAddress,
+			});
+		} else {
+			let loc = [];
+			placesService?.getDetails(
+				{
+					placeId: value.place_id,
+					fields: ['geometry'],
+				},
+				(placeDetails) => {
+					loc.push(placeDetails.geometry.location.lat());
+					loc.push(placeDetails.geometry.location.lng());
+				}
+			);
+
+			newAddress = {
+				...newAddress,
+				formattedAddress: value.description,
+				coordinates: loc,
+			};
+
+			setClientForm({
+				...clientForm,
+				addresses: newAddress,
+			});
+		}
+	};
+
 	const check = () => {
 		if (clientForm.firstName === '') {
-			toast('Nombre faltante');
+			toast('Nombre incompleto');
 			return true;
 		}
 
 		if (clientForm.lastName === '') {
-			toast('Nombre faltante');
+			toast('Nombre incompleto');
 			return true;
 		}
 
 		if (clientForm.phoneNumber.length < 10) {
-			toast('Número faltante');
+			toast('Número incompleto');
+			return true;
+		}
+
+		if (
+			clientForm.addresses.formattedAddress &&
+			!clientForm.addresses.coordinates.length
+		) {
+			toast('Dirección incompleta');
 			return true;
 		}
 
@@ -87,7 +217,6 @@ const NewClientDialog = ({ reloadClients }) => {
 					toast.success('Cliente guardado');
 					toggleDialog();
 					reloadClients();
-					setClientForm(InitialClientForm);
 				} else {
 					console.log('Errores', res.errors);
 					toast.error('Error al guardar');
@@ -111,6 +240,7 @@ const NewClientDialog = ({ reloadClients }) => {
 				onClose={toggleDialog}
 				PaperComponent={DraggablePaper}
 				aria-labelledby={'dialogTitleDrag'}
+				fullWidth
 			>
 				<DialogTitle
 					sx={{
@@ -120,7 +250,8 @@ const NewClientDialog = ({ reloadClients }) => {
 					Nuevo cliente
 				</DialogTitle>
 				<DialogContent>
-					<Grid container spacing={2} pt={1}>
+					<Typography variant={'caption'}>Datos:</Typography>
+					<Grid container spacing={2} py={1}>
 						<Grid item xs={12} sm={6}>
 							<TextField
 								fullWidth
@@ -157,24 +288,60 @@ const NewClientDialog = ({ reloadClients }) => {
 								}}
 							/>
 						</Grid>
+					</Grid>
+
+					<Typography variant={'caption'}>Adicional:</Typography>
+
+					<Grid container spacing={2} py={2}>
 						<Grid item xs={12}>
 							<TextField
 								fullWidth
-								id={'address'}
-								name={'address'}
-								label={'Dirección'}
-								value={null}
-								onChange={null}
+								id={'alias'}
+								name={'alias'}
+								label={'Alias'}
+								value={clientForm.addresses.alias}
+								onChange={handleInputChangeAddressData}
 							/>
 						</Grid>
 						<Grid item xs={12}>
-							<TextField
-								fullWidth
-								id={'details'}
-								name={'details'}
-								label={'Detalles'}
-								value={null}
-								onChange={null}
+							<Autocomplete
+								freeSolo
+								forcePopupIcon={true}
+								options={placePredictions}
+								getOptionLabel={(option) =>
+									typeof option === 'string' ? option : option.description
+								}
+								autoComplete
+								includeInputInList
+								value={clientForm.addresses.formattedAddress}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										label={'Dirección'}
+										multiline
+										rows={2}
+									/>
+								)}
+								loading={isPlacePredictionsLoading}
+								onInputChange={handleInputChangeAddress}
+								onChange={handleInputOnChangeAddress}
+								renderOption={(props, option) => (
+									<li {...props}>
+										<Grid container alignItems='center'>
+											<Grid item>
+												<Box
+													component={LocationOn}
+													sx={{ color: 'text.secondary', mr: 2 }}
+												/>
+											</Grid>
+											<Grid item xs>
+												<Typography variant='body2' color='text.secondary'>
+													{option.description}
+												</Typography>
+											</Grid>
+										</Grid>
+									</li>
+								)}
 							/>
 						</Grid>
 					</Grid>

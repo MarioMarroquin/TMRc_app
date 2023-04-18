@@ -105,24 +105,19 @@ const Clients = () => {
 
 			<Grid container spacing={2}>
 				<Grid item xs={12} md={9}>
-					<Card>
-						<CardHeader title='Clientes' subheader='Total' sx={{ pb: 0 }} />
-						<CardContent>
-							<div>
-								<CustomDataGrid
-									rows={clients}
-									columns={headers}
-									onRowClick={(data, e) => {
-										setSelectedClient(data.row);
-										ref.current?.scrollIntoView({ behavior: 'smooth' });
-									}}
-									onRowSelectionModelChange={handleClick}
-									rowSelectionModel={selectionModel}
-									slots={{ toolbar: CustomToolbar }}
-								/>
-							</div>
-						</CardContent>
-					</Card>
+					<Paper>
+						<CustomDataGrid
+							rows={clients}
+							columns={headers}
+							onRowClick={(data, e) => {
+								setSelectedClient(data.row);
+								ref.current?.scrollIntoView({ behavior: 'smooth' });
+							}}
+							onRowSelectionModelChange={handleClick}
+							rowSelectionModel={selectionModel}
+							slots={{ toolbar: CustomToolbar }}
+						/>
+					</Paper>
 				</Grid>
 
 				<Grid ref={ref} item xs={12} md={3}>

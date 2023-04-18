@@ -11,6 +11,7 @@ const MobileDrawer = ({ open, toggleDrawer }) => {
 	useEffect(() => {
 		toggleDrawer();
 	}, [location]);
+
 	return (
 		<Drawer
 			variant={'temporary'}

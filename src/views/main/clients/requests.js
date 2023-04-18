@@ -9,6 +9,10 @@ const GET_CLIENTS = gql`
 				lastName
 				phoneNumber
 				createdAt
+				company {
+					id
+					name
+				}
 			}
 		}
 	}

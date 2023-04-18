@@ -49,6 +49,7 @@
     "react-cookies": "^0.1.1",
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.5",
+    "react-google-autocomplete": "^2.7.0",
     "react-hot-toast": "^2.4.0",
     "react-loader-spinner": "^5.3.4",
     "react-router-dom": "^6.9.0",

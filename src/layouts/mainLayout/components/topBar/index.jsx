@@ -18,6 +18,7 @@ import CustomMenu from '@components/customMenu';
 import { pxToRem } from '@config/theme/functions';
 import colors from '@config/theme/base/colors';
 import shadows from '@config/theme/base/shadows';
+import CustomBreadcrumbs from '@components/customBreadcrumbs';
 
 const TopBar = ({ open, toggleDrawer }) => {
 	const theme = useTheme();
@@ -91,6 +92,8 @@ const TopBar = ({ open, toggleDrawer }) => {
 				<IconButton sx={{ mr: 2 }} edge={'start'} onClick={toggleDrawer}>
 					{open ? <MenuOpen /> : <KeyboardArrowRight />}
 				</IconButton>
+
+				<CustomBreadcrumbs />
 
 				<Typography
 					variant={'h5'}
