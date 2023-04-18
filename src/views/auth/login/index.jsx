@@ -15,6 +15,7 @@ import { useLoading } from '@providers/loading';
 import { authClient } from '@utils/auth';
 import { useSession } from '@providers/session';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const InitialLoginForm = {
 	userName: '',
@@ -24,6 +25,7 @@ const InitialLoginForm = {
 
 const Login = () => {
 	const theme = useTheme();
+	const navigate = useNavigate();
 	const { setIsLogged } = useSession();
 
 	const { setLoading } = useLoading();
@@ -46,6 +48,7 @@ const Login = () => {
 			await authClient.post('/login', loginForm).then((res) => {
 				setIsLogged(true);
 				setLoading(false);
+				navigate('/home');
 			});
 		} catch (err) {
 			toast.error('Revisa el correo y/o la contraseña');

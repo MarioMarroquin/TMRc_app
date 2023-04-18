@@ -1,56 +1,56 @@
 import PropTypes from 'prop-types';
-import {
-	Avatar,
-	Box,
-	Card,
-	CardContent,
-	CardHeader,
-	IconButton,
-	Stack,
-	Typography,
-} from '@mui/material';
-import { Fragment } from 'react';
-import { Email, NoAccounts, Phone, WhatsApp } from '@mui/icons-material';
-import { grey } from '@mui/material/colors';
+import { Card, CardContent, Grid } from '@mui/material';
+import { useParams } from 'react-router-dom';
+import { useLoading } from '@providers/loading';
+import { useEffect, useState } from 'react';
+import { GET_CLIENT } from './requests';
+import { useQuery } from '@apollo/client';
+import shadows from '@config/theme/base/shadows';
 
-const ClientDetails = ({ client }) => {
+const ClientDetails = (props) => {
+	const { id } = useParams();
+	const { setLoading } = useLoading();
+	const [client, setClient] = useState();
+
+	const { data, loading } = useQuery(GET_CLIENT, {
+		variables: {
+			clientId: id,
+		},
+	});
+
+	useEffect(() => {
+		setLoading(true);
+		if (data) {
+			const aux = data.client;
+			setClient(aux);
+			console.log(aux);
+		}
+		setLoading(false);
+	}, [data]);
+
 	return (
-		<Card>
-			<CardHeader title='Detalles' titleTypographyProps={{ align: 'center' }} />
-			<CardContent>
-				{client ? (
-					<Stack alignItems={'center'} spacing={2}>
-						<Avatar sx={{ width: 68, height: 68 }} />
-						<Typography>{client.firstName}</Typography>
-						<Typography>{client.phoneNumbers}</Typography>
+		<Grid container spacing={2}>
+			<Grid item xs={12} sm={8}>
+				<Card>
+					<CardContent>Cliente</CardContent>
+				</Card>
+			</Grid>
 
-						<Box>
-							<IconButton color={'secondary'}>
-								<Phone />
-							</IconButton>
-							<IconButton sx={{ color: 'green' }}>
-								<WhatsApp />
-							</IconButton>
-							<IconButton color={'secondary'}>
-								<Email />
-							</IconButton>
-						</Box>
+			<Grid item xs={12} sm={4}>
+				<Card>
+					<CardContent>Llamadas historial</CardContent>
+				</Card>
+			</Grid>
 
-						<Typography>Ver cliente completo</Typography>
-					</Stack>
-				) : (
-					<Stack alignItems={'center'}>
-						<NoAccounts sx={{ width: 68, height: 68, color: grey[500] }} />
-						<Typography color={'secondary'}>No hay selección</Typography>
-					</Stack>
-				)}
-			</CardContent>
-		</Card>
+			<Grid item xs={12}>
+				<Card>
+					<CardContent>TOdas las tasks relacionadas a el</CardContent>
+				</Card>
+			</Grid>
+		</Grid>
 	);
 };
 
-ClientDetails.propTypes = {
-	client: PropTypes.object,
-};
+ClientDetails.propTypes = {};
 
 export default ClientDetails;

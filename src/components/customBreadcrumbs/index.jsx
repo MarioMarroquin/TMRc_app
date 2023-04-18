@@ -6,9 +6,10 @@ const CustomBreadcrumbs = () => {
 	const location = useLocation().pathname;
 	const route = location.split('/').filter((x) => x);
 
-	const searchName = (value) => {
+	const searchName = (value, index, list) => {
 		const res = routes.find(({ path }) => path === `/${value}`);
 
+		if (!res) return '';
 		return res.name;
 	};
 
@@ -20,11 +21,11 @@ const CustomBreadcrumbs = () => {
 
 				return last ? (
 					<Typography color='text.primary' key={value}>
-						{searchName(value)}
+						{searchName(value, index, route)}
 					</Typography>
 				) : (
 					<Link underline='hover' color='inherit' href={to} key={value}>
-						{searchName(value)}
+						{searchName(value, index, route)}
 					</Link>
 				);
 			})}

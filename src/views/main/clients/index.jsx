@@ -19,7 +19,7 @@ import NewClientDialog from '@views/main/clients/components/newClientDialog';
 import { useQuery } from '@apollo/client';
 import { GET_CLIENTS } from '@views/main/clients/requests';
 import moment from 'moment';
-import ClientDetails from '@views/main/clients/components/clientDetails';
+import ClientCard from '@views/main/clients/components/clientCard';
 import {
 	GridToolbar,
 	GridToolbarContainer,
@@ -97,11 +97,11 @@ const Clients = () => {
 
 	return (
 		<Fragment>
-			{/*<Paper>*/}
-			{/*	<Toolbar variant={'dense'} sx={{ mb: 2 }}>*/}
-			{/*		<NewClientDialog reloadClients={refetch} />*/}
-			{/*	</Toolbar>*/}
-			{/*</Paper>*/}
+			{/* <Paper> */}
+			{/*	<Toolbar variant={'dense'} sx={{ mb: 2 }}> */}
+			{/*		<NewClientDialog reloadClients={refetch} /> */}
+			{/*	</Toolbar> */}
+			{/* </Paper > */}
 
 			<Grid container spacing={2}>
 				<Grid item xs={12} md={9}>
@@ -121,7 +121,7 @@ const Clients = () => {
 				</Grid>
 
 				<Grid ref={ref} item xs={12} md={3}>
-					<ClientDetails client={selectedClient} />
+					<ClientCard client={selectedClient} />
 				</Grid>
 			</Grid>
 		</Fragment>

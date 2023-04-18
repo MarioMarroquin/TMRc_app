@@ -2,6 +2,11 @@ import { createTheme } from '@mui/material';
 import { esES } from '@mui/material/locale';
 import { esES as esESX } from '@mui/x-data-grid';
 import colors from './base/colors';
+import shadows from '@config/theme/base/shadows';
+import { pxToRem } from '@config/theme/functions';
+import DraggablePaper from '@components/draggablePaper';
+
+const { xxl } = shadows;
 
 const theme = createTheme(
 	{
@@ -41,6 +46,37 @@ const theme = createTheme(
 						'&.Mui-selected': {
 							backgroundColor: colors.background.default,
 						},
+					},
+				},
+			},
+			MuiCard: {
+				defaultProps: {
+					elevation: 0,
+				},
+				styleOverrides: {
+					root: {
+						boxShadow: xxl,
+					},
+				},
+			},
+			MuiCardContent: {
+				styleOverrides: {
+					root: {
+						padding: `${pxToRem(8)} ${pxToRem(24)} `,
+					},
+				},
+			},
+			MuiDialog: {
+				defaultProps: {
+					fullWidth: true,
+					PaperComponent: DraggablePaper,
+					'aria-labelledby': 'dialogTitleDrag',
+				},
+			},
+			MuiDialogTitle: {
+				styleOverrides: {
+					root: {
+						cursor: 'move',
 					},
 				},
 			},

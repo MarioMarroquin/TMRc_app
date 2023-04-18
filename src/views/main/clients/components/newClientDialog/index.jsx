@@ -13,12 +13,11 @@ import {
 } from '@mui/material';
 import { useMutation } from '@apollo/client';
 import { CREATE_CLIENT } from '@views/main/clients/components/newClientDialog/requests';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useLoading } from '@providers/loading';
 import DraggablePaper from '@components/draggablePaper';
 import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
-import client from '@graphql';
 import { LocationOn } from '@mui/icons-material';
 import useGoogle from 'react-google-autocomplete/lib/usePlacesAutocompleteService';
 import { googleMapsApiKey } from '@config/environment';
@@ -235,20 +234,8 @@ const NewClientDialog = ({ reloadClients }) => {
 				Agregar Cliente
 			</Button>
 
-			<Dialog
-				open={isVisible}
-				onClose={toggleDialog}
-				PaperComponent={DraggablePaper}
-				aria-labelledby={'dialogTitleDrag'}
-				fullWidth
-			>
-				<DialogTitle
-					sx={{
-						cursor: 'move',
-					}}
-				>
-					Nuevo cliente
-				</DialogTitle>
+			<Dialog open={isVisible} onClose={toggleDialog}>
+				<DialogTitle>Nuevo cliente</DialogTitle>
 				<DialogContent>
 					<Typography variant={'caption'}>Datos:</Typography>
 					<Grid container spacing={2} py={1}>
@@ -342,6 +329,18 @@ const NewClientDialog = ({ reloadClients }) => {
 										</Grid>
 									</li>
 								)}
+							/>
+						</Grid>
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								multiline
+								rows={2}
+								id={'info'}
+								name={'info'}
+								label={'Info'}
+								value={clientForm.addresses.info}
+								onChange={handleInputChangeAddressData}
 							/>
 						</Grid>
 					</Grid>

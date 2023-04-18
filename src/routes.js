@@ -1,6 +1,7 @@
 import {
 	Analytics,
 	Assessment,
+	Business,
 	Home as HomeIcon,
 	Message,
 	Person,
@@ -8,6 +9,8 @@ import {
 } from '@mui/icons-material';
 import Home from '@views/main/home';
 import Clients from '@views/main/clients';
+import ClientDetails from '@views/main/clients/components/clientDetails';
+import Calls from '@views/main/calls';
 
 const routes = [
 	{
@@ -23,16 +26,16 @@ const routes = [
 		render: <h1>Estadísticas</h1>,
 	},
 	{
-		name: 'Mensajes',
-		path: '/messages',
-		icon: <Message />,
-		render: <h1>Mensajes</h1>,
+		name: 'Compañias',
+		path: '/companies',
+		icon: <Business />,
+		render: <h1>Compañias</h1>,
 	},
 	{
 		name: 'Llamadas',
 		path: '/calls',
 		icon: <SettingsPhone />,
-		render: <h1>Llamadas</h1>,
+		render: <Calls />,
 	},
 	{
 		name: 'Reportes',
@@ -45,6 +48,7 @@ const routes = [
 		path: '/clients',
 		icon: <Person />,
 		render: <Clients />,
+		child: [{ path: ':id', render: <ClientDetails /> }],
 	},
 ];
 

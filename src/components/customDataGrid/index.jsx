@@ -1,5 +1,6 @@
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { useTheme } from '@mui/material';
+import { pxToRem } from '@config/theme/functions';
 
 const selectedSecondaryColor = 'rgba(222,222,222,0.85)';
 
@@ -16,12 +17,13 @@ const CustomDataGrid = (props) => {
 			sx={{
 				'.MuiDataGrid-columnHeaders': {
 					borderBottom: 'none',
-					backgroundColor: 'rgba(222,222,222,0.15)',
-					borderBottomLeftRadius: 1,
-					borderBottomRightRadius: 1,
 				},
 				'.MuiDataGrid-columnHeaderTitle': {
 					fontWeight: 'bold',
+					fontSize: pxToRem(11),
+					color: 'text.secondary',
+					paddingLeft: pxToRem(8),
+					opacity: 0.7,
 				},
 				'& .MuiDataGrid-cell': {
 					borderBottom: 'none',
