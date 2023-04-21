@@ -24,6 +24,8 @@ import { CREATE_CALL, GET_CLIENTS } from './requests';
 import useDebounce from '@hooks/use-debounce';
 import { pxToRem } from '@config/theme/functions';
 import { DateTimePicker } from '@mui/x-date-pickers';
+import toast from 'react-hot-toast';
+import { isValid } from 'date-fns';
 
 const InitialCall = {
 	callTime: new Date(),
@@ -42,7 +44,7 @@ const InitialClient = {
 	},
 };
 
-const NewCallDialog = (props) => {
+const NewCallDialog = ({ reloadCalls }) => {
 	const { setLoading } = useLoading();
 
 	const [searchedClients, setSearchedClients] = useState([]);
@@ -140,11 +142,56 @@ const NewCallDialog = (props) => {
 	};
 
 	const check = () => {
+		if (!isValid(call.callTime)) {
+			toast('Fecha incorrecta');
+			return true;
+		}
+
+		if (call.duration === '') {
+			toast('Duración incorrecta');
+			return true;
+		}
+
+		if (call.phoneNumber.length < 10) {
+			toast('Número incompleto');
+			return true;
+		}
+
+		if (toWhom.lastName && !toWhom.id) {
+			toast('Selecciona cliente');
+		}
+
 		return false;
 	};
 
 	const onFinish = (e) => {
+		e.preventDefault();
+
 		setLoading(true);
+
+		if (check()) {
+			setLoading(false);
+			return;
+		}
+
+		const clientId = toWhom.id;
+
+		createCall({ variables: { call, clientId } })
+			.then((res) => {
+				if (!res.error) {
+					toast.success('Llamada guardada');
+					toggleDialog();
+					reloadCalls();
+				} else {
+					console.log('Errores', res.errors);
+					toast.error('Error al guardar');
+				}
+				setLoading(false);
+			})
+			.catch((err) => {
+				console.log('Error', err);
+				setLoading(false);
+			});
 	};
 
 	// fetch data from server

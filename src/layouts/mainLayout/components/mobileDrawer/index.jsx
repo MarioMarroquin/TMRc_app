@@ -9,7 +9,7 @@ const MobileDrawer = ({ open, toggleDrawer }) => {
 	const location = useLocation().pathname;
 
 	useEffect(() => {
-		toggleDrawer();
+		if (open) toggleDrawer();
 	}, [location]);
 
 	return (
