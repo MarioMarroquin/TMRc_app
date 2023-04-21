@@ -37,6 +37,7 @@
     "@mui/material": "^5.11.14",
     "@mui/styled-engine-sc": "^5.11.11",
     "@mui/x-data-grid": "^6.0.2",
+    "@mui/x-date-pickers": "^6.2.1",
     "@wojtekmaj/react-timerange-picker": "^4.2.0",
     "apexcharts": "^3.37.2",
     "axios": "^1.3.4",

@@ -1,18 +1,20 @@
 import { gql } from '@apollo/client';
 
 const GET_CLIENTS = gql`
-	query GetClients {
-		clients {
+	query Results($params: QueryParams!) {
+		clients(params: $params) {
 			results {
 				id
 				firstName
 				lastName
 				phoneNumber
 				createdAt
-				company {
-					id
-					name
-				}
+			}
+			info {
+				count
+				pages
+				prev
+				next
 			}
 		}
 	}

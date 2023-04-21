@@ -14,6 +14,8 @@ const CustomDataGrid = (props) => {
 		<DataGrid
 			{...props}
 			autoHeight
+			paginationMode={'server'}
+			pageSizeOptions={[5, 10, 15, 20]}
 			sx={{
 				'.MuiDataGrid-columnHeaders': {
 					borderBottom: 'none',
@@ -40,8 +42,12 @@ const CustomDataGrid = (props) => {
 				'.MuiDataGrid-footerContainer': {
 					border: 'none',
 				},
+				'& .MuiDataGrid-row:hover': {
+					borderRadius: 1,
+				},
 				'& .MuiDataGrid-row.Mui-selected': {
 					background: selectedSecondaryColor,
+					borderRadius: 1,
 					'&:hover': {
 						backgroundColor: selectedSecondaryColor,
 					},

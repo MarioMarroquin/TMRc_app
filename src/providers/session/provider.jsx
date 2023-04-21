@@ -68,7 +68,7 @@ const SessionProvider = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// Listen when other tab logs out so every single tab returns to login
+		// Listen when other tab logs out so every single tab returns to log in
 		const logoutListener = async (event) => {
 			if (event.key === 'logout') logoutWindow();
 		};
@@ -87,7 +87,6 @@ const SessionProvider = ({ children }) => {
 			const aux = dataUser.userByToken;
 			setUser(aux);
 			setLoading(false);
-			console.log(token);
 		}
 	}, [dataUser]);
 

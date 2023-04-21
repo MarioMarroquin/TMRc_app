@@ -3,12 +3,24 @@ import { useQuery } from '@apollo/client';
 import { GET_CALLS } from './requests';
 import { useLoading } from '@providers/loading';
 import moment from 'moment/moment';
-import { Card, CardContent, CardHeader, Grid, Paper } from '@mui/material';
+import {
+	Button,
+	Card,
+	CardContent,
+	CardHeader,
+	Fab,
+	Grid,
+	LinearProgress,
+	Paper,
+	Toolbar,
+} from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
 import ClientCard from '@views/main/clients/components/clientCard';
 import { format } from 'date-fns';
 import shadows from '@config/theme/base/shadows';
 import { pxToRem } from '@config/theme/functions';
+import { Add } from '@mui/icons-material';
+import NewCallDialog from '@views/main/calls/components/newCallDialog';
 
 const headers = [
 	{
@@ -16,47 +28,60 @@ const headers = [
 		headerName: 'FECHA',
 		headerAlign: 'left',
 		align: 'left',
-		width: 400,
+		width: 300,
 		valueFormatter: (params) => {
-			return format(new Date(params.value), 'dd / MM / yyyy - HH:mm');
+			return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
 		},
 	},
-	// {
-	// 	field: 'user',
-	// 	headerName: 'Nombre de usuario',
-	// 	headerAlign: 'center',
-	// 	align: 'center',
-	// 	flex: 1,
-	// 	minWidth: 200,
-	// 	valueGetter: (params) => {
-	// 		if (params.row.client === null) {
-	// 			return 'Sin cliente';
-	// 		} else {
-	// 			return params.row.firstName + ' ' + params.row.lastName;
-	// 		}
-	// 	},
-	// },
-	//
-	// {
-	// 	field: 'phoneNumber',
-	// 	headerName: 'Teléfono',
-	// 	headerAlign: 'center',
-	// 	align: 'center',
-	// 	width: 200,
-	// },
+	{
+		field: 'client',
+		headerName: 'CLIENTE',
+		headerAlign: 'center',
+		align: 'center',
+		flex: 1,
+		minWidth: 200,
+		valueGetter: (params) => {
+			if (params.row.client === null) {
+				return 'Sin cliente';
+			} else {
+				return params.row.client.firstName + ' ' + params.row.client.lastName;
+			}
+		},
+	},
+
+	{
+		field: 'duration',
+		headerName: 'DURACIÓN (min)',
+		headerAlign: 'center',
+		align: 'center',
+		width: 120,
+	},
 ];
 
 const Calls = () => {
 	const { setLoading } = useLoading();
 	const [calls, setCalls] = useState([]);
-
-	const { data, refetch } = useQuery(GET_CALLS);
+	const [countRows, setCountRows] = useState(0);
+	const [paginationModel, setPaginationModel] = useState({
+		page: 0,
+		pageSize: 5,
+	});
+	const { data, loading, refetch } = useQuery(GET_CALLS, {
+		variables: {
+			params: {
+				page: paginationModel.page,
+				pageSize: paginationModel.pageSize,
+			},
+		},
+	});
 
 	useEffect(() => {
 		setLoading(true);
 		if (data) {
 			const aux = data.calls.results;
+			const auxCount = data.calls.info.count;
 			setCalls(aux);
+			setCountRows(auxCount);
 		}
 
 		setLoading(false);
@@ -71,14 +96,31 @@ const Calls = () => {
 			{/* </Paper > */}
 
 			<Grid container spacing={2}>
-				<Grid item xs={12} md={9}>
+				<Grid item xs={12}>
 					<Card>
 						<CardContent>
-							<CustomDataGrid rows={calls} columns={headers} />
+							<Toolbar variant={'dense'}>
+								<NewCallDialog />
+							</Toolbar>
+							<CustomDataGrid
+								rows={calls}
+								columns={headers}
+								loading={loading}
+								slots={{
+									loadingOverlay: LinearProgress,
+								}}
+								slotProps={{ loadingOverlay: { color: 'secondary' } }}
+								rowCount={countRows}
+								paginationModel={paginationModel}
+								onPaginationModelChange={setPaginationModel}
+							/>
 						</CardContent>
 					</Card>
 				</Grid>
 			</Grid>
+			<Fab sx={{ position: 'absolute', bottom: 16, right: 16 }}>
+				<Add />
+			</Fab>
 		</Fragment>
 	);
 };

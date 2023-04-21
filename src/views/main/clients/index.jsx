@@ -1,84 +1,71 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import {
-	Avatar,
-	Box,
-	Button,
-	Card,
-	CardContent,
-	CardHeader,
-	ClickAwayListener,
-	Collapse,
-	Grid,
-	Paper,
-	Toolbar,
-	Typography,
-} from '@mui/material';
-import Chart from 'react-apexcharts';
+import { Card, CardContent, Grid, LinearProgress } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
 import NewClientDialog from '@views/main/clients/components/newClientDialog';
 import { useQuery } from '@apollo/client';
 import { GET_CLIENTS } from '@views/main/clients/requests';
-import moment from 'moment';
 import ClientCard from '@views/main/clients/components/clientCard';
-import {
-	GridToolbar,
-	GridToolbarContainer,
-	GridToolbarQuickFilter,
-	useGridApiRef,
-} from '@mui/x-data-grid';
-import { Search } from '@mui/icons-material';
+import { GridToolbarContainer, GridToolbarQuickFilter } from '@mui/x-data-grid';
+import { format } from 'date-fns';
 
 const Clients = () => {
 	const [clients, setClients] = useState([]);
+	const [countRows, setCountRows] = useState(0);
+	const [paginationModel, setPaginationModel] = useState({
+		page: 0,
+		pageSize: 5,
+	});
 	const [selectionModel, setSelectionModel] = useState([]);
 	const [selectedClient, setSelectedClient] = useState();
 
 	const ref = useRef();
 
-	const { data, refetch } = useQuery(GET_CLIENTS);
+	const { data, refetch, loading } = useQuery(GET_CLIENTS, {
+		variables: {
+			params: {
+				page: paginationModel.page,
+				pageSize: paginationModel.pageSize,
+			},
+		},
+	});
 
 	useEffect(() => {
 		if (data) {
 			const aux = data.clients.results;
+			const auxCount = data.clients.info.count;
+			setCountRows(auxCount);
 			setClients(aux);
 		}
 	}, [data]);
 
 	const headers = [
 		{
-			field: 'user',
-			headerName: 'Nombre de usuario',
-			headerAlign: 'center',
-			align: 'center',
+			field: 'client',
+			headerName: 'NOMBRE',
+			headerAlign: 'left',
+			align: 'left',
 			flex: 1,
 			minWidth: 200,
 			valueGetter: (params) => {
-				if (params.row.client === null) {
-					return 'Sin cliente';
-				} else {
-					return params.row.firstName + ' ' + params.row.lastName;
-				}
+				return params.row.firstName + ' ' + params.row.lastName;
 			},
 		},
 
 		{
 			field: 'phoneNumber',
-			headerName: 'Teléfono',
+			headerName: 'TELÉFONO',
 			headerAlign: 'center',
 			align: 'center',
 			width: 200,
 		},
 		{
 			field: 'createdAt',
-			headerName: 'Actualizado',
+			headerName: 'ULT. ACTUALIZACIÓN',
 			headerAlign: 'center',
 			align: 'center',
 			width: 200,
 			valueFormatter: (params) => {
-				const date = new Date(params.value);
-				const formattedDate = moment(date).format('DD/MM/YYYY hh:mm a');
-
-				return formattedDate;
+				return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
 			},
 		},
 	];
@@ -105,19 +92,29 @@ const Clients = () => {
 
 			<Grid container spacing={2}>
 				<Grid item xs={12} md={9}>
-					<Paper>
-						<CustomDataGrid
-							rows={clients}
-							columns={headers}
-							onRowClick={(data, e) => {
-								setSelectedClient(data.row);
-								ref.current?.scrollIntoView({ behavior: 'smooth' });
-							}}
-							onRowSelectionModelChange={handleClick}
-							rowSelectionModel={selectionModel}
-							slots={{ toolbar: CustomToolbar }}
-						/>
-					</Paper>
+					<Card>
+						<CardContent>
+							<CustomDataGrid
+								rows={clients}
+								columns={headers}
+								loading={loading}
+								slots={{
+									toolbar: CustomToolbar,
+									loadingOverlay: LinearProgress,
+								}}
+								slotProps={{ loadingOverlay: { color: 'secondary' } }}
+								rowCount={countRows}
+								paginationModel={paginationModel}
+								onPaginationModelChange={setPaginationModel}
+								rowSelectionModel={selectionModel}
+								onRowSelectionModelChange={handleClick}
+								onRowClick={(data, e) => {
+									setSelectedClient(data.row);
+									ref.current?.scrollIntoView({ behavior: 'smooth' });
+								}}
+							/>
+						</CardContent>
+					</Card>
 				</Grid>
 
 				<Grid ref={ref} item xs={12} md={3}>

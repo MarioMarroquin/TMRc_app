@@ -37,9 +37,18 @@ const theme = createTheme(
 				defaultProps: {
 					size: 'small',
 					color: 'secondary',
+					margin: 'dense',
+					fullWidth: true,
 				},
 			},
-
+			MuiFormControl: {
+				defaultProps: {
+					size: 'small',
+					color: 'secondary',
+					margin: 'dense',
+					fullWidth: true,
+				},
+			},
 			MuiListItemButton: {
 				styleOverrides: {
 					root: {
@@ -77,6 +86,21 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						cursor: 'move',
+					},
+				},
+			},
+			MuiTab: {
+				styleOverrides: {
+					root: {
+						// '&.Mui-selected': {
+						// 	color: 'secondary',
+						// },
+						'&.Mui-selected': {
+							color: colors.secondary.main,
+							'&:hover': {
+								color: colors.secondary.main,
+							},
+						},
 					},
 				},
 			},

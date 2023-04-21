@@ -6,8 +6,10 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	Divider,
 	Grid,
 	InputAdornment,
+	Stack,
 	TextField,
 	Typography,
 } from '@mui/material';
@@ -234,12 +236,13 @@ const NewClientDialog = ({ reloadClients }) => {
 				Agregar Cliente
 			</Button>
 
-			<Dialog open={isVisible} onClose={toggleDialog}>
+			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'xs'}>
 				<DialogTitle>Nuevo cliente</DialogTitle>
 				<DialogContent>
-					<Typography variant={'caption'}>Datos:</Typography>
-					<Grid container spacing={2} py={1}>
-						<Grid item xs={12} sm={6}>
+					<Typography variant={'caption'}>Contacto:</Typography>
+
+					<Grid container columnSpacing={1}>
+						<Grid item xs={12} sm>
 							<TextField
 								fullWidth
 								id={'firstName'}
@@ -249,7 +252,7 @@ const NewClientDialog = ({ reloadClients }) => {
 								onChange={handleInputChange}
 							/>
 						</Grid>
-						<Grid item xs={12} sm={6}>
+						<Grid item xs={12} sm>
 							<TextField
 								fullWidth
 								id={'lastName'}
@@ -277,9 +280,9 @@ const NewClientDialog = ({ reloadClients }) => {
 						</Grid>
 					</Grid>
 
-					<Typography variant={'caption'}>Adicional:</Typography>
+					<Typography variant={'caption'}>Contacto:</Typography>
 
-					<Grid container spacing={2} py={2}>
+					<Grid container>
 						<Grid item xs={12}>
 							<TextField
 								fullWidth
@@ -290,6 +293,7 @@ const NewClientDialog = ({ reloadClients }) => {
 								onChange={handleInputChangeAddressData}
 							/>
 						</Grid>
+
 						<Grid item xs={12}>
 							<Autocomplete
 								freeSolo
@@ -307,6 +311,7 @@ const NewClientDialog = ({ reloadClients }) => {
 										label={'Dirección'}
 										multiline
 										rows={2}
+										fullWidth
 									/>
 								)}
 								loading={isPlacePredictionsLoading}
@@ -331,6 +336,7 @@ const NewClientDialog = ({ reloadClients }) => {
 								)}
 							/>
 						</Grid>
+
 						<Grid item xs={12}>
 							<TextField
 								fullWidth
