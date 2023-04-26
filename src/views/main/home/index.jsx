@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { Card, CardContent, CardHeader, Grid, Paper } from '@mui/material';
+import MonthCallsChart from '@views/main/home/monthCallsChart';
 
 const Home = () => {
 	const [state, setState] = useState({
@@ -75,6 +76,7 @@ const Home = () => {
 
 	return (
 		<Fragment>
+			<MonthCallsChart />
 			<Grid container rowSpacing={3} columnSpacing={{ xs: 0, sm: 4 }} mt={2}>
 				<Grid item xs>
 					<Card>

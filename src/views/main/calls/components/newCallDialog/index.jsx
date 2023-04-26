@@ -36,7 +36,7 @@ const InitialCall = {
 };
 
 const InitialClient = {
-	id: '',
+	id: undefined,
 	firstName: '',
 	lastName: '',
 	get name() {
@@ -52,13 +52,11 @@ const NewCallDialog = ({ reloadCalls }) => {
 	const [call, setCall] = useState(InitialCall);
 	const [isVisible, setIsVisible] = useState(false);
 
-	const [searchClients, { data, loading }] = useLazyQuery(GET_CLIENTS, {
-		variables: { text: toWhom.firstName },
-	});
+	const [searchClients, { data, loading }] = useLazyQuery(GET_CLIENTS);
 
 	const [createCall] = useMutation(CREATE_CALL);
 
-	const debouncedValue = useDebounce(call, 1000);
+	const debouncedValue = useDebounce(toWhom.firstName, 700);
 
 	const resetState = () => {
 		setCall(InitialCall);
@@ -94,11 +92,16 @@ const NewCallDialog = ({ reloadCalls }) => {
 		}
 	};
 
-	const handleInputOnChangeAddress = (event, value) => {
+	const handleTimeChange = (callTime) => {
+		console.log('sada', callTime.toISOString());
+		setCall({ ...call, callTime });
+	};
+
+	const handleInputOnChangeClient = (event, value) => {
 		if (!value) {
 			setToWhom({
 				...toWhom,
-				id: '',
+				id: undefined,
 				firstName: '',
 				lastName: '',
 			});
@@ -112,24 +115,24 @@ const NewCallDialog = ({ reloadCalls }) => {
 		}
 	};
 
-	const handleInputChangeAddress = (event, value) => {
+	const handleInputChangeClient = (event, value) => {
 		const lastName = toWhom.name;
 		const actualId = toWhom.id;
 
 		if (!value) {
 			setToWhom({
 				...toWhom,
-				id: '',
+				id: undefined,
 				firstName: '',
 				lastName: '',
 			});
 		} else if (
 			lastName.length > value.length ||
-			(lastName.length < value.length && actualId.length)
+			(lastName.length < value.length && actualId)
 		) {
 			setToWhom({
 				...toWhom,
-				id: '',
+				id: undefined,
 				firstName: value,
 				lastName: '',
 			});
@@ -174,11 +177,14 @@ const NewCallDialog = ({ reloadCalls }) => {
 			return;
 		}
 
+		const compCall = { ...call, phoneNumber: '+52' + call.phoneNumber };
 		const clientId = toWhom.id;
 
-		createCall({ variables: { call, clientId } })
+		console.log(compCall);
+
+		createCall({ variables: { call: compCall, clientId } })
 			.then((res) => {
-				if (!res.error) {
+				if (!res.errors) {
 					toast.success('Llamada guardada');
 					toggleDialog();
 					reloadCalls();
@@ -196,7 +202,7 @@ const NewCallDialog = ({ reloadCalls }) => {
 
 	// fetch data from server
 	useEffect(() => {
-		searchClients();
+		searchClients({ variables: { text: toWhom.firstName } });
 	}, [debouncedValue]);
 
 	useEffect(() => {
@@ -206,11 +212,11 @@ const NewCallDialog = ({ reloadCalls }) => {
 		}
 	}, [data]);
 
-	const [value, setValue] = useState(new Date('2022-04-07'));
-
 	return (
 		<Fragment>
-			<Button onClick={toggleDialog}>Registrar</Button>
+			<Button sx={{ ml: 'auto' }} onClick={toggleDialog}>
+				Registrar
+			</Button>
 
 			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'md'} fullWidth>
 				<DialogTitle>Registrar llamada</DialogTitle>
@@ -273,8 +279,8 @@ const NewCallDialog = ({ reloadCalls }) => {
 										<TextField {...params} label={'Cliente'} />
 									)}
 									loading={loading}
-									onInputChange={handleInputChangeAddress}
-									onChange={handleInputOnChangeAddress}
+									onInputChange={handleInputChangeClient}
+									onChange={handleInputOnChangeClient}
 									renderOption={(props, option) => (
 										<li {...props} key={option.id}>
 											<Grid container alignItems='center'>
@@ -314,19 +320,15 @@ const NewCallDialog = ({ reloadCalls }) => {
 						<Grid item container xs={12} sm={6}>
 							<Grid item xs={12}>
 								<DateTimePicker
-									renderInput={(props) => <TextField {...props} />}
 									label='Fecha'
-									value={value}
+									value={call.callTime}
 									formatDensity={'spacious'}
 									sx={{
 										'&.Mui-selected': {
 											color: 'secondary',
 										},
 									}}
-									onChange={(newValue) => {
-										console.log(newValue);
-										setValue(newValue);
-									}}
+									onChange={handleTimeChange}
 								/>
 							</Grid>
 							<Grid item xs={12}>

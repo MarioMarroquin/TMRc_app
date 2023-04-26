@@ -11,6 +11,7 @@ import Home from '@views/main/home';
 import Clients from '@views/main/clients';
 import ClientDetails from '@views/main/clients/components/clientDetails';
 import Calls from '@views/main/calls';
+import Companies from '@views/main/companies';
 
 const routes = [
 	{
@@ -29,7 +30,7 @@ const routes = [
 		name: 'Compañias',
 		path: '/companies',
 		icon: <Business />,
-		render: <h1>Compañias</h1>,
+		render: <Companies />,
 	},
 	{
 		name: 'Llamadas',

@@ -24,19 +24,29 @@ import NewCallDialog from '@views/main/calls/components/newCallDialog';
 
 const headers = [
 	{
-		field: 'createdAt',
+		field: 'callTime',
 		headerName: 'FECHA',
 		headerAlign: 'left',
 		align: 'left',
-		width: 300,
+		width: 200,
 		valueFormatter: (params) => {
 			return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
 		},
 	},
 	{
+		field: 'phoneNumber',
+		headerName: 'TELÉFONO',
+		headerAlign: 'left',
+		align: 'center',
+		minWidth: 150,
+		valueFormatter: (params) => {
+			return params.value.replace('+52', '');
+		},
+	},
+	{
 		field: 'client',
 		headerName: 'CLIENTE',
-		headerAlign: 'center',
+		headerAlign: 'left',
 		align: 'center',
 		flex: 1,
 		minWidth: 200,
@@ -52,7 +62,7 @@ const headers = [
 	{
 		field: 'duration',
 		headerName: 'DURACIÓN (min)',
-		headerAlign: 'center',
+		headerAlign: 'left',
 		align: 'center',
 		width: 120,
 	},
@@ -100,7 +110,7 @@ const Calls = () => {
 					<Card>
 						<CardContent>
 							<Toolbar variant={'dense'}>
-								<NewCallDialog />
+								<NewCallDialog reloadCalls={refetch} />
 							</Toolbar>
 							<CustomDataGrid
 								rows={calls}
