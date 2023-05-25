@@ -1,25 +1,25 @@
 import { useQuery } from '@apollo/client';
 import { GET_COMPANIES } from '@views/main/companies/requests';
 import { Fragment, useEffect, useState } from 'react';
-import { Card, CardContent, Grid, LinearProgress } from '@mui/material';
+import {
+	Card,
+	CardContent,
+	Grid,
+	LinearProgress,
+	Toolbar,
+} from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
 import { format } from 'date-fns';
+import NewCompanyDialog from './components/newCompanyDialog';
 
 const headers = [
 	{
 		field: 'name',
-		headerName: 'CLIENTE',
+		headerName: 'Nombre',
 		headerAlign: 'left',
 		align: 'center',
 		flex: 1,
 		minWidth: 200,
-		valueGetter: (params) => {
-			if (params.row.client === null) {
-				return 'Sin cliente';
-			} else {
-				return params.row.client.firstName + ' ' + params.row.client.lastName;
-			}
-		},
 	},
 	{
 		field: 'phoneNumber',
@@ -81,6 +81,9 @@ const Companies = () => {
 				<Grid item xs={12}>
 					<Card>
 						<CardContent>
+							<Toolbar variant={'dense'}>
+								<NewCompanyDialog reloadCompanies={refetch} />
+							</Toolbar>
 							<CustomDataGrid
 								rows={companies}
 								columns={headers}

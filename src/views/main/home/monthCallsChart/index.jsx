@@ -163,7 +163,12 @@ const MonthCallsChart = () => {
 		<Card>
 			<CardHeader title='Llamadas por mes' />
 			<CardContent>
-				<Chart options={report.options} series={report.series} type={'area'} />
+				<Chart
+					options={report.options}
+					series={report.series}
+					type={'area'}
+					height={300}
+				/>
 			</CardContent>
 		</Card>
 	);

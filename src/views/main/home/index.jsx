@@ -78,7 +78,7 @@ const Home = () => {
 		<Fragment>
 			<MonthCallsChart />
 			<Grid container rowSpacing={3} columnSpacing={{ xs: 0, sm: 4 }} mt={2}>
-				<Grid item xs>
+				<Grid item xs={6}>
 					<Card>
 						<CardHeader title='Gráfica' subheader='Ejemplo %' />
 						<CardContent>
@@ -92,7 +92,7 @@ const Home = () => {
 					</Card>
 				</Grid>
 
-				<Grid item xs={12}>
+				<Grid item xs={6}>
 					<Card>
 						<CardHeader title='Gráfica' subheader='Ejemplo %' />
 						<CardContent>

@@ -3,22 +3,21 @@ import {
 	Assessment,
 	Business,
 	Home as HomeIcon,
-	Message,
 	Person,
 	SettingsPhone,
 } from '@mui/icons-material';
 import Home from '@views/main/home';
 import Clients from '@views/main/clients';
 import ClientDetails from '@views/main/clients/components/clientDetails';
-import Calls from '@views/main/calls';
 import Companies from '@views/main/companies';
+import Requests from '@views/main/requests';
 
 const routes = [
 	{
 		name: 'Inicio',
 		path: '/home',
 		icon: <HomeIcon />,
-		render: <Home />,
+		render: <></>,
 	},
 	{
 		name: 'Estadísticas',
@@ -33,10 +32,10 @@ const routes = [
 		render: <Companies />,
 	},
 	{
-		name: 'Llamadas',
-		path: '/calls',
+		name: 'Solicitudes',
+		path: '/requests',
 		icon: <SettingsPhone />,
-		render: <Calls />,
+		render: <Requests />,
 	},
 	{
 		name: 'Reportes',

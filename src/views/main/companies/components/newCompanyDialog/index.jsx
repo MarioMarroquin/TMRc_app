@@ -7,7 +7,20 @@ import useGoogle from 'react-google-autocomplete/lib/usePlacesAutocompleteServic
 import { googleMapsApiKey } from '@config/environment';
 import companies from '@views/main/companies';
 import toast from 'react-hot-toast';
-import { Button } from '@mui/material';
+import {
+	Autocomplete,
+	Box,
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Grid,
+	InputAdornment,
+	TextField,
+	Typography,
+} from '@mui/material';
+import { LocationOn } from '@mui/icons-material';
 
 const InitialCompany = {
 	name: '',
@@ -203,7 +216,14 @@ const NewCompanyDialog = ({ reloadCompanies }) => {
 			return;
 		}
 
-		createCompany()
+		const companyObj = {
+			name: company.name,
+			phoneNumber: company.phoneNumber,
+			website: company.website,
+			email: company.email,
+		};
+
+		createCompany({ variables: { company: companyObj } })
 			.then((res) => {
 				if (!res.errors) {
 					toast.success('Compañía guardada');
@@ -223,9 +243,138 @@ const NewCompanyDialog = ({ reloadCompanies }) => {
 
 	return (
 		<Fragment>
-			<Button disableRipple onClick={toggleDialog}>
+			<Button sx={{ ml: 'auto' }} disableRipple onClick={toggleDialog}>
 				Agregar compañía
 			</Button>
+
+			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'xs'}>
+				<DialogTitle>Nueva compañía</DialogTitle>
+				<DialogContent>
+					<Grid container columnSpacing={1}>
+						<Grid item>
+							<TextField
+								fullWidth
+								id={'name'}
+								name={'name'}
+								label={'Nombre'}
+								value={company.name}
+								onChange={handleInputChange}
+							/>
+						</Grid>
+
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								id={'phoneNumber'}
+								name={'phoneNumber'}
+								label={'Teléfono'}
+								value={company.phoneNumber}
+								onChange={handlePhoneChange}
+								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position='start'>+52</InputAdornment>
+									),
+								}}
+							/>
+						</Grid>
+						<Grid item>
+							<TextField
+								fullWidth
+								id={'email'}
+								name={'email'}
+								label={'Correo electrónico'}
+								value={company.email}
+								onChange={handleInputChange}
+							/>
+						</Grid>
+						<Grid item>
+							<TextField
+								fullWidth
+								id={'website'}
+								name={'website'}
+								label={'Sitio web'}
+								value={company.website}
+								onChange={handleInputChange}
+							/>
+						</Grid>
+					</Grid>
+
+					<Typography variant={'caption'}>Contacto:</Typography>
+
+					<Grid container>
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								id={'alias'}
+								name={'alias'}
+								label={'Alias'}
+								value={company.addresses.alias}
+								onChange={handleInputChangeAddressData}
+							/>
+						</Grid>
+
+						<Grid item xs={12}>
+							<Autocomplete
+								freeSolo
+								forcePopupIcon={true}
+								options={placePredictions}
+								getOptionLabel={(option) =>
+									typeof option === 'string' ? option : option.description
+								}
+								autoComplete
+								includeInputInList
+								value={company.addresses.formattedAddress}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										label={'Dirección'}
+										multiline
+										rows={2}
+										fullWidth
+									/>
+								)}
+								loading={isPlacePredictionsLoading}
+								onInputChange={handleInputChangeAddress}
+								onChange={handleInputOnChangeAddress}
+								renderOption={(props, option) => (
+									<li {...props}>
+										<Grid container alignItems='center'>
+											<Grid item>
+												<Box
+													component={LocationOn}
+													sx={{ color: 'text.secondary', mr: 2 }}
+												/>
+											</Grid>
+											<Grid item xs>
+												<Typography variant='body2' color='text.secondary'>
+													{option.description}
+												</Typography>
+											</Grid>
+										</Grid>
+									</li>
+								)}
+							/>
+						</Grid>
+
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								multiline
+								rows={2}
+								id={'info'}
+								name={'info'}
+								label={'Info'}
+								value={company.addresses.info}
+								onChange={handleInputChangeAddressData}
+							/>
+						</Grid>
+					</Grid>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={onFinish}>Registrar</Button>
+				</DialogActions>
+			</Dialog>
 		</Fragment>
 	);
 };
