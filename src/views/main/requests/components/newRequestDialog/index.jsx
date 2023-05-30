@@ -19,7 +19,7 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import { ServiceType } from '../../../../../utils/enums';
 import { LocationOn } from '@mui/icons-material';
 import { useLazyQuery } from '@apollo/client';
-import { GET_CLIENTS } from './requests';
+import { GET_CLIENTS, GET_COMPANIES } from './requests';
 import useDebounce from '../../../../../hooks/use-debounce';
 
 const InitialRequest = {
@@ -56,27 +56,29 @@ const InitialClient = {
 const NewRequestDialog = ({ refetchRequests }) => {
 	const [request, setRequest] = useState(InitialRequest);
 	const [isVisible, setIsVisible] = useState(false);
+	const toggleDialog = () => setIsVisible((prev) => !prev);
 
-	// para clientes
+	const handleTimeChange = (requestDate) => {
+		setRequest({ ...request, requestDate });
+	};
+
+	// CLIENTES
 	const [searchedClients, setSearchedClients] = useState([]);
 	const [client, setClient] = useState(InitialClient);
-
 	const [searchClients, { data, loading }] = useLazyQuery(GET_CLIENTS);
-
 	const debouncedClient = useDebounce(client.firstName, 700);
 
 	// fetch data from server CLIENTS
 	useEffect(() => {
-		searchClients({ variables: { text: client.firstName } });
+		searchClients({ variables: { text: client.firstName } }).then((res) => {
+			if (!res.error) {
+				const aux = res.data.searchClients.results;
+				setSearchedClients(aux);
+			} else {
+				console.log(res.error);
+			}
+		});
 	}, [debouncedClient]);
-
-	useEffect(() => {
-		if (data) {
-			const aux = data.searchClients.results;
-			console.log(aux);
-			setSearchedClients(aux);
-		}
-	}, [data]);
 
 	const handleInputOnChangeClient = (event, value) => {
 		if (!value) {
@@ -125,16 +127,71 @@ const NewRequestDialog = ({ refetchRequests }) => {
 		}
 	};
 
-	const toggleDialog = () => setIsVisible((prev) => !prev);
+	// COMPANY
+	const [searchedCompanies, setSearchedCompanies] = useState([]);
+	const [company, setCompany] = useState(InitialCompany);
+	const [searchCompanies, { loading: loadingCompanies }] =
+		useLazyQuery(GET_COMPANIES);
+	const debouncedCompany = useDebounce(company.name, 700);
 
-	const handleTimeChange = (requestDate) => {
-		setRequest({ ...request, requestDate });
+	useEffect(() => {
+		searchCompanies({ variables: { text: company.name } }).then((res) => {
+			if (!res.error) {
+				const aux = res.data.searchCompanies.results;
+				setSearchedCompanies(aux);
+			} else {
+				console.log(res.error);
+			}
+		});
+	}, [debouncedCompany]);
+
+	const handleInputOnChangeCompany = (event, value) => {
+		if (!value) {
+			setCompany({
+				...company,
+				id: undefined,
+				name: '',
+			});
+		} else {
+			setCompany({
+				...company,
+				id: value.id,
+				name: value.name,
+			});
+		}
+	};
+
+	const handleInputChangeCompany = (event, value) => {
+		const actualId = company.id;
+		const lastName = company.name;
+
+		if (!value) {
+			setCompany({
+				...company,
+				id: undefined,
+				name: '',
+			});
+		} else if (
+			lastName.length > value.length ||
+			(lastName.length < value.length && actualId)
+		) {
+			setCompany({
+				...company,
+				id: undefined,
+				name: value,
+			});
+		} else {
+			setCompany({
+				...company,
+				name: value,
+			});
+		}
 	};
 
 	return (
 		<Fragment>
 			<Button sx={{ ml: 'auto' }} disableRipple onClick={toggleDialog}>
-				Open
+				Solicitud
 			</Button>
 
 			<Dialog open={isVisible} onClose={toggleDialog}>
@@ -217,6 +274,42 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								label={'Comentarios'}
 								value={''}
 								onChange={() => null}
+							/>
+						</Grid>
+						<Grid item xs={8}>
+							<Autocomplete
+								freeSolo
+								forcePopupIcon={true}
+								options={searchedCompanies}
+								getOptionLabel={(option) =>
+									typeof option === 'string' ? option : option.name
+								}
+								autoComplete
+								includeInputInList
+								value={company.name}
+								renderInput={(params) => (
+									<TextField {...params} label={'Compañía'} />
+								)}
+								loading={loadingCompanies}
+								onInputChange={handleInputChangeCompany}
+								onChange={handleInputOnChangeCompany}
+								renderOption={(props, option) => (
+									<li {...props} key={option.id}>
+										<Grid container alignItems='center'>
+											<Grid item>
+												<Box
+													component={LocationOn}
+													sx={{ color: 'text.secondary', mr: 2 }}
+												/>
+											</Grid>
+											<Grid item xs>
+												<Typography variant='body2' color='text.secondary'>
+													{option.name}
+												</Typography>
+											</Grid>
+										</Grid>
+									</li>
+								)}
 							/>
 						</Grid>
 						<Grid item xs={8}>
