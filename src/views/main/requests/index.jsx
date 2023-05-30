@@ -18,6 +18,7 @@ import { headers } from './headers';
 import { useLoading } from '../../../providers/loading';
 import { useQuery } from '@apollo/client';
 import { GET_REQUESTS } from './requests';
+import NewRequestDialog from './components/newRequestDialog';
 
 const Requests = (props) => {
 	const { setLoading } = useLoading();
@@ -53,7 +54,7 @@ const Requests = (props) => {
 			<Card>
 				<CardContent>
 					<Toolbar variant={'dense'}>
-						<Button>Abrir</Button>
+						<NewRequestDialog refetchRequests={refetch} />
 					</Toolbar>
 					<CustomDataGrid
 						rows={requests}
