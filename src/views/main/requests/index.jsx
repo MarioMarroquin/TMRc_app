@@ -19,9 +19,11 @@ import { useLoading } from '../../../providers/loading';
 import { useQuery } from '@apollo/client';
 import { GET_REQUESTS } from './requests';
 import NewRequestDialog from './components/newRequestDialog';
+import { useNavigate } from 'react-router-dom';
 
 const Requests = (props) => {
 	const { setLoading } = useLoading();
+	const navigate = useNavigate();
 	const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
 
 	const [requests, setRequests] = useState([]);
@@ -49,6 +51,11 @@ const Requests = (props) => {
 		}
 	}, [data]);
 
+	const goToRequest = (data) => {
+		const id = data.id;
+		navigate(id);
+	};
+
 	return (
 		<Fragment>
 			<Card>
@@ -71,6 +78,7 @@ const Requests = (props) => {
 						onColumnVisibilityModelChange={(newModel) =>
 							setColumnVisibilityModel(newModel)
 						}
+						onRowDoubleClick={(data, e) => goToRequest(data.row)}
 					/>
 				</CardContent>
 			</Card>

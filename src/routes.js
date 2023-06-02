@@ -11,6 +11,7 @@ import Clients from '@views/main/clients';
 import ClientDetails from '@views/main/clients/components/clientDetails';
 import Companies from '@views/main/companies';
 import Requests from '@views/main/requests';
+import RequestDetails from './views/main/requests/components/requestDetails';
 
 const routes = [
 	{
@@ -36,6 +37,7 @@ const routes = [
 		path: '/requests',
 		icon: <SettingsPhone />,
 		render: <Requests />,
+		child: [{ path: ':id', render: <RequestDetails /> }],
 	},
 	{
 		name: 'Reportes',

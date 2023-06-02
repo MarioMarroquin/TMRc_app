@@ -38,6 +38,8 @@ const GET_REQUESTS = gql`
 				extraComments
 				status
 				sale
+				createdAt
+				updatedAt
 			}
 		}
 	}

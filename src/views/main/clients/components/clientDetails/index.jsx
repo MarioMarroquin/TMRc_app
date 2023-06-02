@@ -13,9 +13,7 @@ const ClientDetails = (props) => {
 	const [client, setClient] = useState();
 
 	const { data, loading } = useQuery(GET_CLIENT, {
-		variables: {
-			clientId: id,
-		},
+		variables: { clientId: id },
 	});
 
 	useEffect(() => {
@@ -23,7 +21,6 @@ const ClientDetails = (props) => {
 		if (data) {
 			const aux = data.client;
 			setClient(aux);
-			console.log(aux);
 		}
 		setLoading(false);
 	}, [data]);

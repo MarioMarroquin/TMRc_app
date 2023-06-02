@@ -168,24 +168,28 @@ export const headers = [
 			return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
 		},
 	},
-	{
-		field: 'createdBy',
-		headerName: 'CREADO POR',
-		headerAlign: 'left',
-		align: 'left',
-		width: 200,
-		valueGetter: (params) => {
-			return `${params.row.firstName || ''} ${params.row.lastName || ''}`;
-		},
-	},
-	{
-		field: 'updatedBy',
-		headerName: 'ACTUALIZADO POR',
-		headerAlign: 'left',
-		align: 'left',
-		width: 200,
-		valueGetter: (params) => {
-			return `${params.row.firstName || ''} ${params.row.lastName || ''}`;
-		},
-	},
+	// {
+	// 	field: 'createdBy',
+	// 	headerName: 'CREADO POR',
+	// 	headerAlign: 'left',
+	// 	align: 'left',
+	// 	width: 200,
+	// 	valueGetter: (params) => {
+	// 		console.log('INVALID', params);
+	//
+	// 		return `${params.row.firstName || ''} ${params.row.lastName || ''}`;
+	// 	},
+	// },
+	// {
+	// 	field: 'updatedBy',
+	// 	headerName: 'ACTUALIZADO POR',
+	// 	headerAlign: 'left',
+	// 	align: 'left',
+	// 	width: 200,
+	// 	valueGetter: (params) => {
+	// 		console.log('INVALID', params);
+	//
+	// 		return `${params.row.firstName || ''} ${params.row.lastName || ''}`;
+	// 	},
+	// },
 ];
