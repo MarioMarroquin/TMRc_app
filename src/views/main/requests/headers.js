@@ -11,6 +11,7 @@ export const headers = [
 		headerName: 'FECHA',
 		headerAlign: 'left',
 		align: 'left',
+		hide: true,
 		width: 200,
 		valueFormatter: (params) => {
 			return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
@@ -52,7 +53,7 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueGetter: (params) => {
-			return `${params.row.firstName || ''} ${params.row.lastName || ''}`;
+			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
 		},
 	},
 	{
@@ -62,7 +63,7 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueGetter: (params) => {
-			return params.row.name || '';
+			return params.value?.name || '';
 		},
 	},
 	{
@@ -94,7 +95,7 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueGetter: (params) => {
-			return params.row.name || '';
+			return params.value?.name || '';
 		},
 	},
 	{
@@ -104,7 +105,9 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueGetter: (params) => {
-			return `${params.row.firstName || ''} ${params.row.firstlastName || ''}`;
+			return `${params.value?.firstName || ''} ${
+				params.value?.firstlastName || ''
+			}`;
 		},
 	},
 
@@ -138,9 +141,9 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueFormatter: (params) => {
-			if (params.value) {
+			if (params?.value) {
 				return 'SI';
-			} else if (!params.value) {
+			} else if (!params?.value) {
 				return 'NO';
 			} else {
 				return '';
@@ -155,7 +158,7 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueFormatter: (params) => {
-			return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
+			return format(new Date(params?.value), 'dd/MM/yyyy - HH:mm');
 		},
 	},
 	{
@@ -165,7 +168,7 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueFormatter: (params) => {
-			return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
+			return format(new Date(params?.value), 'dd/MM/yyyy - HH:mm');
 		},
 	},
 	// {

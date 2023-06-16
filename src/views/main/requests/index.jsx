@@ -24,7 +24,17 @@ import { useNavigate } from 'react-router-dom';
 const Requests = (props) => {
 	const { setLoading } = useLoading();
 	const navigate = useNavigate();
-	const [columnVisibilityModel, setColumnVisibilityModel] = useState({});
+	const [columnVisibilityModel, setColumnVisibilityModel] = useState({
+		contactMedium: false,
+		advertisingMedium: false,
+		user: false,
+		brand: false,
+		productStatus: false,
+		comments: false,
+		company: false,
+		client: false,
+		extraComments: false,
+	});
 
 	const [requests, setRequests] = useState([]);
 	const [countRows, setCountRows] = useState(0);
@@ -58,7 +68,7 @@ const Requests = (props) => {
 
 	return (
 		<Fragment>
-			<Card>
+			<Card sx={{ boxShadow: 'unset' }}>
 				<CardContent>
 					<Toolbar variant={'dense'}>
 						<NewRequestDialog refetchRequests={refetch} />

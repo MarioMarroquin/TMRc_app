@@ -28,7 +28,7 @@ const headers = [
 		align: 'center',
 		minWidth: 150,
 		valueFormatter: (params) => {
-			return params.value.replace('+52', '');
+			return params.value?.replace('+52', '');
 		},
 	},
 

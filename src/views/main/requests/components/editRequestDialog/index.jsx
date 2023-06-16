@@ -10,7 +10,7 @@ import {
 	DialogTitle,
 	FormControl,
 	Grid,
-	InputLabel,
+	IconButton,
 	MenuItem,
 	Select,
 	TextField,
@@ -18,19 +18,20 @@ import {
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { ServiceType } from '../../../../../utils/enums';
-import { LocationOn } from '@mui/icons-material';
+import { Edit, LocationOn } from '@mui/icons-material';
+import { useLoading } from '../../../../../providers/loading';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import {
-	CREATE_REQUEST,
 	GET_BRANDS,
 	GET_CLIENTS,
 	GET_COMPANIES,
-} from './requests';
+} from '../newRequestDialog/requests';
 import useDebounce from '../../../../../hooks/use-debounce';
-import { useLoading } from '../../../../../providers/loading';
+import { UPDATE_REQUEST } from './requests';
 import toast from 'react-hot-toast';
 
 const InitialRequest = {
+	id: '',
 	requestDate: new Date(),
 	service: '',
 	contactMedium: '',
@@ -61,7 +62,7 @@ const InitialClient = {
 	},
 };
 
-const NewRequestDialog = ({ refetchRequests }) => {
+const EditRequestDialog = ({ data }) => {
 	const { setLoading } = useLoading();
 	const [request, setRequest] = useState(InitialRequest);
 	const [isVisible, setIsVisible] = useState(false);
@@ -69,6 +70,11 @@ const NewRequestDialog = ({ refetchRequests }) => {
 
 	const handleTimeChange = (requestDate) => {
 		setRequest({ ...request, requestDate });
+	};
+
+	const handleInputChange = (e) => {
+		const { name, value } = e.target;
+		setRequest({ ...request, [name]: value });
 	};
 
 	// CLIENTES
@@ -258,23 +264,12 @@ const NewRequestDialog = ({ refetchRequests }) => {
 		}
 	};
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setRequest({ ...request, [name]: value });
-	};
-
-	const [createRequest] = useMutation(CREATE_REQUEST);
+	const [updateRequest] = useMutation(UPDATE_REQUEST);
 
 	const onFinish = (e) => {
 		e.preventDefault();
 
 		setLoading(true);
-
-		// if (check()) {
-		// 	setLoading(false);
-		// 	return;
-		// }
-		//
 
 		const auxObject = {
 			brandId: brand.id ?? null,
@@ -293,14 +288,11 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			company: company.name
 				? (({ id, ...rest }) => ({ ...rest }))(company)
 				: null,
+			requestId: request.id,
+			request: (({ id, ...rest }) => ({ ...rest }))(request),
 		};
 
-		const onj = {
-			request,
-			...auxObject,
-		};
-
-		createRequest({ variables: { request, ...auxObject } })
+		updateRequest({ variables: auxObject })
 			.then((res) => {
 				if (!res.errors) {
 					toast.success('Guardado');
@@ -317,11 +309,53 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			});
 	};
 
+	useEffect(() => {
+		if (data) {
+			const {
+				createdAt,
+				createdBy,
+				updatedAt,
+				updatedBy,
+				requestDate,
+				brand,
+				client,
+				company,
+				user,
+				...auxReq
+			} = data;
+
+			const auxBrand = {
+				id: data.brand?.id ?? undefined,
+				name: data.brand?.name ?? '',
+			};
+
+			const auxCompany = {
+				id: data.company?.id ?? undefined,
+				name: data.company?.name ?? '',
+			};
+
+			const auxClient = {
+				id: data.client?.id ?? undefined,
+				firstName: data.client?.firstName ?? '',
+				firstLastName: data.client?.firstLastName ?? '',
+			};
+
+			setRequest({ requestDate: new Date(requestDate), ...auxReq });
+			setBrand(auxBrand);
+			setCompany(auxCompany);
+			setClient(auxClient);
+		}
+	}, [data, isVisible]);
+
 	return (
 		<Fragment>
-			<Button sx={{ ml: 'auto' }} disableRipple onClick={toggleDialog}>
-				Solicitud
-			</Button>
+			{/*  <Button sx={{ ml: 'auto' }} disableRipple onClick={toggleDialog}> */}
+			{/* 	Solicitud */}
+			{/* </Button> */}
+
+			<IconButton onClick={toggleDialog}>
+				<Edit />
+			</IconButton>
 
 			<Dialog open={isVisible} onClose={toggleDialog}>
 				<DialogTitle>Nueva solicitud</DialogTitle>
@@ -562,8 +596,8 @@ const NewRequestDialog = ({ refetchRequests }) => {
 	);
 };
 
-NewRequestDialog.propTypes = {
-	refetchRequests: PropTypes.func.isRequired,
+EditRequestDialog.propTypes = {
+	data: PropTypes.object,
 };
 
-export default NewRequestDialog;
+export default EditRequestDialog;
