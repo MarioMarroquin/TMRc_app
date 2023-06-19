@@ -117,6 +117,8 @@ const EditRequestDialog = ({ data }) => {
 		const actualId = client.id;
 		const lastName = client.name;
 
+		console.log('val, value', client);
+
 		if (!value) {
 			setClient({
 				...client,
@@ -338,6 +340,9 @@ const EditRequestDialog = ({ data }) => {
 				id: data.client?.id ?? undefined,
 				firstName: data.client?.firstName ?? '',
 				firstLastName: data.client?.firstLastName ?? '',
+				get name() {
+					return (this.firstName + ' ' + this.firstLastName).trim();
+				},
 			};
 
 			setRequest({ requestDate: new Date(requestDate), ...auxReq });
