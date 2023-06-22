@@ -6,7 +6,7 @@ const GET_CLIENTS = gql`
 			results {
 				id
 				firstName
-				lastName
+				firstLastName
 				phoneNumber
 				createdAt
 			}

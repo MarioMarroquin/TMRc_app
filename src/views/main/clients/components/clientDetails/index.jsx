@@ -20,6 +20,7 @@ const ClientDetails = (props) => {
 		setLoading(true);
 		if (data) {
 			const aux = data.client;
+			console.log(aux);
 			setClient(aux);
 		}
 		setLoading(false);

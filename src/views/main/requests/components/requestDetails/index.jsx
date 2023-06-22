@@ -37,6 +37,7 @@ const RequestDetails = (props) => {
 		setLoading(true);
 		if (data) {
 			const { __typename, ...aux } = data.request;
+			console.log(aux);
 			setRequest(aux);
 		}
 		setLoading(false);
@@ -104,9 +105,6 @@ const RequestDetails = (props) => {
 								</Stack>
 							</Box>
 							<Grid container spacing={2} sx={{ m: 0 }}>
-								<Grid item container xs={12}>
-									lol
-								</Grid>
 								<Grid item container xs={6}>
 									<Grid item xs={12}>
 										<Typography fontWeight={700} fontSize={pxToRem(14)}>
@@ -195,7 +193,8 @@ const RequestDetails = (props) => {
 												Cliente
 											</Typography>
 											<Typography>
-												{request?.client?.firstName} {request?.client?.lastName}
+												{request?.client?.firstName}{' '}
+												{request?.client?.firstLastName}
 											</Typography>
 										</Grid>
 
@@ -213,19 +212,6 @@ const RequestDetails = (props) => {
 											<Typography>
 												{request?.status
 													? RequestStatus[request?.status]
-													: 'N/D'}
-											</Typography>
-										</Grid>
-
-										<Grid item xs={12} sm={4} md={3}>
-											<Typography fontWeight={700} fontSize={pxToRem(14)}>
-												Venta
-											</Typography>
-											<Typography>
-												{request?.sale
-													? 'Si'
-													: request?.sale === false
-													? 'No'
 													: 'N/D'}
 											</Typography>
 										</Grid>

@@ -1717,6 +1717,11 @@
   resolved "https://registry.yarnpkg.com/@wojtekmaj/date-utils/-/date-utils-1.1.3.tgz#7be7fb33a2b987d886ff868877ee8c7908176e85"
   integrity sha512-rHrDuTl1cx5LYo8F4K4HVauVjwzx4LwrKfEk4br4fj4nK8JjJZ8IG6a6pBHkYmPLBQHCOEDwstb0WNXMGsmdOw==
 
+"@wojtekmaj/date-utils@^1.1.3":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@wojtekmaj/date-utils/-/date-utils-1.4.1.tgz#d6be1a002173d3a43590b941008ea27b432672ae"
+  integrity sha512-Fjs0KJz0//0AmlJVFx9AQmWpmxOTw4foDo4DKoswWVVjHsna4rdu+fXwid5YHNgzv/wHi9AkZCRPmHWsf890lg==
+
 "@wojtekmaj/react-timerange-picker@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@wojtekmaj/react-timerange-picker/-/react-timerange-picker-4.2.0.tgz#b550177f6c0c6c23471c815e2772dc7e6d89eda5"
@@ -2165,6 +2170,11 @@ chrome-trace-event@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/chrome-trace-event/-/chrome-trace-event-1.0.3.tgz#1015eced4741e15d06664a957dbbf50d041e26ac"
   integrity sha512-p3KULyQg4S7NIHixdwbGX+nFHkoBiA4YQmyWtjb8XngSKV124nJmRysgAeujbUVb15vh+RvFUfCPqU7rXk+hZg==
+
+classnames@^2.2.6:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.3.2.tgz#351d813bf0137fcc6a76a16b88208d2560a0d924"
+  integrity sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==
 
 clean-css@^5.2.2:
   version "5.3.2"
@@ -3182,7 +3192,7 @@ get-user-locale@^1.2.0:
   dependencies:
     lodash.memoize "^4.1.1"
 
-get-user-locale@^2.0.0:
+get-user-locale@^2.0.0, get-user-locale@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/get-user-locale/-/get-user-locale-2.2.1.tgz#e7e9f365a202458a360d74c8a3516766d38402ae"
   integrity sha512-3814zipTZ2MvczOcppEXB3jXu+0HWwj5WmPI6//SeCnUIUaRXu7W4S54eQZTEPadlMZefE+jAlPOn+zY3tD4Qw==
@@ -3881,6 +3891,11 @@ make-event-props@^1.1.0:
   resolved "https://registry.yarnpkg.com/make-event-props/-/make-event-props-1.4.2.tgz#b140e8a63b7aaf1bff9ac5a2fa453a6d2dd1ecfe"
   integrity sha512-ZOHqRpLn2htnMd9zqhE+wticVr31PdwrJXHcvEEdKgrfjCOuSDn8urG9SDzEIqzP1ayp1uTdDJcOiTlJhqWpEQ==
 
+make-event-props@^1.4.2:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/make-event-props/-/make-event-props-1.6.1.tgz#1d587017c3f1f3b42719b775af93d5253656ccdd"
+  integrity sha512-JhvWq/iz1BvlmnPvLJjXv+xnMPJZuychrDC68V+yCGQJn5chcA8rLGKo5EP1XwIKVrigSXKLmbeXAGkf36wdCQ==
+
 media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
@@ -4349,7 +4364,7 @@ process-nextick-args@~2.0.0:
   resolved "https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.1.tgz#7820d9b16120cc55ca9ae7792680ae7dba6d7fe2"
   integrity sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==
 
-prop-types@^15.5.0, prop-types@^15.5.7, prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
+prop-types@15, prop-types@^15.5.0, prop-types@^15.5.7, prop-types@^15.6.0, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -4428,6 +4443,17 @@ react-clock@^4.0.0:
     get-user-locale "^2.0.0"
     prop-types "^15.6.0"
 
+react-clock@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/react-clock/-/react-clock-4.2.0.tgz#7161155f46be339070ba09212a24758cfbd2ed1e"
+  integrity sha512-H/700hJPu34ADDGH3fCjY6+4aTwvuVOhvpiOPrl2K67kwxa6npe2UNdO7nwayrTiGtZfgn2j2x2KRsn9TIHv1g==
+  dependencies:
+    "@types/react" "*"
+    "@wojtekmaj/date-utils" "^1.1.2"
+    clsx "^1.2.1"
+    get-user-locale "^2.2.1"
+    prop-types "^15.6.0"
+
 react-cookies@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/react-cookies/-/react-cookies-0.1.1.tgz#2a35807e04f5a13f58ccd1a9fb66574506873c88"
@@ -4435,6 +4461,16 @@ react-cookies@^0.1.1:
   dependencies:
     cookie "^0.3.1"
     object-assign "^4.1.1"
+
+react-date-range@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/react-date-range/-/react-date-range-1.4.0.tgz#d2073b85bdb4185e4dde288ce29198dd90074045"
+  integrity sha512-+9t0HyClbCqw1IhYbpWecjsiaftCeRN5cdhsi9v06YdimwyMR2yYHWcgVn3URwtN/txhqKpEZB6UX1fHpvK76w==
+  dependencies:
+    classnames "^2.2.6"
+    prop-types "^15.7.2"
+    react-list "^0.8.13"
+    shallow-equal "^1.2.1"
 
 react-dom@^18.2.0:
   version "18.2.0"
@@ -4452,7 +4488,7 @@ react-draggable@^4.4.5:
     clsx "^1.1.1"
     prop-types "^15.8.1"
 
-react-fit@^1.4.0:
+react-fit@^1.4.0, react-fit@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/react-fit/-/react-fit-1.5.1.tgz#1ed69348258455920e37a6cc647a398163ce0160"
   integrity sha512-r86m/6GuJa7j6dLYjC7kENBQRBaDMLTU0mBBoqnh42d/Iil9rmWEeOtdB2KEQEUyDQ8rZXojIx8u+gNFJ+9y1w==
@@ -4487,6 +4523,13 @@ react-is@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
   integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
+
+react-list@^0.8.13:
+  version "0.8.17"
+  resolved "https://registry.yarnpkg.com/react-list/-/react-list-0.8.17.tgz#49f55af2797cfdf3974ad2188a191e0ee919d254"
+  integrity sha512-pgmzGi0G5uGrdHzMhgO7KR1wx5ZXVvI3SsJUmkblSAKtewIhMwbQiMuQiTE83ozo04BQJbe0r3WIWzSO0dR1xg==
+  dependencies:
+    prop-types "15"
 
 react-loader-spinner@^5.3.4:
   version "5.3.4"
@@ -4525,6 +4568,20 @@ react-time-picker@^5.2.0:
     react-clock "^4.0.0"
     react-fit "^1.4.0"
     update-input-width "^1.2.2"
+
+react-time-picker@^6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/react-time-picker/-/react-time-picker-6.2.0.tgz#ab121ce3eb182a04a184f8219aaf4b43b9944291"
+  integrity sha512-MMedSF9mTcrL7tjXJSrXaKTb7bwnw/xWlvgC6mB+CPW93KZ8RH8Xek75Ntk7LhCVdFZMVcuW9kssLd+B4Jrg+Q==
+  dependencies:
+    "@wojtekmaj/date-utils" "^1.1.3"
+    clsx "^1.2.1"
+    get-user-locale "^2.2.1"
+    make-event-props "^1.4.2"
+    prop-types "^15.6.0"
+    react-clock "^4.2.0"
+    react-fit "^1.5.1"
+    update-input-width "^1.3.1"
 
 react-transition-group@^4.4.5:
   version "4.4.5"
@@ -4875,6 +4932,11 @@ shallow-clone@^3.0.0:
   integrity sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==
   dependencies:
     kind-of "^6.0.2"
+
+shallow-equal@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/shallow-equal/-/shallow-equal-1.2.1.tgz#4c16abfa56043aa20d050324efa68940b0da79da"
+  integrity sha512-S4vJDjHHMBaiZuT9NPb616CSmLf618jawtv3sufLl6ivK8WocjAo58cXwbRV1cgqxH0Qbv+iUt6m05eqEa2IRA==
 
 shallowequal@^1.1.0:
   version "1.1.0"
@@ -5330,6 +5392,11 @@ update-input-width@^1.2.2:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/update-input-width/-/update-input-width-1.3.1.tgz#35d9e56da9e89b57ca84d806a0383b3ff41ca0c0"
   integrity sha512-hV2DGiSn7FKerjIXaI3s0EG/AnmAeoRTV5cvpsFcygzUzKreYj5qSu7rVihzUOEXF/MP2mjJpUzwi14sZdp0nw==
+
+update-input-width@^1.3.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/update-input-width/-/update-input-width-1.4.1.tgz#94636ef786da0a33581091c57d3a3c66d9fdcbd2"
+  integrity sha512-/FDlfTvxlEQ9+/duf5PoC1q0uYQd/nE4w7K7rVAAoW/QKKa4bdhccuPaWtfkrWEy2r08rzX6wlmCHeGL+vgJOw==
 
 uri-js@^4.2.2:
   version "4.4.1"

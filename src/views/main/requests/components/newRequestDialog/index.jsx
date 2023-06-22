@@ -29,6 +29,10 @@ import {
 import useDebounce from '../../../../../hooks/use-debounce';
 import { useLoading } from '../../../../../providers/loading';
 import toast from 'react-hot-toast';
+import CustomDate from '@components/customDate';
+import CustomTime from '@components/customTime';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const InitialRequest = {
 	requestDate: new Date(),
@@ -67,7 +71,14 @@ const NewRequestDialog = ({ refetchRequests }) => {
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDialog = () => setIsVisible((prev) => !prev);
 
-	const handleTimeChange = (requestDate) => {
+	const handleDateChange = (requestDate) => {
+		setRequest({ ...request, requestDate });
+	};
+
+	const handleTimeChange = (time) => {
+		const auxTime = time.split(':');
+		const requestDate = request.requestDate;
+		requestDate.setHours(auxTime[0], auxTime[1], 0);
 		setRequest({ ...request, requestDate });
 	};
 
@@ -285,7 +296,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				: null,
 			clientId: client.id ?? null,
 			client: client.firstName
-				? (({ id, ...rest }) => ({
+				? (({ id, name, ...rest }) => ({
 						...rest,
 				  }))(client)
 				: null,
@@ -320,25 +331,25 @@ const NewRequestDialog = ({ refetchRequests }) => {
 	return (
 		<Fragment>
 			<Button sx={{ ml: 'auto' }} disableRipple onClick={toggleDialog}>
-				Solicitud
+				Nueva
 			</Button>
 
 			<Dialog open={isVisible} onClose={toggleDialog}>
 				<DialogTitle>Nueva solicitud</DialogTitle>
 				<DialogContent>
 					<Grid container columnSpacing={1} rowSpacing={1}>
-						<Grid item xs={12}>
+						<Grid item xs={8}>
 							<Typography variant={'caption'}>Fecha:</Typography>
-							<DateTimePicker
-								value={request.requestDate}
-								formatDensity={'spacious'}
-								sx={{
-									'&.Mui-selected': {
-										color: 'secondary',
-									},
-									m: 0,
-								}}
+							<CustomDate
+								date={request.requestDate}
+								onChange={handleDateChange}
+							/>
+						</Grid>
+						<Grid item xs={4}>
+							<Typography variant={'caption'}>Hora:</Typography>
+							<CustomTime
 								onChange={handleTimeChange}
+								value={format(request.requestDate, 'HH:mm', { locale: es })}
 							/>
 						</Grid>
 						<Grid item xs={6}>

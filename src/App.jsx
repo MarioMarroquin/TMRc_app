@@ -4,6 +4,8 @@ import AuthLayout from '@layouts/authLayout';
 import { useSession } from '@providers/session';
 import MainLayout from '@layouts/mainLayout';
 import routes from './routes';
+import 'react-date-range/dist/styles.css'; // main css file
+import 'react-date-range/dist/theme/default.css'; // theme css file
 
 // const Requests = lazy(() => import('@views/requests'));
 

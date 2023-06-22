@@ -5,34 +5,19 @@ const GET_CLIENT = gql`
 		client(clientId: $clientId) {
 			id
 			firstName
-			lastName
+			firstLastName
 			phoneNumber
-			addresses {
-				id
-				alias
-				formattedAddress
-				coordinates
-			}
-			createdAt
+			email
 			company {
 				id
 				name
-				phoneNumber
-				email
 			}
-			calls {
+			requests {
 				id
-				createdAt
-				phoneNumber
-				callTime
-			}
-			tasks {
-				id
-				name
-				description
-				createdAt
-				completed
-				dueDate
+				brand {
+					id
+					name
+				}
 			}
 		}
 	}

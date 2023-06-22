@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 const GET_REQUESTS = gql`
-	query Requests($params: QueryParams!) {
-		requests(params: $params) {
+	query Requests($dateRange: DateRange!, $params: QueryParams!) {
+		requests(dateRange: $dateRange, params: $params) {
 			info {
 				count
 				next

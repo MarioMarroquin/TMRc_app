@@ -47,7 +47,7 @@ const Clients = () => {
 			flex: 1,
 			minWidth: 200,
 			valueGetter: (params) => {
-				return params.row.firstName + ' ' + params.row.lastName;
+				return params.row.firstName + ' ' + params.row.firstLastName;
 			},
 		},
 

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { Fragment, useEffect, useState } from 'react';
 import {
+	Box,
 	Button,
 	Card,
 	CardContent,
@@ -8,7 +9,7 @@ import {
 	Toolbar,
 } from '@mui/material';
 import CustomDataGrid from '../../../components/customDataGrid';
-import { format } from 'date-fns';
+import { endOfDay, endOfMonth, format, startOfMonth } from 'date-fns';
 import {
 	ProductStatus,
 	RequestStatus,
@@ -20,6 +21,8 @@ import { useQuery } from '@apollo/client';
 import { GET_REQUESTS } from './requests';
 import NewRequestDialog from './components/newRequestDialog';
 import { useNavigate } from 'react-router-dom';
+import CustomDateRange from '@components/customDateRange';
+import { es } from 'date-fns/locale';
 
 const Requests = (props) => {
 	const { setLoading } = useLoading();
@@ -43,11 +46,23 @@ const Requests = (props) => {
 		pageSize: 5,
 	});
 
+	const [dateRange, setDateRange] = useState([
+		{
+			startDate: startOfMonth(new Date()),
+			endDate: endOfMonth(new Date()),
+			key: 'selection',
+		},
+	]);
+
 	const { data, loading, refetch } = useQuery(GET_REQUESTS, {
 		variables: {
 			params: {
 				page: paginationModel.page,
 				pageSize: paginationModel.pageSize,
+			},
+			dateRange: {
+				end: dateRange[0].endDate,
+				start: dateRange[0].startDate,
 			},
 		},
 	});
@@ -70,9 +85,17 @@ const Requests = (props) => {
 		<Fragment>
 			<Card sx={{ boxShadow: 'unset' }}>
 				<CardContent>
-					<Toolbar variant={'dense'}>
+					<Box sx={{ display: 'flex', flexDirection: 'row' }}>
+						<CustomDateRange
+							ranges={dateRange}
+							onChange={(item) => {
+								item.selection.endDate.setHours(23, 59, 59);
+								item.selection.startDate.setHours(0, 0, 0);
+								setDateRange([item.selection]);
+							}}
+						/>
 						<NewRequestDialog refetchRequests={refetch} />
-					</Toolbar>
+					</Box>
 					<CustomDataGrid
 						rows={requests}
 						columns={headers}

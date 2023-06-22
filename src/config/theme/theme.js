@@ -30,6 +30,7 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						height: 40,
+						textTransform: 'none',
 					},
 				},
 			},
