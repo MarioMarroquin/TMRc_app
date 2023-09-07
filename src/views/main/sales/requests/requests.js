@@ -1,8 +1,16 @@
 import { gql } from '@apollo/client';
 
 const GET_REQUESTS = gql`
-	query SellerRequestsBySeller($dateRange: DateRange!, $params: QueryParams!) {
-		sellerRequestsBySeller(dateRange: $dateRange, params: $params) {
+	query SellerRequestsBySeller(
+		$dateRange: DateRange!
+		$params: QueryParams!
+		$pending: Boolean!
+	) {
+		sellerRequestsBySeller(
+			dateRange: $dateRange
+			params: $params
+			pending: $pending
+		) {
 			info {
 				count
 				next

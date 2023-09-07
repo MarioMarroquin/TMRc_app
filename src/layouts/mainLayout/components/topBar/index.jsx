@@ -13,6 +13,7 @@ import {
 	KeyboardArrowRight,
 	Logout,
 	ManageAccounts,
+	Menu,
 	MenuOpen,
 } from '@mui/icons-material';
 import PropTypes from 'prop-types';
@@ -95,7 +96,7 @@ const TopBar = ({ open, toggleDrawer }) => {
 		>
 			<Toolbar sx={{ pr: pxToRem(24) }}>
 				<IconButton sx={{ mr: 2 }} edge={'start'} onClick={toggleDrawer}>
-					{open ? <MenuOpen /> : <KeyboardArrowRight />}
+					{open ? <MenuOpen /> : <Menu />}
 				</IconButton>
 
 				<CustomBreadcrumbs />

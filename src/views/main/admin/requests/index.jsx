@@ -9,12 +9,9 @@ import {
 	Switch,
 	Tooltip,
 	Typography,
-	useTheme,
 } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
-import { endOfMonth, startOfMonth } from 'date-fns';
 import { headers } from './headers';
-import { useLoading } from '@providers/loading';
 import { useQuery } from '@apollo/client';
 import { GET_REQUESTS } from './requests';
 import NewRequestDialog from './components/newRequestDialog';
@@ -27,8 +24,6 @@ import NoRowsOverlay from '@components/NoRowsOverlay';
 import useInterval from '@hooks/use-interval';
 
 const Requests = (props) => {
-	const theme = useTheme();
-	const { setLoading } = useLoading();
 	const navigate = useNavigate();
 
 	const {

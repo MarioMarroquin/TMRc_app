@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useLoading } from '@providers/loading';
 import { Fragment, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
@@ -19,17 +19,15 @@ import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
 import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
 import EditRequestDialog from '../editRequestDialog';
+import { ChevronLeft } from '@mui/icons-material';
 
 const RequestDetails = (props) => {
 	const { id } = useParams();
 	const { setLoading } = useLoading();
+	const navigate = useNavigate();
 	const [request, setRequest] = useState();
 
-	const {
-		data,
-		loading,
-		refetch: refetchRequest,
-	} = useQuery(GET_REQUEST, {
+	const { data, loading, refetch } = useQuery(GET_REQUEST, {
 		variables: { requestId: id },
 	});
 
@@ -46,13 +44,23 @@ const RequestDetails = (props) => {
 	const changeRequest = (status) => {
 		setLoading(true);
 		statusRequest({ variables: { requestId: id, status } }).then(() => {
-			refetchRequest();
+			refetch();
 			setLoading(false);
 		});
 	};
 
 	return (
 		<Fragment>
+			<Button
+				variant={'text'}
+				startIcon={<ChevronLeft />}
+				sx={{ mb: pxToRem(16) }}
+				onClick={() => {
+					navigate('/requests');
+				}}
+			>
+				atrás
+			</Button>
 			<Grid container spacing={2}>
 				<Grid item xs={12}>
 					<Card>

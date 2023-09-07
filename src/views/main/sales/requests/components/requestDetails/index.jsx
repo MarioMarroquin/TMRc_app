@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useLoading } from '@providers/loading';
 import { Fragment, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
@@ -19,13 +19,15 @@ import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
 import EditRequestDialog from '../editRequestDialog';
 import toast from 'react-hot-toast';
+import { ChevronLeft } from '@mui/icons-material';
 
 const RequestDetails = (props) => {
 	const { id } = useParams();
 	const { setLoading } = useLoading();
+	const navigate = useNavigate();
 	const [request, setRequest] = useState();
 
-	const { data, refetch: refetchRequest } = useQuery(GET_REQUEST, {
+	const { data, refetch } = useQuery(GET_REQUEST, {
 		variables: { requestId: id },
 	});
 
@@ -44,7 +46,7 @@ const RequestDetails = (props) => {
 		setLoading(true);
 
 		updateRequest({ variables: { requestId: id, status } }).then(() => {
-			refetchRequest();
+			refetch();
 			toast.success('Solicitud actualizada');
 			setLoading(false);
 		});
@@ -52,6 +54,16 @@ const RequestDetails = (props) => {
 
 	return (
 		<Fragment>
+			<Button
+				variant={'text'}
+				startIcon={<ChevronLeft />}
+				sx={{ mb: pxToRem(16) }}
+				onClick={() => {
+					navigate('/requests');
+				}}
+			>
+				atrás
+			</Button>
 			<Grid container spacing={2}>
 				<Grid item xs={12}>
 					<Card>
@@ -230,10 +242,7 @@ const RequestDetails = (props) => {
 										Observaciones
 									</Typography>
 									<Typography>{request?.extraComments}</Typography>
-									<EditRequestDialog
-										data={request}
-										reloadRequest={refetchRequest}
-									/>
+									<EditRequestDialog data={request} reloadRequest={refetch} />
 								</Grid>
 							</Grid>
 						</CardContent>

@@ -13,9 +13,7 @@ import {
 	useTheme,
 } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
-import { endOfMonth, startOfMonth } from 'date-fns';
 import { headers } from './headers';
-import { useLoading } from '@providers/loading';
 import { useQuery } from '@apollo/client';
 import { GET_REQUESTS } from './requests';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +25,6 @@ import useInterval from '@hooks/use-interval';
 
 const Requests = (props) => {
 	const theme = useTheme();
-	const { setLoading } = useLoading();
 	const navigate = useNavigate();
 
 	const {
@@ -52,6 +49,7 @@ const Requests = (props) => {
 				page: paginationModel.page,
 				pageSize: paginationModel.pageSize,
 			},
+			pending: showPending,
 			dateRange: {
 				end: dateRange[0].endDate,
 				start: dateRange[0].startDate,
