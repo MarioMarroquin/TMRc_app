@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import routes from '../../../../routes';
+import { adminRoutes } from '../../../../routes';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
@@ -18,8 +18,7 @@ const DrawerContent = () => {
 
 	const isSelected = (loc) => {
 		let color = '';
-
-		if (location === loc) color = theme.palette.secondary.main;
+		if (location.includes(loc)) color = theme.palette.secondary.main;
 
 		return color || '#afafaf';
 	};
@@ -40,11 +39,11 @@ const DrawerContent = () => {
 			{/* <Divider /> */}
 
 			<List component={'nav'}>
-				{routes.map(({ icon, name, path }) => {
+				{adminRoutes.map(({ icon, name, path }) => {
 					return (
 						<ListItemButton
 							key={path}
-							selected={location === path}
+							selected={location.includes(path)}
 							onClick={() => {
 								navigate(path, { replace: true });
 							}}

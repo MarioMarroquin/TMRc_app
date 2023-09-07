@@ -4,6 +4,8 @@ const GET_USER_BY_TOKEN = gql`
 	query UserByToken {
 		userByToken {
 			id
+			firstName
+			lastName
 			userName
 			role
 			createdAt

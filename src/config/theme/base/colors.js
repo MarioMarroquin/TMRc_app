@@ -1,11 +1,13 @@
 const colors = {
 	background: {
-		default: '#f8f9fa',
+		// default: '#f8f9fa',
+		default: '#f5f5f5',
 	},
 
 	text: {
 		primary: '#33345d',
 		secondary: '#8999ab',
+		primaryLight: 'rgba(51,52,93,0.78)',
 	},
 
 	transparent: {

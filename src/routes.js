@@ -6,14 +6,27 @@ import {
 	Person,
 	SettingsPhone,
 } from '@mui/icons-material';
-import Home from '@views/main/home';
-import Clients from '@views/main/clients';
-import ClientDetails from '@views/main/clients/components/clientDetails';
-import Companies from '@views/main/companies';
-import Requests from '@views/main/requests';
-import RequestDetails from './views/main/requests/components/requestDetails';
+import AdminClients from '@views/main/admin/clients';
+import AdminClientDetails from '@views/main/admin/clients/components/clientDetails';
+import AdminCompanies from '@views/main/admin/companies';
+import AdminRequests from '@views/main/admin/requests';
+import AdminRequestDetails from '@views/main/admin/requests/components/requestDetails';
 
-const routes = [
+import SalesHome from '@views/main/sales/home';
+import SalesClients from '@views/main/sales/clients';
+import SalesClientDetails from '@views/main/sales/clients/components/clientDetails';
+import SalesCompanies from '@views/main/sales/companies';
+import SalesRequests from '@views/main/sales/requests';
+import SalesRequestDetails from '@views/main/sales/requests/components/requestDetails';
+
+import DeskHome from '@views/main/desk/home';
+import DeskClients from '@views/main/desk/clients';
+import DeskClientDetails from '@views/main/desk/clients/components/clientDetails';
+import DeskCompanies from '@views/main/desk/companies';
+import DeskRequests from '@views/main/desk/requests';
+import DeskRequestDetails from '@views/main/desk/requests/components/requestDetails';
+
+const adminRoutes = [
 	{
 		name: 'Inicio',
 		path: '/home',
@@ -21,37 +34,86 @@ const routes = [
 		render: <></>,
 	},
 	{
-		name: 'Estadísticas',
-		path: '/statistics',
-		icon: <Analytics />,
-		render: <h1>Estadísticas</h1>,
+		name: 'Solicitudes',
+		path: '/requests',
+		icon: <SettingsPhone />,
+		render: <AdminRequests />,
+		child: [{ path: ':id', render: <AdminRequestDetails /> }],
 	},
 	{
 		name: 'Compañias',
 		path: '/companies',
 		icon: <Business />,
-		render: <Companies />,
+		render: <AdminCompanies />,
+	},
+
+	{
+		name: 'Clientes',
+		path: '/clients',
+		icon: <Person />,
+		render: <AdminClients />,
+		child: [{ path: ':id', render: <AdminClientDetails /> }],
+	},
+];
+
+const salesRoutes = [
+	{
+		name: 'Inicio',
+		path: '/home',
+		icon: <HomeIcon />,
+		render: <SalesHome />,
 	},
 	{
 		name: 'Solicitudes',
 		path: '/requests',
 		icon: <SettingsPhone />,
-		render: <Requests />,
-		child: [{ path: ':id', render: <RequestDetails /> }],
+		render: <SalesRequests />,
+		child: [{ path: ':id', render: <SalesRequestDetails /> }],
 	},
 	{
-		name: 'Reportes',
-		path: '/reports',
-		icon: <Assessment />,
-		render: <h1>Reportes</h1>,
+		name: 'Compañias',
+		path: '/companies',
+		icon: <Business />,
+		render: <SalesCompanies />,
+	},
+
+	{
+		name: 'Clientes',
+		path: '/clients',
+		icon: <Person />,
+		render: <SalesClients />,
+		child: [{ path: ':id', render: <SalesClientDetails /> }],
+	},
+];
+
+const deskRoutes = [
+	{
+		name: 'Inicio',
+		path: '/home',
+		icon: <HomeIcon />,
+		render: <DeskHome />,
+	},
+
+	{
+		name: 'Solicitudes',
+		path: '/requests',
+		icon: <SettingsPhone />,
+		render: <DeskRequests />,
+		child: [{ path: ':id', render: <DeskRequestDetails /> }],
+	},
+	{
+		name: 'Compañias',
+		path: '/companies',
+		icon: <Business />,
+		render: <DeskCompanies />,
 	},
 	{
 		name: 'Clientes',
 		path: '/clients',
 		icon: <Person />,
-		render: <Clients />,
-		child: [{ path: ':id', render: <ClientDetails /> }],
+		render: <DeskClients />,
+		child: [{ path: ':id', render: <DeskClientDetails /> }],
 	},
 ];
 
-export default routes;
+export { adminRoutes, salesRoutes, deskRoutes };

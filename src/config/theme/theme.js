@@ -12,7 +12,7 @@ const theme = createTheme(
 	{
 		shape: { borderRadius: 8 },
 		typography: {
-			fontFamily: 'Montserrat',
+			fontFamily: 'Inter',
 		},
 		palette: {
 			mode: 'light',
@@ -69,10 +69,25 @@ const theme = createTheme(
 					},
 				},
 			},
+			MuiCardHeader: {
+				styleOverrides: {
+					root: {
+						padding: `${pxToRem(12)} ${pxToRem(18)} !important`,
+					},
+				},
+			},
 			MuiCardContent: {
 				styleOverrides: {
 					root: {
-						padding: `${pxToRem(8)} ${pxToRem(24)} `,
+						padding: `${pxToRem(12)} ${pxToRem(18)} ${pxToRem(0)}`,
+						'&:last-child': { paddingBottom: pxToRem(12) },
+					},
+				},
+			},
+			MuiCardActions: {
+				styleOverrides: {
+					root: {
+						padding: `${pxToRem(12)} ${pxToRem(18)} ${pxToRem(12)}`,
 					},
 				},
 			},
