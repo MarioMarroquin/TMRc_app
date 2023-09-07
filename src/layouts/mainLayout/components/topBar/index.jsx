@@ -9,7 +9,12 @@ import {
 	Typography,
 	useTheme,
 } from '@mui/material';
-import { KeyboardArrowRight, Logout, MenuOpen } from '@mui/icons-material';
+import {
+	KeyboardArrowRight,
+	Logout,
+	ManageAccounts,
+	MenuOpen,
+} from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { drawerWidth } from '@layouts/mainLayout';
 import { useEffect, useState } from 'react';
@@ -96,21 +101,20 @@ const TopBar = ({ open, toggleDrawer }) => {
 				<CustomBreadcrumbs />
 
 				<Typography
-					variant={'h5'}
-					fontWeight={'bold'}
 					color={theme.palette.secondary.main}
 					noWrap
 					ml={'auto'}
-				></Typography>
+					mr={2}
+				>
+					{user.userName}
+				</Typography>
 
 				<Box sx={{ flexGrow: 0 }}>
 					<Tooltip title={'Opciones'}>
 						<IconButton onClick={handleOpenMenu}>
-							<Avatar
-								alt='userProfileImg'
-								src={user.profileImg}
-								sx={{ border: '3px solid #6a6a6a' }}
-							/>
+							<Avatar alt='userProfileImg'>
+								<ManageAccounts />
+							</Avatar>
 						</IconButton>
 					</Tooltip>
 					<CustomMenu

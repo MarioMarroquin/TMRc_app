@@ -1,4 +1,4 @@
-import { format, getDate, getDay, getMonth, getYear } from 'date-fns';
+import { format, getDate, getMonth, getYear } from 'date-fns';
 
 const formatToFolio = (params) => {
 	const year = getYear(new Date(params));
@@ -6,7 +6,7 @@ const formatToFolio = (params) => {
 	const day = getDate(new Date(params));
 
 	const aux = format(new Date(params), 'HHmm');
-	return `${year}${month}${day}${aux}`;
+	return `${year}${month}${day}${aux}`.slice(2);
 };
 
 export default formatToFolio;

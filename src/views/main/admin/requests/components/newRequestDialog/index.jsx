@@ -488,6 +488,12 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			});
 	};
 
+	useEffect(() => {
+		if (isVisible) {
+			setRequest(InitialRequest);
+		}
+	}, [isVisible]);
+
 	return (
 		<Fragment>
 			<Button variant={'text'} sx={{ ml: 'auto' }} onClick={toggleDialog}>

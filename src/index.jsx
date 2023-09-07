@@ -12,6 +12,7 @@ import { SessionProvider } from '@providers/session';
 import theme from '@config/theme/theme';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { RequestsProvider } from '@providers/requests';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -23,9 +24,11 @@ root.render(
 			<ApolloProvider client={client}>
 				<LoadingProvider>
 					<SessionProvider>
-						<Router basename='/'>
-							<App />
-						</Router>
+						<RequestsProvider>
+							<Router basename='/'>
+								<App />
+							</Router>
+						</RequestsProvider>
 					</SessionProvider>
 				</LoadingProvider>
 			</ApolloProvider>

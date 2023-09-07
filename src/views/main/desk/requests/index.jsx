@@ -7,6 +7,7 @@ import {
 	LinearProgress,
 	Stack,
 	Switch,
+	Tooltip,
 	Typography,
 } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
@@ -19,40 +20,30 @@ import NewRequestDialog from './components/newRequestDialog';
 import { useNavigate } from 'react-router-dom';
 import CustomDateRange from '@components/customDateRange';
 import { pxToRem } from '@config/theme/functions';
-import { Update } from '@mui/icons-material';
+import { FilterAltOff, Update } from '@mui/icons-material';
+import { useRequests } from '@providers/requests';
+import NoRowsOverlay from '@components/NoRowsOverlay';
+import useInterval from '@hooks/use-interval';
 
 const Requests = (props) => {
 	const { setLoading } = useLoading();
 	const navigate = useNavigate();
-	const [columnVisibilityModel, setColumnVisibilityModel] = useState({
-		contactMedium: false,
-		advertisingMedium: false,
-		brand: false,
-		productStatus: false,
-		comments: false,
-		company: false,
-		client: false,
-		extraComments: false,
-		updatedAt: false,
-		createdAt: false,
-	});
+
+	const {
+		countRows,
+		setCountRows,
+		showPending,
+		setShowPending,
+		paginationModel,
+		setPaginationModel,
+		dateRange,
+		setDateRange,
+		columnVisibilityModel,
+		setColumnVisibilityModel,
+		resetFilters,
+	} = useRequests();
 
 	const [requests, setRequests] = useState([]);
-	const [countRows, setCountRows] = useState(0);
-	const [paginationModel, setPaginationModel] = useState({
-		page: 0,
-		pageSize: 10,
-	});
-
-	const [dateRange, setDateRange] = useState([
-		{
-			startDate: startOfMonth(new Date()),
-			endDate: endOfMonth(new Date()),
-			key: 'selection',
-		},
-	]);
-
-	const [showPending, setShowPending] = useState(false);
 
 	const { data, loading, refetch } = useQuery(GET_REQUESTS, {
 		variables: {
@@ -66,6 +57,11 @@ const Requests = (props) => {
 				start: dateRange[0].startDate,
 			},
 		},
+	});
+
+	useInterval(refetch, 1000 * 60 * 0.25, {
+		skip: false,
+		leading: true,
 	});
 
 	useEffect(() => {
@@ -117,18 +113,37 @@ const Requests = (props) => {
 									}}
 								/>
 							</Box>
-							<Stack flexDirection={'row'} alignItems={'center'}>
-								<Typography variant={'caption'}>
-									{!showPending ? 'Mostrar pendientes' : 'Mostrar todo'}
-								</Typography>
-								<Switch
-									color={'secondary'}
-									checked={showPending}
-									onChange={(event) => {
-										setShowPending(event.target.checked);
-									}}
-								/>
-							</Stack>
+							<Box
+								sx={{
+									display: 'flex',
+									flexDirection: 'row',
+									marginX: { xs: 'auto', md: 'unset' },
+									mt: { xs: pxToRem(16), md: 'unset' },
+								}}
+							>
+								<Tooltip title={'Limpiar filtro'} placement={'top'}>
+									<Button
+										variant={'text'}
+										onClick={() => {
+											resetFilters();
+										}}
+									>
+										<FilterAltOff />
+									</Button>
+								</Tooltip>
+								<Stack flexDirection={'row'} alignItems={'center'}>
+									<Typography variant={'caption'}>
+										{!showPending ? 'Mostrar pendientes' : 'Mostrar todo'}
+									</Typography>
+									<Switch
+										color={'secondary'}
+										checked={showPending}
+										onChange={(event) => {
+											setShowPending(event.target.checked);
+										}}
+									/>
+								</Stack>
+							</Box>
 							<Box
 								sx={{
 									marginX: { xs: 'auto', md: 'unset' },
@@ -160,15 +175,20 @@ const Requests = (props) => {
 							loading={loading}
 							slots={{
 								loadingOverlay: LinearProgress,
+								noRowsOverlay: NoRowsOverlay,
 							}}
 							slotProps={{ loadingOverlay: { color: 'secondary' } }}
 							rowCount={countRows}
 							paginationModel={paginationModel}
 							onPaginationModelChange={setPaginationModel}
 							columnVisibilityModel={columnVisibilityModel}
-							onColumnVisibilityModelChange={(newModel) =>
-								setColumnVisibilityModel(newModel)
-							}
+							onColumnVisibilityModelChange={(newModel) => {
+								localStorage.setItem(
+									'headersVisibility',
+									JSON.stringify(newModel)
+								);
+								setColumnVisibilityModel(newModel);
+							}}
 							onRowDoubleClick={(data, e) => goToRequest(data.row)}
 						/>
 					</CardContent>

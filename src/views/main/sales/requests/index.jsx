@@ -5,6 +5,9 @@ import {
 	Card,
 	CardContent,
 	LinearProgress,
+	Stack,
+	Switch,
+	Tooltip,
 	Typography,
 	useMediaQuery,
 	useTheme,
@@ -18,36 +21,30 @@ import { GET_REQUESTS } from './requests';
 import { useNavigate } from 'react-router-dom';
 import CustomDateRange from '@components/customDateRange';
 import { pxToRem } from '@config/theme/functions';
-import { Update } from '@mui/icons-material';
+import { FilterAltOff, Update } from '@mui/icons-material';
+import { useRequests } from '@providers/requests';
+import useInterval from '@hooks/use-interval';
 
 const Requests = (props) => {
 	const theme = useTheme();
 	const { setLoading } = useLoading();
 	const navigate = useNavigate();
-	const [columnVisibilityModel, setColumnVisibilityModel] = useState({
-		contactMedium: false,
-		advertisingMedium: false,
-		productStatus: false,
-		comments: false,
-		extraComments: false,
-		updatedAt: false,
-		createdAt: false,
-	});
+
+	const {
+		countRows,
+		setCountRows,
+		showPending,
+		setShowPending,
+		paginationModel,
+		setPaginationModel,
+		dateRange,
+		setDateRange,
+		columnVisibilityModel,
+		setColumnVisibilityModel,
+		resetFilters,
+	} = useRequests();
 
 	const [requests, setRequests] = useState([]);
-	const [countRows, setCountRows] = useState(0);
-	const [paginationModel, setPaginationModel] = useState({
-		page: 0,
-		pageSize: 10,
-	});
-
-	const [dateRange, setDateRange] = useState([
-		{
-			startDate: startOfMonth(new Date()),
-			endDate: endOfMonth(new Date()),
-			key: 'selection',
-		},
-	]);
 
 	const { data, loading, refetch } = useQuery(GET_REQUESTS, {
 		variables: {
@@ -60,6 +57,11 @@ const Requests = (props) => {
 				start: dateRange[0].startDate,
 			},
 		},
+	});
+
+	useInterval(refetch, 1000 * 60 * 0.25, {
+		skip: false,
+		leading: true,
 	});
 
 	useEffect(() => {
@@ -89,29 +91,81 @@ const Requests = (props) => {
 							sx={{
 								display: 'flex',
 								flexDirection: 'row',
+								justifyContent: 'space-between',
+								width: '100%',
+								flexWrap: 'wrap',
 							}}
 						>
-							<CustomDateRange
-								ranges={dateRange}
-								onChange={(item) => {
-									item.selection.endDate.setHours(23, 59, 59);
-									item.selection.startDate.setHours(0, 0, 0);
-									setDateRange([item.selection]);
-								}}
-							/>
-							<Button
-								variant={'text'}
-								color={'info'}
-								sx={{ ml: 'auto' }}
-								startIcon={<Update />}
-								onClick={() => {
-									refetch();
+							<Box
+								sx={{
+									display: 'flex',
+									flexDirection: 'row',
+									justifyContent: 'center',
+									width: { xs: '100%', md: 'unset' },
 								}}
 							>
-								{useMediaQuery(theme.breakpoints.down('sm'))
-									? ''
-									: 'Actualizar'}
-							</Button>
+								<CustomDateRange
+									ranges={dateRange}
+									onChange={(item) => {
+										item.selection.endDate.setHours(23, 59, 59);
+										item.selection.startDate.setHours(0, 0, 0);
+										setDateRange([item.selection]);
+									}}
+								/>
+							</Box>
+
+							<Box
+								sx={{
+									display: 'flex',
+									flexDirection: 'row',
+									marginX: { xs: 'auto', md: 'unset' },
+									mt: { xs: pxToRem(16), md: 'unset' },
+								}}
+							>
+								<Tooltip title={'Limpiar filtro'} placement={'top'}>
+									<Button
+										variant={'text'}
+										onClick={() => {
+											resetFilters();
+										}}
+									>
+										<FilterAltOff />
+									</Button>
+								</Tooltip>
+								<Stack flexDirection={'row'} alignItems={'center'}>
+									<Typography variant={'caption'}>
+										{!showPending ? 'Mostrar pendientes' : 'Mostrar todo'}
+									</Typography>
+									<Switch
+										color={'secondary'}
+										checked={showPending}
+										onChange={(event) => {
+											setShowPending(event.target.checked);
+										}}
+									/>
+								</Stack>
+							</Box>
+
+							<Box
+								sx={{
+									marginX: { xs: 'auto', md: 'unset' },
+									mt: { xs: pxToRem(16), md: 'unset' },
+								}}
+							>
+								<Button
+									variant={'text'}
+									color={'info'}
+									sx={{ ml: 'auto' }}
+									startIcon={<Update />}
+									onClick={() => {
+										refetch();
+									}}
+								>
+									{useMediaQuery(theme.breakpoints.down('sm'))
+										? ''
+										: 'Actualizar'}
+								</Button>
+							</Box>
 						</Box>
 					</CardContent>
 				</Card>
@@ -130,9 +184,13 @@ const Requests = (props) => {
 							paginationModel={paginationModel}
 							onPaginationModelChange={setPaginationModel}
 							columnVisibilityModel={columnVisibilityModel}
-							onColumnVisibilityModelChange={(newModel) =>
-								setColumnVisibilityModel(newModel)
-							}
+							onColumnVisibilityModelChange={(newModel) => {
+								localStorage.setItem(
+									'headersVisibility',
+									JSON.stringify(newModel)
+								);
+								setColumnVisibilityModel(newModel);
+							}}
 							onRowDoubleClick={(data, e) => goToRequest(data.row)}
 						/>
 					</CardContent>
