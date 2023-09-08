@@ -484,6 +484,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			})
 			.catch((err) => {
 				console.log('Error', err);
+				toast.error('Error al guardar');
 				setLoading(false);
 			});
 	};

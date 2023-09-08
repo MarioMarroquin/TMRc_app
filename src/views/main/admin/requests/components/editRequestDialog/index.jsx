@@ -351,10 +351,36 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 
 	const [updateRequest] = useMutation(UPDATE_REQUEST);
 
+	const check = () => {
+		if (!request.serviceType) {
+			toast.error('Elige el tipo de servicio');
+			return true;
+		}
+
+		if (brand.id || brand.name) {
+			if (!request.productStatus) {
+				toast.error('Elige el estado de producto');
+				return true;
+			}
+		}
+
+		if (!seller.id) {
+			toast.error('Elige un vendedor');
+			return true;
+		}
+
+		return false;
+	};
+
 	const onFinish = (e) => {
 		e.preventDefault();
 
 		setLoading(true);
+
+		if (check()) {
+			setLoading(false);
+			return;
+		}
 
 		const auxObject = {
 			sellerId: seller.id ?? undefined, // tiene que tener de a fuerza
@@ -394,6 +420,7 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 			})
 			.catch((err) => {
 				console.log('Error', err);
+				toast.error('Error al guardar');
 				setLoading(false);
 			});
 	};

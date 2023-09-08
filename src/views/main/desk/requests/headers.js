@@ -1,8 +1,20 @@
 import { format } from 'date-fns';
 import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
 import { Typography } from '@mui/material';
+import formatToFolio from '@utils/functions/formatToFolio';
 
 export const headers = [
+	{
+		field: 'shortId',
+		headerName: 'FOLIO',
+		headerAlign: 'left',
+		align: 'left',
+		width: 130,
+		valueGetter: (params) => {
+			const aux = formatToFolio(params.row.createdAt);
+			return aux;
+		},
+	},
 	{
 		field: 'requestStatus',
 		headerName: 'ESTATUS',

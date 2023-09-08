@@ -474,6 +474,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			})
 			.catch((err) => {
 				console.log('Error', err);
+				toast.error('Ocurrio un error');
 				setLoading(false);
 			});
 	};

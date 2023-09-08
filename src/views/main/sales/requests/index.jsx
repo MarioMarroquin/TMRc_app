@@ -57,7 +57,7 @@ const Requests = (props) => {
 		},
 	});
 
-	useInterval(refetch, 1000 * 60 * 0.25, {
+	useInterval(refetch, 1000 * 60 * 1, {
 		skip: false,
 		leading: true,
 	});
