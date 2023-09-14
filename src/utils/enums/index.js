@@ -14,7 +14,7 @@ const ProductStatus = {
 
 const RequestStatus = {
 	PENDING: 'PENDIENTE',
-	FINISHED: 'CONCLUIDO',
+	FINISHED: 'COTIZADO',
 };
 
 export { ServiceType, ContactMedium, ProductStatus, RequestStatus };

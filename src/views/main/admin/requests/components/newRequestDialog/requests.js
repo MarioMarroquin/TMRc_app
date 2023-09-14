@@ -44,6 +44,7 @@ const GET_COMPANIES = gql`
 				id
 				name
 				phoneNumber
+				email
 			}
 		}
 	}

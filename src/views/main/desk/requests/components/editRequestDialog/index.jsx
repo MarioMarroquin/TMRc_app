@@ -413,7 +413,7 @@ const EditRequestDialog = ({ data }) => {
 									onChange={handleInputChange}
 								>
 									<MenuItem value={'PENDING'}>Pendiente</MenuItem>
-									<MenuItem value={'FINISHED'}>Concluida</MenuItem>
+									<MenuItem value={'FINISHED'}>Cotizado</MenuItem>
 								</Select>
 							</FormControl>
 						</Grid>

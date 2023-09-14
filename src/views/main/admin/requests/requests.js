@@ -33,11 +33,15 @@ const GET_REQUESTS = gql`
 				company {
 					id
 					name
+					phoneNumber
+					email
 				}
 				client {
 					id
 					firstName
 					lastName
+					phoneNumber
+					email
 				}
 				extraComments
 				requestStatus

@@ -47,8 +47,6 @@ const InitialRequest = {
 	extraComments: '',
 	requestStatus: 'PENDING',
 	isSale: null,
-	phoneNumber: '',
-	email: '',
 };
 
 const InitialBrand = {
@@ -59,12 +57,16 @@ const InitialBrand = {
 const InitialCompany = {
 	id: undefined,
 	name: '',
+	phoneNumber: '',
+	email: '',
 };
 
 const InitialClient = {
 	id: undefined,
 	firstName: '',
 	lastName: '',
+	phoneNumber: '',
+	email: '',
 	get name() {
 		return (this.firstName + ' ' + this.lastName).trim();
 	},
@@ -122,6 +124,8 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				id: undefined,
 				firstName: '',
 				lastName: '',
+				phoneNumber: '',
+				email: '',
 			});
 		} else {
 			setClient({
@@ -129,15 +133,9 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				id: value.id,
 				firstName: value.firstName,
 				lastName: value.lastName,
+				phoneNumber: value.phoneNumber,
+				email: value.email,
 			});
-
-			if (value.phoneNumber) {
-				setRequest({ ...request, phoneNumber: value.phoneNumber });
-			}
-
-			if (value.email) {
-				setRequest({ ...request, email: value.email });
-			}
 		}
 	};
 
@@ -168,6 +166,22 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				firstName: value,
 			});
 		}
+	};
+
+	const handlePhoneChangeClient = (e) => {
+		const phoneNumber = e.target.value;
+
+		if (phoneNumber === '') {
+			setClient({ ...client, phoneNumber });
+		} else {
+			if (/^\d+$/.test(phoneNumber)) setClient({ ...client, phoneNumber });
+		}
+	};
+
+	const handleEmailChangeClient = (e) => {
+		const email = e.target.value;
+
+		setClient({ ...client, email });
 	};
 
 	// SELLERS
@@ -267,21 +281,17 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				...company,
 				id: undefined,
 				name: '',
+				phoneNumber: '',
+				email: '',
 			});
 		} else {
 			setCompany({
 				...company,
 				id: value.id,
 				name: value.name,
+				phoneNumber: value.phoneNumber,
+				email: value.email,
 			});
-
-			if (value.phoneNumber && !request.phoneNumber) {
-				setRequest({ ...request, phoneNumber: value.phoneNumber });
-			}
-
-			if (value.email && !request.email) {
-				setRequest({ ...request, email: value.email });
-			}
 		}
 	};
 
@@ -310,6 +320,22 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				name: value,
 			});
 		}
+	};
+
+	const handlePhoneChangeCompany = (e) => {
+		const phoneNumber = e.target.value;
+
+		if (phoneNumber === '') {
+			setCompany({ ...company, phoneNumber });
+		} else {
+			if (/^\d+$/.test(phoneNumber)) setCompany({ ...company, phoneNumber });
+		}
+	};
+
+	const handleEmailChangeCompany = (e) => {
+		const email = e.target.value;
+
+		setCompany({ ...company, email });
 	};
 
 	// BRANDS
@@ -379,15 +405,15 @@ const NewRequestDialog = ({ refetchRequests }) => {
 
 	const [createRequest] = useMutation(CREATE_REQUEST);
 
-	const handlePhoneChange = (e) => {
-		const phoneNumber = e.target.value;
-
-		if (phoneNumber === '') {
-			setRequest({ ...request, phoneNumber });
-		} else {
-			if (/^\d+$/.test(phoneNumber)) setRequest({ ...request, phoneNumber });
-		}
-	};
+	// const handlePhoneChange = (e) => {
+	// 	const phoneNumber = e.target.value;
+	//
+	// 	if (phoneNumber === '') {
+	// 		setRequest({ ...request, phoneNumber });
+	// 	} else {
+	// 		if (/^\d+$/.test(phoneNumber)) setRequest({ ...request, phoneNumber });
+	// 	}
+	// };
 
 	const cleanStates = () => {
 		setRequest(InitialRequest);
@@ -418,9 +444,12 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			}
 		}
 
-		if (!request.phoneNumber && !request.email) {
+		if (
+			(!client.phoneNumber || !client.email) &&
+			(!company.phoneNumber || !company.email)
+		) {
 			if (company.name || client.firstName) {
-				toast.error('Registra una forma de contacto');
+				toast.error('Agrega una forma de contacto');
 				return true;
 			}
 		}
@@ -558,7 +587,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 									onChange={handleInputChange}
 								>
 									<MenuItem value={'PENDING'}>Pendiente</MenuItem>
-									<MenuItem value={'FINISHED'}>Concluida</MenuItem>
+									<MenuItem value={'FINISHED'}>Cotizado</MenuItem>
 								</Select>
 							</FormControl>
 						</Grid>
@@ -708,6 +737,38 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								)}
 							/>
 						</Grid>
+						<Grid item xs={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Teléfono empresa:
+							</Typography>
+							<TextField
+								margin={'none'}
+								fullWidth
+								id={'phoneNumber'}
+								name={'phoneNumber'}
+								value={company.phoneNumber}
+								onChange={handlePhoneChangeCompany}
+								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position='start'>+52</InputAdornment>
+									),
+								}}
+							/>
+						</Grid>
+						<Grid item xs={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Correo empresa:
+							</Typography>
+							<TextField
+								margin={'none'}
+								fullWidth
+								id={'email'}
+								name={'email'}
+								value={company.email}
+								onChange={handleEmailChangeCompany}
+							/>
+						</Grid>
 						<Grid item xs={6}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
 								Cliente:
@@ -749,17 +810,17 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								)}
 							/>
 						</Grid>
-						<Grid item xs={6}>
+						<Grid item xs={3}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Teléfono:
+								Teléfono cliente:
 							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'phoneNumber'}
 								name={'phoneNumber'}
-								value={request.phoneNumber}
-								onChange={handlePhoneChange}
+								value={client.phoneNumber}
+								onChange={handlePhoneChangeClient}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -768,17 +829,17 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								}}
 							/>
 						</Grid>
-						<Grid item xs={6}>
+						<Grid item xs={3}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Correo:
+								Correo cliente:
 							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'email'}
 								name={'email'}
-								value={request.email}
-								onChange={handleInputChange}
+								value={client.email}
+								onChange={handleEmailChangeClient}
 							/>
 						</Grid>
 						<Grid item xs={12}>

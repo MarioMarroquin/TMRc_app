@@ -57,12 +57,16 @@ const InitialBrand = {
 const InitialCompany = {
 	id: undefined,
 	name: '',
+	phoneNumber: '',
+	email: '',
 };
 
 const InitialClient = {
 	id: undefined,
 	firstName: '',
 	lastName: '',
+	phoneNumber: '',
+	email: '',
 	get name() {
 		return (this.firstName + ' ' + this.lastName).trim();
 	},
@@ -187,6 +191,8 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 				id: undefined,
 				firstName: '',
 				lastName: '',
+				phoneNumber: '',
+				email: '',
 			});
 		} else {
 			setClient({
@@ -194,6 +200,8 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 				id: value.id,
 				firstName: value.firstName,
 				lastName: value.lastName,
+				phoneNumber: value.phoneNumber,
+				email: value.email,
 			});
 		}
 	};
@@ -227,6 +235,22 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 		}
 	};
 
+	const handlePhoneChangeClient = (e) => {
+		const phoneNumber = e.target.value;
+
+		if (phoneNumber === '') {
+			setClient({ ...client, phoneNumber });
+		} else {
+			if (/^\d+$/.test(phoneNumber)) setClient({ ...client, phoneNumber });
+		}
+	};
+
+	const handleEmailChangeClient = (e) => {
+		const email = e.target.value;
+
+		setClient({ ...client, email });
+	};
+
 	// COMPANY
 	const [searchedCompanies, setSearchedCompanies] = useState([]);
 	const [company, setCompany] = useState(InitialCompany);
@@ -252,12 +276,16 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 				...company,
 				id: undefined,
 				name: '',
+				phoneNumber: '',
+				email: '',
 			});
 		} else {
 			setCompany({
 				...company,
 				id: value.id,
 				name: value.name,
+				phoneNumber: value.phoneNumber,
+				email: value.email,
 			});
 		}
 	};
@@ -287,6 +315,22 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 				name: value,
 			});
 		}
+	};
+
+	const handlePhoneChangeCompany = (e) => {
+		const phoneNumber = e.target.value;
+
+		if (phoneNumber === '') {
+			setCompany({ ...company, phoneNumber });
+		} else {
+			if (/^\d+$/.test(phoneNumber)) setCompany({ ...company, phoneNumber });
+		}
+	};
+
+	const handleEmailChangeCompany = (e) => {
+		const email = e.target.value;
+
+		setCompany({ ...company, email });
 	};
 
 	// BRANDS
@@ -360,6 +404,16 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 		if (brand.id || brand.name) {
 			if (!request.productStatus) {
 				toast.error('Elige el estado de producto');
+				return true;
+			}
+		}
+
+		if (
+			(!client.phoneNumber || !client.email) &&
+			(!company.phoneNumber || !company.email)
+		) {
+			if (company.name || client.firstName) {
+				toast.error('Agrega una forma de contacto');
 				return true;
 			}
 		}
@@ -450,12 +504,16 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 			const auxCompany = {
 				id: data.company?.id ?? undefined,
 				name: data.company?.name ?? '',
+				phoneNumber: data.company?.phoneNumber ?? '',
+				email: data.company?.email ?? '',
 			};
 
 			const auxClient = {
 				id: data.client?.id ?? undefined,
 				firstName: data.client?.firstName ?? '',
 				lastName: data.client?.lastName ?? '',
+				phoneNumber: data.client?.phoneNumber ?? '',
+				email: data.client?.email ?? '',
 				get name() {
 					return (this.firstName + ' ' + this.lastName).trim();
 				},
@@ -546,7 +604,7 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 									onChange={handleInputChange}
 								>
 									<MenuItem value={'PENDING'}>Pendiente</MenuItem>
-									<MenuItem value={'FINISHED'}>Concluida</MenuItem>
+									<MenuItem value={'FINISHED'}>Cotizado</MenuItem>
 								</Select>
 							</FormControl>
 						</Grid>
@@ -662,7 +720,6 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 								Compañía:
 							</Typography>
 							<Autocomplete
-								disabled
 								freeSolo
 								forcePopupIcon={true}
 								options={searchedCompanies}
@@ -697,12 +754,43 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 								)}
 							/>
 						</Grid>
+						<Grid item xs={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Teléfono empresa:
+							</Typography>
+							<TextField
+								margin={'none'}
+								fullWidth
+								id={'phoneNumber'}
+								name={'phoneNumber'}
+								value={company.phoneNumber}
+								onChange={handlePhoneChangeCompany}
+								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position='start'>+52</InputAdornment>
+									),
+								}}
+							/>
+						</Grid>
+						<Grid item xs={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Correo empresa:
+							</Typography>
+							<TextField
+								margin={'none'}
+								fullWidth
+								id={'email'}
+								name={'email'}
+								value={company.email}
+								onChange={handleEmailChangeCompany}
+							/>
+						</Grid>
 						<Grid item xs={6}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
 								Cliente:
 							</Typography>
 							<Autocomplete
-								disabled
 								freeSolo
 								forcePopupIcon={true}
 								options={searchedClients}
@@ -737,6 +825,38 @@ const EditRequestDialog = ({ data, reloadRequest }) => {
 										</Grid>
 									</li>
 								)}
+							/>
+						</Grid>
+						<Grid item xs={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Teléfono cliente:
+							</Typography>
+							<TextField
+								margin={'none'}
+								fullWidth
+								id={'phoneNumber'}
+								name={'phoneNumber'}
+								value={client.phoneNumber}
+								onChange={handlePhoneChangeClient}
+								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+								InputProps={{
+									startAdornment: (
+										<InputAdornment position='start'>+52</InputAdornment>
+									),
+								}}
+							/>
+						</Grid>
+						<Grid item xs={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Correo cliente:
+							</Typography>
+							<TextField
+								margin={'none'}
+								fullWidth
+								id={'email'}
+								name={'email'}
+								value={client.email}
+								onChange={handleEmailChangeClient}
 							/>
 						</Grid>
 						<Grid item xs={12}>
