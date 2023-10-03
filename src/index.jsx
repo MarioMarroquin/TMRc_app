@@ -9,7 +9,7 @@ import { ApolloProvider } from '@apollo/client';
 import client from '@graphql';
 import { LoadingProvider } from '@providers/loading';
 import { SessionProvider } from '@providers/session';
-import theme from '@config/theme/theme';
+import theme from '@config/theme/light/theme';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { RequestsProvider } from '@providers/requests';

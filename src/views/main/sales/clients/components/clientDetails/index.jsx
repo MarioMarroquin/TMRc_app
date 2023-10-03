@@ -5,7 +5,6 @@ import { useLoading } from '@providers/loading';
 import { useEffect, useState } from 'react';
 import { GET_CLIENT, GET_REQUESTS_BY_CLIENT } from './requests';
 import { useQuery } from '@apollo/client';
-import shadows from '@config/theme/base/shadows';
 import CustomDataGrid from '@components/customDataGrid';
 import { endOfMonth, startOfMonth } from 'date-fns';
 import { headers } from '@views/main/sales/clients/components/clientDetails/headers';

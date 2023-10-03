@@ -5,7 +5,7 @@ const formatToFolio = (params) => {
 	const month = getMonth(new Date(params)) + 1;
 	const day = getDate(new Date(params));
 
-	const aux = format(new Date(params), 'HHmm');
+	const aux = format(new Date(params), 'HHmmss');
 	return `${year}${month}${day}${aux}`.slice(2);
 };
 

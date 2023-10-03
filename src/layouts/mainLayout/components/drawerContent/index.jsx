@@ -18,7 +18,7 @@ const DrawerContent = () => {
 
 	const isSelected = (loc) => {
 		let color = '';
-		if (location.includes(loc)) color = theme.palette.secondary.main;
+		if (location.includes(loc)) color = theme.palette.primary.main;
 
 		return color || '#afafaf';
 	};
@@ -47,10 +47,21 @@ const DrawerContent = () => {
 							onClick={() => {
 								navigate(path, { replace: true });
 							}}
+							sx={{
+								color: theme.palette.secondary.main,
+								'&:hover': {
+									backgroundColor: theme.palette.hover.main,
+								},
+								'&.Mui-selected': {
+									color: theme.palette.primary.main,
+									backgroundColor: theme.palette.background.default,
+									'&:hover': {
+										backgroundColor: theme.palette.hover.main,
+									},
+								},
+							}}
 						>
-							<ListItemIcon sx={{ color: isSelected(path) }}>
-								{icon}
-							</ListItemIcon>
+							<ListItemIcon sx={{ color: 'inherit' }}>{icon}</ListItemIcon>
 							<ListItemText primary={name} />
 						</ListItemButton>
 					);

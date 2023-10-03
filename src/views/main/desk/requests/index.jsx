@@ -78,7 +78,7 @@ const Requests = (props) => {
 	return (
 		<Fragment>
 			<Box sx={{ padding: `${pxToRem(0)} ${pxToRem(18)} ${pxToRem(18)}` }}>
-				<Typography mb={2} variant={'h4'}>
+				<Typography mb={2} variant={'primaryBold20'}>
 					Lista de solicitudes
 				</Typography>
 

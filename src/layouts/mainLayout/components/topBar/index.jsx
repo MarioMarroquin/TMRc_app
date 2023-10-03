@@ -9,21 +9,13 @@ import {
 	Typography,
 	useTheme,
 } from '@mui/material';
-import {
-	KeyboardArrowRight,
-	Logout,
-	ManageAccounts,
-	Menu,
-	MenuOpen,
-} from '@mui/icons-material';
+import { Logout, ManageAccounts, Menu, MenuOpen } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { drawerWidth } from '@layouts/mainLayout';
 import { useEffect, useState } from 'react';
 import { useSession } from '@providers/session';
 import CustomMenu from '@components/customMenu';
 import { pxToRem } from '@config/theme/functions';
-import colors from '@config/theme/base/colors';
-import shadows from '@config/theme/base/shadows';
 import CustomBreadcrumbs from '@components/customBreadcrumbs';
 
 const TopBar = ({ open, toggleDrawer }) => {
@@ -31,8 +23,6 @@ const TopBar = ({ open, toggleDrawer }) => {
 	const [anchorMenu, setAnchorMenu] = useState(null);
 	const { logout, user } = useSession();
 	const [transparent, setTransparent] = useState(true);
-
-	const { navbarBoxShadow } = shadows;
 
 	const handleOpenMenu = (event) => {
 		setAnchorMenu(event.currentTarget);
@@ -59,18 +49,26 @@ const TopBar = ({ open, toggleDrawer }) => {
 		<AppBar
 			position={'fixed'} // fixed
 			sx={{
-				// ----------------------------------------------------------------
-				// borderBottomRightRadius: (theme) => theme.shape.borderRadius,
-				borderRadius: 1,
-				boxShadow: transparent ? 'none' : navbarBoxShadow,
 				top: 16,
 				right: { xs: 16, sm: 24 },
-				backdropFilter: `saturate(200%) blur(1.875rem)`,
-				backgroundColor: transparent
-					? `${colors.transparent.main} !important`
-					: 'rgba(255,255,255,0.8)',
-				// ----------------------------------------------------------------
 				zIndex: 1200,
+				borderRadius: pxToRem(16),
+				backdropFilter: `saturate(200%) blur(20px)`,
+				backgroundColor: transparent
+					? `transparent !important`
+					: `${theme.palette.background.paper}80`,
+				boxShadow: transparent
+					? 'none'
+					: ` 0px 0px 1px rgba(3, 7, 18, 0.10),
+							0px 2px 4px rgba(3, 7, 18, 0.10),
+							0px 4px 8px rgba(3, 7, 18, 0.10),
+							0px 6px 15px rgba(3, 7, 18, 0.10),
+							0px 10px 23px rgba(3, 7, 18, 0.10),
+							0px 14px 34px rgba(3, 7, 18, 0.10),
+							0px 19px 46px rgba(3, 7, 18, 0.10),
+							0px 25px 60px rgba(3, 7, 18, 0.10);
+							`,
+				// ----------------------------------------------------------------
 				width: (theme) => ({
 					xs: `calc(100% - 30px)`,
 					sm: `calc(100% - ${theme.spacing(7)} - 32px - 48px)`,

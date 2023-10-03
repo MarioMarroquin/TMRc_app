@@ -1,12 +1,11 @@
 import PropTypes from 'prop-types';
-import { Drawer } from '@mui/material';
+import { Drawer, useTheme } from '@mui/material';
 import { drawerWidth } from '@layouts/mainLayout';
 import DrawerContent from '@layouts/mainLayout/components/drawerContent';
-import shadows from '@config/theme/base/shadows';
 import { pxToRem } from '@config/theme/functions';
 
 const DesktopDrawer = ({ open }) => {
-	const { xxl } = shadows;
+	const theme = useTheme();
 
 	return (
 		<Drawer
@@ -14,18 +13,24 @@ const DesktopDrawer = ({ open }) => {
 			open={open}
 			sx={{
 				'& .MuiDrawer-paper': {
-					borderRadius: 1,
 					position: 'sticky',
-					top: pxToRem(16),
 					width: drawerWidth,
 					height: `calc(100vh - 32px)`,
+					top: pxToRem(16),
+					borderRadius: pxToRem(16),
 					margin: 2,
 					border: 'none',
 					whiteSpace: 'nowrap',
 					boxSizing: 'border-box',
-					boxShadow: xxl,
-					backdropFilter: `saturate(20s0%) blur(1.875rem)`,
-					backgroundColor: 'rgba(255,255,255,0.8)',
+					backdropFilter: `saturate(200%) blur(1.875rem)`,
+					backgroundColor: theme.palette.background.paper,
+					boxShadow: `1px 1px 1px rgba(3, 7, 18, 0.01),
+											2px 3px 3px rgba(3, 7, 18, 0.02),
+											5px 6px 6px rgba(3, 7, 18, 0.03),
+											9px 11px 11px rgba(3, 7, 18, 0.03),
+											14px 17px 17px rgba(3, 7, 18, 0.04),
+											20px 25px 25px rgba(3, 7, 18, 0.05);
+											`,
 					transition: (theme) =>
 						theme.transitions.create('width', {
 							easing: theme.transitions.easing.sharp,

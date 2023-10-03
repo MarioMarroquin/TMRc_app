@@ -37,6 +37,8 @@ import CustomTime from '@components/customTime';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+
 const InitialRequest = {
 	requestDate: new Date(),
 	serviceType: '',
@@ -158,7 +160,6 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				...client,
 				id: undefined,
 				firstName: value,
-				lastName: '',
 			});
 		} else {
 			setClient({
@@ -182,6 +183,15 @@ const NewRequestDialog = ({ refetchRequests }) => {
 		const email = e.target.value;
 
 		setClient({ ...client, email });
+	};
+
+	const handleNameChangeClient = (e) => {
+		const lastName = e.target.value;
+		const existId = client.id;
+		existId
+			? // deletes id cuz is new client
+			  setClient({ ...client, id: undefined, lastName })
+			: setClient({ ...client, lastName });
 	};
 
 	// SELLERS
@@ -424,13 +434,53 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			}
 		}
 
-		if (
-			(!client.phoneNumber || !client.email) &&
-			(!company.phoneNumber || !company.email)
-		) {
-			if (company.name || client.firstName) {
-				toast.error('Agrega una forma de contacto');
+		if (!client.id) {
+			if (
+				(client.firstName && !client.lastName) ||
+				(!client.firstName && client.lastName)
+			) {
+				toast.error('Completa el nombre del cliente.');
 				return true;
+			}
+
+			if (client.firstName && client.lastName) {
+				if (!client.phoneNumber && !client.email) {
+					toast.error('Agrega una forma de contacto');
+					return true;
+				}
+
+				if (client.phoneNumber)
+					if (client.phoneNumber.length < 10) {
+						toast.error('Número incompleto');
+						return true;
+					}
+
+				if (client.email)
+					if (!EMAIL.test(client.email)) {
+						toast.error('Revisa el email');
+						return true;
+					}
+			}
+		}
+
+		if (!company.id) {
+			if (company.name) {
+				if (!company.phoneNumber && !company.email) {
+					toast.error('Agrega una forma de contacto');
+					return true;
+				}
+
+				if (company.phoneNumber)
+					if (company.phoneNumber.length < 10) {
+						toast.error('Número incompleto');
+						return true;
+					}
+
+				if (company.email)
+					if (!EMAIL.test(company.email)) {
+						toast.error('Revisa el email');
+						return true;
+					}
 			}
 		}
 
@@ -460,11 +510,12 @@ const NewRequestDialog = ({ refetchRequests }) => {
 				  }))(brand)
 				: null,
 			clientId: client.id ?? null,
-			client: client.firstName
-				? (({ id, name, ...rest }) => ({
-						...rest,
-				  }))(client)
-				: null,
+			client:
+				client.firstName && client.lastName
+					? (({ id, name, ...rest }) => ({
+							...rest,
+					  }))(client)
+					: null,
 			companyId: company.id ?? null,
 			company: company.name
 				? (({ id, ...rest }) => ({ ...rest }))(company)
@@ -472,21 +523,21 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			sellerId: seller.id, // tiene que tener de a fuerza
 		};
 
-		const { productStatus, ...restRequest } = request;
+		const { productStatus, ...auxRequest } = request;
 
 		productStatus === ''
-			? (restRequest.productStatus = null)
-			: (restRequest.productStatus = productStatus);
+			? (auxRequest.productStatus = null)
+			: (auxRequest.productStatus = productStatus);
 
-		createRequest({ variables: { request: restRequest, ...auxObject } })
+		createRequest({ variables: { request: auxRequest, ...auxObject } })
 			.then((res) => {
 				if (!res.errors) {
-					toast.success('Guardado');
+					toast.success('Solicitud creada');
 					refetchRequests();
 					toggleDialog();
 				} else {
 					console.log('Errores', res.errors);
-					toast.error('Error al guardar');
+					toast.error('Error al crear');
 				}
 				cleanStates();
 				setLoading(false);
@@ -503,6 +554,10 @@ const NewRequestDialog = ({ refetchRequests }) => {
 			setRequest(InitialRequest);
 		}
 	}, [isVisible]);
+
+	const isAv = () => {
+		return Boolean(client.firstName);
+	};
 
 	return (
 		<Fragment>
@@ -728,6 +783,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								name={'phoneNumber'}
 								value={company.phoneNumber}
 								onChange={handlePhoneChangeCompany}
+								disabled={company.id || !company.name}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -747,9 +803,10 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								name={'email'}
 								value={company.email}
 								onChange={handleEmailChangeCompany}
+								disabled={company.id || !company.name}
 							/>
 						</Grid>
-						<Grid item xs={6}>
+						<Grid item xs={6} md={3}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
 								Cliente:
 							</Typography>
@@ -758,9 +815,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								forcePopupIcon={true}
 								options={searchedClients}
 								getOptionLabel={(option) =>
-									typeof option === 'string'
-										? option
-										: `${option.firstName + ' ' + option.lastName}`
+									typeof option === 'string' ? option : option.firstName
 								}
 								autoComplete
 								includeInputInList
@@ -790,7 +845,20 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								)}
 							/>
 						</Grid>
-						<Grid item xs={3}>
+						<Grid item xs={6} md={3}>
+							<Typography variant={'caption'} color={'text.primaryLight'}>
+								Cliente apell:
+							</Typography>
+							<TextField
+								fullWidth
+								margin={'none'}
+								id={'lastName'}
+								name={'lastName'}
+								value={client.lastName}
+								onChange={handleNameChangeClient}
+							/>
+						</Grid>
+						<Grid item xs={6} md={3}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
 								Teléfono cliente:
 							</Typography>
@@ -801,6 +869,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								name={'phoneNumber'}
 								value={client.phoneNumber}
 								onChange={handlePhoneChangeClient}
+								disabled={client.id || !(client.firstName && client.lastName)}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -809,7 +878,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								}}
 							/>
 						</Grid>
-						<Grid item xs={3}>
+						<Grid item xs={6} md={3}>
 							<Typography variant={'caption'} color={'text.primaryLight'}>
 								Correo cliente:
 							</Typography>
@@ -820,6 +889,7 @@ const NewRequestDialog = ({ refetchRequests }) => {
 								name={'email'}
 								value={client.email}
 								onChange={handleEmailChangeClient}
+								disabled={client.id || !(client.firstName && client.lastName)}
 							/>
 						</Grid>
 						<Grid item xs={12}>

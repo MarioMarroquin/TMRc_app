@@ -52,24 +52,24 @@ const GET_COMPANIES = gql`
 
 const CREATE_REQUEST = gql`
 	mutation CreateRequest(
-		$request: CreateRequestInput!
-		$brand: CreateBrandInput
-		$client: CreateClientInput
-		$company: CreateCompanyInput
 		$brandId: ID
 		$clientId: ID
 		$companyId: ID
 		$sellerId: ID
+		$brand: CreateBrandInput
+		$client: CreateClientInput
+		$company: CreateCompanyInput
+		$request: CreateRequestInput!
 	) {
 		createRequest(
-			request: $request
-			brand: $brand
-			client: $client
-			company: $company
 			brandId: $brandId
 			clientId: $clientId
 			companyId: $companyId
 			sellerId: $sellerId
+			brand: $brand
+			client: $client
+			company: $company
+			request: $request
 		) {
 			id
 		}
