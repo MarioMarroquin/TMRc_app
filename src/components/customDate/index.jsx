@@ -1,10 +1,11 @@
-import PropTypes from 'prop-types';
 import { Fragment, useEffect, useState } from 'react';
 import { Box, Button, Grow, Paper, useTheme } from '@mui/material';
 import { Calendar } from 'react-date-range';
 import { es } from 'date-fns/locale';
 import { paperClasses } from '@mui/material/Paper';
 import { format } from 'date-fns';
+import { pxToRem } from '@config/theme/functions';
+
 const CustomDate = (props) => {
 	const theme = useTheme();
 	const [visible, setVisible] = useState(false);
@@ -26,7 +27,26 @@ const CustomDate = (props) => {
 				}}
 			>
 				<Button
-					sx={{ width: '100%' }}
+					sx={{
+						width: '100%',
+						height: '100%',
+						bgcolor: '#f9f9f9',
+						borderRadius: `${pxToRem(12)} ${pxToRem(12)} 0 0`,
+						'&:hover': {
+							backgroundColor: '#f7faff',
+							border: 'none',
+							borderBottom: '1px solid #00000050',
+						},
+						'&.Mui-focused': {
+							backgroundColor: '#f9fcff',
+
+							'&:hover': {
+								backgroundColor: '#f7faff',
+							},
+						},
+						border: 'none',
+						borderBottom: '1px solid #00000050',
+					}}
 					onClick={toggleVisible}
 					variant={'outlined'}
 				>

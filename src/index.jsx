@@ -13,12 +13,13 @@ import theme from '@config/theme/light/theme';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { RequestsProvider } from '@providers/requests';
+import { es } from 'date-fns/locale';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
 root.render(
-	<LocalizationProvider dateAdapter={AdapterDateFns}>
+	<LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
 			<ApolloProvider client={client}>

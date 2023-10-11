@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import { adminRoutes } from '../../../../routes';
+import { routes } from '../../../../routes';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
@@ -39,7 +39,7 @@ const DrawerContent = () => {
 			{/* <Divider /> */}
 
 			<List component={'nav'}>
-				{adminRoutes.map(({ icon, name, path }) => {
+				{routes.map(({ icon, name, path }) => {
 					return (
 						<ListItemButton
 							key={path}

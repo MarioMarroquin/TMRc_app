@@ -1,6 +1,6 @@
 import { Breadcrumbs, Link, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { adminRoutes } from '../../routes';
+import { routes } from '../../routes';
 
 const CustomBreadcrumbs = () => {
 	const navigate = useNavigate();
@@ -8,7 +8,7 @@ const CustomBreadcrumbs = () => {
 	const route = location.split('/').filter((x) => x);
 
 	const searchName = (value, index, list) => {
-		const res = adminRoutes.find(({ path }) => path === `/${value}`);
+		const res = routes.find(({ path }) => path === `/${value}`);
 
 		if (!res) return '';
 		return res.name;

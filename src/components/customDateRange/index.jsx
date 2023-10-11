@@ -5,8 +5,9 @@ import { Fragment, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import './index.css';
 import { paperClasses } from '@mui/material/Paper';
-import { Calendar } from '@mui/x-date-pickers/internals/components/icons';
 import { es } from 'date-fns/locale';
+import { CalendarIcon } from '@mui/x-date-pickers';
+import { pxToRem } from '@config/theme/functions';
 
 const CustomDateRange = (props) => {
 	const theme = useTheme();
@@ -26,15 +27,35 @@ const CustomDateRange = (props) => {
 			<Box
 				sx={{
 					[`& .${paperClasses.root}`]: {
-						borderRadius: '24px',
+						borderRadius: '16px',
+						boxShadow: `0px 15px 16px rgba(3, 7, 18, 0.20),
+												0px 60px 65px rgba(3, 7, 18, 0.10);
+												`,
 					},
 				}}
 			>
 				<Button
-					sx={{ width: 332 }}
+					sx={{
+						width: 332,
+						height: '100%',
+						bgcolor: '#f9f9f9',
+						border: 'none',
+						borderRadius: pxToRem(12),
+						'&:hover': {
+							backgroundColor: '#f7faff',
+							border: 'none',
+						},
+						'&.Mui-focused': {
+							backgroundColor: '#f9fcff',
+
+							'&:hover': {
+								backgroundColor: '#f7faff',
+							},
+						},
+					}}
 					onClick={toggleVisible}
 					variant={'outlined'}
-					startIcon={<Calendar />}
+					startIcon={<CalendarIcon />}
 				>
 					{format(props.ranges[0].startDate, 'dd MMM yy', {
 						locale: es,
@@ -48,7 +69,6 @@ const CustomDateRange = (props) => {
 				<Grow in={visible}>
 					<Box
 						component={Paper}
-						elevation={12}
 						sx={{
 							zIndex: 1000,
 							position: 'absolute',
