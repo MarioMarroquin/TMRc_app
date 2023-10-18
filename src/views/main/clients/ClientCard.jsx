@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import {
 	Avatar,
 	Box,
+	Button,
 	Card,
 	CardContent,
 	CardHeader,
@@ -9,20 +10,27 @@ import {
 	Stack,
 	Typography,
 } from '@mui/material';
-import { Fragment } from 'react';
 import { Email, NoAccounts, Phone, WhatsApp } from '@mui/icons-material';
 import { grey } from '@mui/material/colors';
+import { useNavigate } from 'react-router-dom';
 
-const ClientDetails = ({ client }) => {
+const ClientCard = ({ client }) => {
+	const navigate = useNavigate();
+
+	const goToDetails = (data) => {
+		const id = data.id;
+		navigate(id);
+	};
+
 	return (
-		<Card>
+		<Card sx={{ height: '100%' }}>
 			<CardHeader title='Detalles' titleTypographyProps={{ align: 'center' }} />
 			<CardContent>
 				{client ? (
 					<Stack alignItems={'center'} spacing={2}>
 						<Avatar sx={{ width: 68, height: 68 }} />
 						<Typography>{client.firstName}</Typography>
-						<Typography>{client.phoneNumbers}</Typography>
+						<Typography>{client.phoneNumber}</Typography>
 
 						<Box>
 							<IconButton color={'secondary'}>
@@ -36,7 +44,13 @@ const ClientDetails = ({ client }) => {
 							</IconButton>
 						</Box>
 
-						<Typography>Ver cliente completo</Typography>
+						<Button
+							variant={'text'}
+							onClick={() => goToDetails(client)}
+							disabled
+						>
+							Ver detalles
+						</Button>
 					</Stack>
 				) : (
 					<Stack alignItems={'center'}>
@@ -49,8 +63,8 @@ const ClientDetails = ({ client }) => {
 	);
 };
 
-ClientDetails.propTypes = {
+ClientCard.propTypes = {
 	client: PropTypes.object,
 };
 
-export default ClientDetails;
+export default ClientCard;

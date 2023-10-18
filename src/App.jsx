@@ -3,13 +3,14 @@ import Login from '@views/auth/login';
 import AuthLayout from '@layouts/authLayout';
 import { useSession } from '@providers/session';
 import MainLayout from '@layouts/mainLayout';
-import Home from '@views/main/home';
-import Clients from '@views/main/clients';
+import { routes } from './routes';
+import 'react-date-range/dist/styles.css'; // main css file
+import 'react-date-range/dist/theme/default.css'; // theme css file
 
 // const Requests = lazy(() => import('@views/requests'));
 
 const App = () => {
-	const { isLogged } = useSession();
+	const { isLogged, role } = useSession();
 
 	if (!isLogged) {
 		return (
@@ -25,13 +26,27 @@ const App = () => {
 	return (
 		<Routes>
 			<Route element={<MainLayout />}>
-				<Route path={'home'} element={<Home />} />
-				<Route path={'statistics'} element={<h1>Estadísticas</h1>} />
-				<Route path={'messages'} element={<h1>Mensajes</h1>} />
-				<Route path={'reports'} element={<h1>Reportes</h1>} />
-				<Route path={'calls'} element={<h1>Calls</h1>} />
-				<Route path={'clients'} element={<Clients />} />
-				<Route path='*' element={<Navigate replace to={'home'} />} />
+				{routes.map(({ path, render, child }) => {
+					if (child) {
+						return (
+							<Route key={path} path={path}>
+								<Route exact index element={render} />
+								{child.map((item) => {
+									return (
+										<Route
+											key={item.path}
+											path={item.path}
+											element={item.render}
+										/>
+									);
+								})}
+							</Route>
+						);
+					} else {
+						return <Route key={path} path={path} element={render} />;
+					}
+				})}
+				<Route path='*' element={<Navigate replace to={'requests'} />} />
 			</Route>
 		</Routes>
 	);

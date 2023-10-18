@@ -15,15 +15,17 @@ import { useLoading } from '@providers/loading';
 import { authClient } from '@utils/auth';
 import { useSession } from '@providers/session';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const InitialLoginForm = {
-	userName: '',
+	username: '',
 	password: '',
 	expires: false,
 };
 
 const Login = () => {
 	const theme = useTheme();
+	const navigate = useNavigate();
 	const { setIsLogged } = useSession();
 
 	const { setLoading } = useLoading();
@@ -46,6 +48,7 @@ const Login = () => {
 			await authClient.post('/login', loginForm).then((res) => {
 				setIsLogged(true);
 				setLoading(false);
+				navigate('/home');
 			});
 		} catch (err) {
 			toast.error('Revisa el correo y/o la contraseña');
@@ -54,7 +57,7 @@ const Login = () => {
 	};
 
 	const onEnter = (e) => {
-		if (loginForm.userName && loginForm.password && e.key === 'Enter')
+		if (loginForm.username && loginForm.password && e.key === 'Enter')
 			onFinish(e);
 	};
 
@@ -84,13 +87,13 @@ const Login = () => {
 
 				<Box display={'flex'} flexDirection={'column'}>
 					<TextField
-						id={'userName'}
-						name={'userName'}
+						id={'username'}
+						name={'username'}
 						label={'Usuario'}
 						margin={'normal'}
 						autoFocus
 						fullWidth
-						value={loginForm.userName}
+						value={loginForm.username}
 						onChange={handleInputChange}
 						onKeyDown={onEnter}
 					/>
@@ -117,7 +120,7 @@ const Login = () => {
 
 					<Button
 						onClick={onFinish}
-						disabled={!(loginForm.userName && loginForm.password)}
+						disabled={!(loginForm.username && loginForm.password)}
 						sx={{ mx: 'auto', mt: 2, mb: 2 }}
 					>
 						Iniciar Sesión

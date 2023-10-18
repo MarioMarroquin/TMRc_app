@@ -7,12 +7,12 @@ import {
 	Grid,
 	InputAdornment,
 	TextField,
+	Typography,
 } from '@mui/material';
 import { useMutation } from '@apollo/client';
-import { CREATE_CLIENT } from '@views/main/clients/components/newClientDialog/requests';
+import { CREATE_CLIENT } from './requests';
 import { Fragment, useState } from 'react';
 import { useLoading } from '@providers/loading';
-import DraggablePaper from '@components/draggablePaper';
 import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
 
@@ -20,16 +20,27 @@ const InitialClientForm = {
 	firstName: '',
 	lastName: '',
 	phoneNumber: '',
+	addresses: {
+		alias: '',
+		formattedAddress: '',
+		info: '',
+		coordinates: [],
+	},
 };
 
-const NewClientDialog = ({ reloadClients }) => {
+const ClientCreateDialog = ({ reloadClients }) => {
 	const { setLoading } = useLoading();
 
 	const [clientForm, setClientForm] = useState(InitialClientForm);
 	const [createClient] = useMutation(CREATE_CLIENT);
 	const [isVisible, setIsVisible] = useState(false);
 
-	const toggleDialog = () => setIsVisible(!isVisible);
+	const resetState = () => setClientForm(InitialClientForm);
+
+	const toggleDialog = () => {
+		setIsVisible(!isVisible);
+		resetState();
+	};
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
 
@@ -49,17 +60,25 @@ const NewClientDialog = ({ reloadClients }) => {
 
 	const check = () => {
 		if (clientForm.firstName === '') {
-			toast('Nombre faltante');
+			toast('Nombre incompleto');
 			return true;
 		}
 
 		if (clientForm.lastName === '') {
-			toast('Nombre faltante');
+			toast('Nombre incompleto');
 			return true;
 		}
 
 		if (clientForm.phoneNumber.length < 10) {
-			toast('Número faltante');
+			toast('Número incompleto');
+			return true;
+		}
+
+		if (
+			clientForm.addresses.formattedAddress &&
+			!clientForm.addresses.coordinates.length
+		) {
+			toast('Dirección incompleta');
 			return true;
 		}
 
@@ -87,7 +106,6 @@ const NewClientDialog = ({ reloadClients }) => {
 					toast.success('Cliente guardado');
 					toggleDialog();
 					reloadClients();
-					setClientForm(InitialClientForm);
 				} else {
 					console.log('Errores', res.errors);
 					toast.error('Error al guardar');
@@ -106,22 +124,13 @@ const NewClientDialog = ({ reloadClients }) => {
 				Agregar Cliente
 			</Button>
 
-			<Dialog
-				open={isVisible}
-				onClose={toggleDialog}
-				PaperComponent={DraggablePaper}
-				aria-labelledby={'dialogTitleDrag'}
-			>
-				<DialogTitle
-					sx={{
-						cursor: 'move',
-					}}
-				>
-					Nuevo cliente
-				</DialogTitle>
+			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'xs'}>
+				<DialogTitle>Nuevo cliente</DialogTitle>
 				<DialogContent>
-					<Grid container spacing={2} pt={1}>
-						<Grid item xs={12} sm={6}>
+					<Typography variant={'caption'}>Contacto:</Typography>
+
+					<Grid container columnSpacing={1}>
+						<Grid item xs={12} sm>
 							<TextField
 								fullWidth
 								id={'firstName'}
@@ -131,7 +140,7 @@ const NewClientDialog = ({ reloadClients }) => {
 								onChange={handleInputChange}
 							/>
 						</Grid>
-						<Grid item xs={12} sm={6}>
+						<Grid item xs={12} sm>
 							<TextField
 								fullWidth
 								id={'lastName'}
@@ -157,26 +166,6 @@ const NewClientDialog = ({ reloadClients }) => {
 								}}
 							/>
 						</Grid>
-						<Grid item xs={12}>
-							<TextField
-								fullWidth
-								id={'address'}
-								name={'address'}
-								label={'Dirección'}
-								value={null}
-								onChange={null}
-							/>
-						</Grid>
-						<Grid item xs={12}>
-							<TextField
-								fullWidth
-								id={'details'}
-								name={'details'}
-								label={'Detalles'}
-								value={null}
-								onChange={null}
-							/>
-						</Grid>
 					</Grid>
 				</DialogContent>
 				<DialogActions>
@@ -187,8 +176,8 @@ const NewClientDialog = ({ reloadClients }) => {
 	);
 };
 
-NewClientDialog.propTypes = {
+ClientCreateDialog.propTypes = {
 	reloadClients: PropTypes.func,
 };
 
-export default NewClientDialog;
+export default ClientCreateDialog;

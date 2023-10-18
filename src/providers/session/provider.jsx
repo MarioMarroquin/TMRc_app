@@ -44,7 +44,6 @@ const SessionProvider = ({ children }) => {
 		try {
 			if (isLogged) {
 				const { data } = await authClient.get('/access');
-
 				accessToken.set(data.accessToken);
 				setToken(data.accessToken);
 				toast.success('Sesión cargada');
@@ -68,7 +67,7 @@ const SessionProvider = ({ children }) => {
 	};
 
 	useEffect(() => {
-		// Listen when other tab logs out so every single tab returns to login
+		// Listen when other tab logs out so every single tab returns to log in
 		const logoutListener = async (event) => {
 			if (event.key === 'logout') logoutWindow();
 		};
@@ -87,6 +86,7 @@ const SessionProvider = ({ children }) => {
 			const aux = dataUser.userByToken;
 			setUser(aux);
 			setLoading(false);
+			console.log(aux);
 		}
 	}, [dataUser]);
 
@@ -98,6 +98,7 @@ const SessionProvider = ({ children }) => {
 				logout,
 				reloadSession,
 				user,
+				role: user?.role ?? '',
 			}}
 		>
 			{isLogged ? (

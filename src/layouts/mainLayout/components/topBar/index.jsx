@@ -3,35 +3,26 @@ import {
 	Avatar,
 	Box,
 	IconButton,
-	Menu,
 	MenuItem,
 	Toolbar,
 	Tooltip,
 	Typography,
-	useMediaQuery,
 	useTheme,
 } from '@mui/material';
-import {
-	FoodBank,
-	Hail,
-	Inventory2,
-	KeyboardArrowRight,
-	Logout,
-	MenuOpen,
-} from '@mui/icons-material';
+import { Logout, ManageAccounts, Menu, MenuOpen } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 import { drawerWidth } from '@layouts/mainLayout';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from '@providers/session';
-import MobileDrawer from '@layouts/mainLayout/components/mobileDrawer';
-import DesktopDrawer from '@layouts/mainLayout/components/desktopDrawer';
 import CustomMenu from '@components/customMenu';
 import { pxToRem } from '@config/theme/functions';
+import CustomBreadcrumbs from '@components/customBreadcrumbs';
 
 const TopBar = ({ open, toggleDrawer }) => {
 	const theme = useTheme();
 	const [anchorMenu, setAnchorMenu] = useState(null);
 	const { logout, user } = useSession();
+	const [transparent, setTransparent] = useState(true);
 
 	const handleOpenMenu = (event) => {
 		setAnchorMenu(event.currentTarget);
@@ -41,20 +32,43 @@ const TopBar = ({ open, toggleDrawer }) => {
 		setAnchorMenu(null);
 	};
 
+	useEffect(() => {
+		function handleTransparentNavbar() {
+			if (window.scrollY !== 0) {
+				setTransparent(false);
+			} else {
+				setTransparent(true);
+			}
+		}
+		window.addEventListener('scroll', handleTransparentNavbar);
+
+		return () => window.removeEventListener('scroll', handleTransparentNavbar);
+	}, []);
+
 	return (
 		<AppBar
-			position={'absolute'} // fixed
+			position={'fixed'} // fixed
 			sx={{
-				// ----------------------------------------------------------------
-				// borderBottomRightRadius: (theme) => theme.shape.borderRadius,
-				borderRadius: 1,
-				boxShadow: 'none',
 				top: 16,
 				right: { xs: 16, sm: 24 },
-				backdropFilter: `saturate(200%) blur(1.875rem)`,
-				backgroundColor: 'rgba(255,255,255,0.8)',
-				// ----------------------------------------------------------------
 				zIndex: 1200,
+				borderRadius: pxToRem(16),
+				backdropFilter: `saturate(200%) blur(20px)`,
+				backgroundColor: transparent
+					? `transparent !important`
+					: `${theme.palette.background.paper}80`,
+				boxShadow: transparent
+					? 'none'
+					: ` 0px 0px 1px rgba(3, 7, 18, 0.10),
+							0px 2px 4px rgba(3, 7, 18, 0.10),
+							0px 4px 8px rgba(3, 7, 18, 0.10),
+							0px 6px 15px rgba(3, 7, 18, 0.10),
+							0px 10px 23px rgba(3, 7, 18, 0.10),
+							0px 14px 34px rgba(3, 7, 18, 0.10),
+							0px 19px 46px rgba(3, 7, 18, 0.10),
+							0px 25px 60px rgba(3, 7, 18, 0.10);
+							`,
+				// ----------------------------------------------------------------
 				width: (theme) => ({
 					xs: `calc(100% - 30px)`,
 					sm: `calc(100% - ${theme.spacing(7)} - 32px - 48px)`,
@@ -80,25 +94,26 @@ const TopBar = ({ open, toggleDrawer }) => {
 		>
 			<Toolbar sx={{ pr: pxToRem(24) }}>
 				<IconButton sx={{ mr: 2 }} edge={'start'} onClick={toggleDrawer}>
-					{open ? <MenuOpen /> : <KeyboardArrowRight />}
+					{open ? <MenuOpen /> : <Menu />}
 				</IconButton>
 
+				<CustomBreadcrumbs />
+
 				<Typography
-					variant={'h5'}
-					fontWeight={'bold'}
 					color={theme.palette.secondary.main}
 					noWrap
 					ml={'auto'}
-				></Typography>
+					mr={2}
+				>
+					{user.userName}
+				</Typography>
 
 				<Box sx={{ flexGrow: 0 }}>
 					<Tooltip title={'Opciones'}>
 						<IconButton onClick={handleOpenMenu}>
-							<Avatar
-								alt='userProfileImg'
-								src={user.profileImg}
-								sx={{ border: '3px solid #6a6a6a' }}
-							/>
+							<Avatar alt='userProfileImg'>
+								<ManageAccounts />
+							</Avatar>
 						</IconButton>
 					</Tooltip>
 					<CustomMenu

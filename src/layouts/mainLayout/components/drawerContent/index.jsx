@@ -1,45 +1,24 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import {
-	Avatar,
-	Box,
 	List,
 	ListItemButton,
 	ListItemIcon,
 	ListItemText,
 	Toolbar,
-	Typography,
 	useTheme,
 } from '@mui/material';
-import {
-	Analytics,
-	Assessment,
-	BookOnline,
-	DriveEta,
-	Home,
-	Message,
-	MiscellaneousServices,
-	Payments,
-	Person,
-	SettingsPhone,
-} from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import routes from '@layouts/mainLayout/components';
+import { routes } from '../../../../routes';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
 	const navigate = useNavigate();
 	const theme = useTheme();
 
-	useEffect(() => {
-		document.documentElement.scrollTop = 0;
-		document.scrollingElement.scrollTop = 0;
-	}, [location]);
-
 	const isSelected = (loc) => {
 		let color = '';
-
-		if (location === loc) color = theme.palette.secondary.main;
+		if (location.includes(loc)) color = theme.palette.primary.main;
 
 		return color || '#afafaf';
 	};
@@ -64,12 +43,25 @@ const DrawerContent = () => {
 					return (
 						<ListItemButton
 							key={path}
-							selected={location === path}
-							onClick={() => navigate(path, { replace: true })}
+							selected={location.includes(path)}
+							onClick={() => {
+								navigate(path, { replace: true });
+							}}
+							sx={{
+								color: theme.palette.secondary.main,
+								'&:hover': {
+									backgroundColor: theme.palette.hover.main,
+								},
+								'&.Mui-selected': {
+									color: theme.palette.primary.main,
+									backgroundColor: theme.palette.background.default,
+									'&:hover': {
+										backgroundColor: theme.palette.hover.main,
+									},
+								},
+							}}
 						>
-							<ListItemIcon sx={{ color: isSelected(path) }}>
-								{icon}
-							</ListItemIcon>
+							<ListItemIcon sx={{ color: 'inherit' }}>{icon}</ListItemIcon>
 							<ListItemText primary={name} />
 						</ListItemButton>
 					);

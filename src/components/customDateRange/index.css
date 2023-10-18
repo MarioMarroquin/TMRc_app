@@ -1,0 +1,20 @@
+.rdrCalendarWrapper {
+    background: transparent !important;
+    display: unset !important;
+}
+
+.rdrDayToday .rdrDayNumber span {
+    font-weight: 700 !important;
+}
+
+.rdrDayToday .rdrDayNumber span:after {
+    background-color: #000000 !important;
+}
+
+.rdrDay:not(.rdrDayPassive) .rdrInRange ~ .rdrDayNumber span, .rdrDay:not(.rdrDayPassive) .rdrStartEdge ~ .rdrDayNumber span, .rdrDay:not(.rdrDayPassive) .rdrEndEdge ~ .rdrDayNumber span, .rdrDay:not(.rdrDayPassive) .rdrSelected ~ .rdrDayNumber span {
+    font-weight: 700 ;}
+
+.rdrDayToday:not(.rdrDayPassive) .rdrInRange ~ .rdrDayNumber span:after, .rdrDayToday:not(.rdrDayPassive) .rdrStartEdge ~ .rdrDayNumber span:after, .rdrDayToday:not(.rdrDayPassive) .rdrEndEdge ~ .rdrDayNumber span:after, .rdrDayToday:not(.rdrDayPassive) .rdrSelected ~ .rdrDayNumber span:after {
+    background: white !important;
+    font-weight: 700;
+}

@@ -1,5 +1,6 @@
 import { DataGrid, gridClasses } from '@mui/x-data-grid';
-import { useTheme } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
+import { pxToRem } from '@config/theme/functions';
 
 const selectedSecondaryColor = 'rgba(222,222,222,0.85)';
 
@@ -10,48 +11,58 @@ const CustomDataGrid = (props) => {
 	// Agregar custom toolbars
 
 	return (
-		<DataGrid
-			{...props}
-			autoHeight
-			sx={{
-				'.MuiDataGrid-columnHeaders': {
-					borderBottom: 'none',
-					backgroundColor: 'rgba(222,222,222,0.15)',
-					borderRadius: 1,
-				},
-				'.MuiDataGrid-columnHeaderTitle': {
-					fontWeight: 'bold',
-				},
-				'& .MuiDataGrid-cell': {
-					borderBottom: 'none',
-				},
-				'.MuiDataGrid-sortIcon': {
-					color: iconColor,
-				},
-				'	.MuiDataGrid-menuIconButton': {
-					color: iconColor,
-				},
-				'&.MuiDataGrid-root': {
-					border: 'none',
-				},
-				'.MuiDataGrid-footerContainer': {
-					border: 'none',
-				},
-				'& .MuiDataGrid-row.Mui-selected': {
-					background: selectedSecondaryColor,
-					'&:hover': {
-						backgroundColor: selectedSecondaryColor,
+		<Box sx={{ width: '100%', height: pxToRem(550) }}>
+			<DataGrid
+				{...props}
+				paginationMode={'server'}
+				pageSizeOptions={[5, 10, 15, 20]}
+				sx={{
+					'.MuiDataGrid-columnHeaders': {
+						borderBottom: 'none',
 					},
-				},
-				[`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-					outline: 'none',
-				},
-				[`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-					{
-						outline: 'none',
+					'.MuiDataGrid-columnHeaderTitle': {
+						fontWeight: 'bold',
+						fontSize: pxToRem(11),
+						color: 'text.secondary',
+						paddingLeft: pxToRem(8),
+						opacity: 0.7,
 					},
-			}}
-		/>
+					'& .MuiDataGrid-cell': {
+						borderBottom: 'none',
+					},
+					'.MuiDataGrid-sortIcon': {
+						color: iconColor,
+					},
+					'	.MuiDataGrid-menuIconButton': {
+						color: iconColor,
+					},
+					'&.MuiDataGrid-root': {
+						border: 'none',
+					},
+					'.MuiDataGrid-footerContainer': {
+						border: 'none',
+					},
+					'& .MuiDataGrid-row:hover': {
+						borderRadius: 1,
+					},
+					'& .MuiDataGrid-row.Mui-selected': {
+						background: selectedSecondaryColor,
+						borderRadius: 1,
+						'&:hover': {
+							backgroundColor: selectedSecondaryColor,
+						},
+					},
+					[`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]:
+						{
+							outline: 'none',
+						},
+					[`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+						{
+							outline: 'none',
+						},
+				}}
+			/>
+		</Box>
 	);
 };
 
