@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import { Fragment, useEffect, useState } from 'react';
 import {
-	alpha,
 	Autocomplete,
-	autocompleteClasses,
 	Box,
 	Button,
 	Dialog,
@@ -12,7 +10,6 @@ import {
 	DialogTitle,
 	Divider,
 	FormControl,
-	FormControlLabel,
 	Grid,
 	InputAdornment,
 	InputLabel,
@@ -36,10 +33,6 @@ import {
 import useDebounce from '@hooks/use-debounce';
 import { useLoading } from '@providers/loading';
 import toast from 'react-hot-toast';
-import CustomDate from '@components/customDate';
-import CustomTime from '@components/customTime';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { DateTimeField } from '@mui/x-date-pickers';
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -578,7 +571,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 					: 'Crear solicitud'}
 			</Button>
 
-			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'md'}>
+			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'sm'}>
 				<DialogTitle>Nueva solicitud</DialogTitle>
 				<DialogContent>
 					<Grid container columnSpacing={1} rowSpacing={1}>
@@ -594,21 +587,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 									setRequest({ ...request, requestDate: newValue })
 								}
 							/>
-
-							{/* <CustomDate */}
-							{/* 	date={request.requestDate} */}
-							{/* 	onChange={handleDateChange} */}
-							{/* /> */}
 						</Grid>
-						{/* <Grid item xs={4}> */}
-						{/* 	<Typography variant={'caption'} color={'text.primaryLight'}> */}
-						{/* 		Hora: */}
-						{/* 	</Typography> */}
-						{/* 	<CustomTime */}
-						{/* 		onChange={handleTimeChange} */}
-						{/* 		value={format(request.requestDate, 'HH:mm', { locale: es })} */}
-						{/* 	/> */}
-						{/* </Grid> */}
 						<Grid item xs={6} md={4}>
 							<FormControl margin={'none'}>
 								<InputLabel>Tipo de Servicio</InputLabel>
@@ -732,6 +711,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 								}
 								autoComplete
 								includeInputInList
+								ListboxProps={{ style: { padding: 0 } }}
 								value={company.name}
 								renderInput={(params) => (
 									<TextField {...params} margin={'none'} label={'Compañía'} />
@@ -739,23 +719,6 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 								loading={loadingCompanies}
 								onInputChange={handleInputChangeCompany}
 								onChange={handleInputOnChangeCompany}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<Grid container alignItems='center'>
-											<Grid item>
-												<Box
-													component={HomeWork}
-													sx={{ color: 'text.secondary', mr: 2 }}
-												/>
-											</Grid>
-											<Grid item xs>
-												<Typography variant='body2' color='text.secondary'>
-													{option.name}
-												</Typography>
-											</Grid>
-										</Grid>
-									</li>
-								)}
 							/>
 						</Grid>
 						<Grid item xs={3}>

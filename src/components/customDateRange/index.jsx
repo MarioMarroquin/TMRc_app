@@ -36,6 +36,7 @@ const CustomDateRange = (props) => {
 			>
 				<Button
 					sx={{
+						textTransform: 'none',
 						width: 332,
 						height: '100%',
 						bgcolor: '#f9f9f9',

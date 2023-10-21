@@ -12,6 +12,7 @@ import {
 	FormControl,
 	Grid,
 	InputAdornment,
+	InputLabel,
 	MenuItem,
 	Select,
 	TextField,
@@ -26,14 +27,15 @@ import {
 	GET_CLIENTS,
 	GET_COMPANIES,
 	GET_SELLERS,
+	UPDATE_REQUEST,
 } from './requests';
 import useDebounce from '@hooks/use-debounce';
-import { UPDATE_REQUEST } from './requests';
 import toast from 'react-hot-toast';
 import CustomDate from '@components/customDate';
 import CustomTime from '@components/customTime';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { DateTimeField } from '@mui/x-date-pickers';
 
 const InitialRequest = {
 	id: '',
@@ -80,7 +82,10 @@ const InitialSeller = {
 	},
 };
 
-const RequestEditDialog = ({ data, reloadRequest }) => {
+const RequestEditDialog = ({
+	requestData,
+	requestRefetch: requestsRefetch,
+}) => {
 	const { setLoading } = useLoading();
 	const [request, setRequest] = useState(InitialRequest);
 	const [isVisible, setIsVisible] = useState(false);
@@ -463,7 +468,7 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 			.then((res) => {
 				if (!res.errors) {
 					toast.success('Guardado');
-					reloadRequest();
+					requestsRefetch();
 					toggleDialog();
 				} else {
 					console.log('Errores', res.errors);
@@ -479,7 +484,7 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 	};
 
 	useEffect(() => {
-		if (data) {
+		if (requestData) {
 			const {
 				createdAt,
 				createdBy,
@@ -491,37 +496,37 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 				company,
 				userFor,
 				...auxReq
-			} = data;
+			} = requestData;
 
-			console.log('data', data);
+			console.log('data', requestData);
 
 			const auxBrand = {
-				id: data.brand?.id ?? undefined,
-				name: data.brand?.name ?? '',
+				id: requestData.brand?.id ?? undefined,
+				name: requestData.brand?.name ?? '',
 			};
 
 			const auxCompany = {
-				id: data.company?.id ?? undefined,
-				name: data.company?.name ?? '',
-				phoneNumber: data.company?.phoneNumber ?? '',
-				email: data.company?.email ?? '',
+				id: requestData.company?.id ?? undefined,
+				name: requestData.company?.name ?? '',
+				phoneNumber: requestData.company?.phoneNumber ?? '',
+				email: requestData.company?.email ?? '',
 			};
 
 			const auxClient = {
-				id: data.client?.id ?? undefined,
-				firstName: data.client?.firstName ?? '',
-				lastName: data.client?.lastName ?? '',
-				phoneNumber: data.client?.phoneNumber ?? '',
-				email: data.client?.email ?? '',
+				id: requestData.client?.id ?? undefined,
+				firstName: requestData.client?.firstName ?? '',
+				lastName: requestData.client?.lastName ?? '',
+				phoneNumber: requestData.client?.phoneNumber ?? '',
+				email: requestData.client?.email ?? '',
 				get name() {
 					return (this.firstName + ' ' + this.lastName).trim();
 				},
 			};
 
 			const auxSeller = {
-				id: data.userFor?.id ?? undefined,
-				firstName: data.userFor?.firstName ?? '',
-				lastName: data.userFor?.lastName ?? '',
+				id: requestData.userFor?.id ?? undefined,
+				firstName: requestData.userFor?.firstName ?? '',
+				lastName: requestData.userFor?.lastName ?? '',
 				get name() {
 					return (this.firstName + ' ' + this.lastName).trim();
 				},
@@ -535,7 +540,7 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 			setClient(auxClient);
 			setSeller(auxSeller);
 		}
-	}, [data, isVisible]);
+	}, [requestData, isVisible]);
 
 	return (
 		<Fragment>
@@ -556,26 +561,18 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							<Typography fontWeight={400}>Datos</Typography>
 						</Grid>
 						<Grid item xs={8} md={4}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Fecha:
-							</Typography>
-							<CustomDate
-								date={request.requestDate}
-								onChange={handleDateChange}
-							/>
-						</Grid>
-						<Grid item xs={4}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Hora:
-							</Typography>
-							<CustomTime
-								onChange={handleTimeChange}
-								value={format(request.requestDate, 'HH:mm', { locale: es })}
+							<DateTimeField
+								label={'Fecha'}
+								value={request.requestDate}
+								format={'dd MMM yy - HH:mm'}
+								onChange={(newValue) =>
+									setRequest({ ...request, requestDate: newValue })
+								}
 							/>
 						</Grid>
 						<Grid item xs={6} md={4}>
-							<Typography variant={'caption'}>Tipo de Servicio:</Typography>
 							<FormControl margin={'none'}>
+								<InputLabel>Tipo de Servicio</InputLabel>
 								<Select
 									id={'serviceType'}
 									name={'serviceType'}
@@ -608,27 +605,23 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							</FormControl>
 						</Grid>
 						<Grid item xs={6} md={4}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Medio de Contacto:
-							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'contactMedium'}
 								name={'contactMedium'}
+								label={'Medio de Contacto'}
 								value={request.contactMedium}
 								onChange={handleInputChange}
 							/>
 						</Grid>
 						<Grid item xs={6} md={4}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Medio de Publicidad:
-							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'advertisingMedium'}
 								name={'advertisingMedium'}
+								label={'Medio de Publicidad'}
 								value={request.advertisingMedium}
 								onChange={handleInputChange}
 							/>
@@ -640,9 +633,6 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							<Typography fontWeight={400}>Producto</Typography>
 						</Grid>
 						<Grid item xs={7}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Marca:
-							</Typography>
 							<Autocomplete
 								freeSolo
 								forcePopupIcon={true}
@@ -652,35 +642,19 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 								}
 								autoComplete
 								includeInputInList
+								ListboxProps={{ style: { padding: 0 } }}
 								value={brand.name}
 								renderInput={(params) => (
-									<TextField {...params} margin={'none'} />
+									<TextField {...params} margin={'none'} label={'Marca'} />
 								)}
 								loading={loadingBrands}
 								onInputChange={handleInputChangeBrand}
 								onChange={handleInputOnChangeBrand}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<Grid container alignItems='center'>
-											<Grid item>
-												<Box sx={{ color: 'text.secondary', mr: 2 }} />
-											</Grid>
-											<Grid item xs>
-												<Typography variant='body2' color='text.secondary'>
-													{option.name}
-												</Typography>
-											</Grid>
-										</Grid>
-									</li>
-								)}
 							/>
 						</Grid>
 						<Grid item xs={5}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Estado:
-							</Typography>
-
 							<FormControl margin={'none'}>
+								<InputLabel>Estado</InputLabel>
 								<Select
 									id={'productStatus'}
 									name={'productStatus'}
@@ -693,9 +667,6 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							</FormControl>
 						</Grid>
 						<Grid item xs={12}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Comentarios:
-							</Typography>
 							<TextField
 								fullWidth
 								multiline
@@ -703,6 +674,7 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 								margin={'none'}
 								id={'comments'}
 								name={'comments'}
+								label={'Comentarios'}
 								value={request.comments}
 								onChange={handleInputChange}
 							/>
@@ -715,9 +687,6 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							<Typography fontWeight={400}>Contacto</Typography>
 						</Grid>
 						<Grid item xs={6}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Compañía:
-							</Typography>
 							<Autocomplete
 								freeSolo
 								forcePopupIcon={true}
@@ -729,41 +698,23 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 								includeInputInList
 								value={company.name}
 								renderInput={(params) => (
-									<TextField {...params} margin={'none'} />
+									<TextField {...params} margin={'none'} label={'Compañía'} />
 								)}
 								loading={loadingCompanies}
 								onInputChange={handleInputChangeCompany}
 								onChange={handleInputOnChangeCompany}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<Grid container alignItems='center'>
-											<Grid item>
-												<Box
-													component={HomeWork}
-													sx={{ color: 'text.secondary', mr: 2 }}
-												/>
-											</Grid>
-											<Grid item xs>
-												<Typography variant='body2' color='text.secondary'>
-													{option.name}
-												</Typography>
-											</Grid>
-										</Grid>
-									</li>
-								)}
 							/>
 						</Grid>
 						<Grid item xs={3}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Teléfono empresa:
-							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'phoneNumber'}
 								name={'phoneNumber'}
+								label={'Teléfono empresa'}
 								value={company.phoneNumber}
 								onChange={handlePhoneChangeCompany}
+								disabled={company.id || !company.name}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -773,36 +724,34 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							/>
 						</Grid>
 						<Grid item xs={3}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Correo empresa:
-							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'email'}
 								name={'email'}
+								label={'Correo empresa'}
 								value={company.email}
 								onChange={handleEmailChangeCompany}
+								disabled={company.id || !company.name}
 							/>
 						</Grid>
 						<Grid item xs={6}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Cliente:
-							</Typography>
 							<Autocomplete
 								freeSolo
 								forcePopupIcon={true}
 								options={searchedClients}
 								getOptionLabel={(option) =>
-									typeof option === 'string'
-										? option
-										: `${option.firstName + ' ' + option.lastName}`
+									typeof option === 'string' ? option : option.firstName
 								}
 								autoComplete
 								includeInputInList
 								value={client.firstName}
 								renderInput={(params) => (
-									<TextField {...params} margin={'none'} />
+									<TextField
+										{...params}
+										margin={'none'}
+										label={'Nombre cliente'}
+									/>
 								)}
 								loading={loading}
 								onInputChange={handleInputChangeClient}
@@ -826,17 +775,27 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 								)}
 							/>
 						</Grid>
+						<Grid item xs={6} md={3}>
+							<TextField
+								fullWidth
+								margin={'none'}
+								id={'lastName'}
+								name={'lastName'}
+								label={'Apellido cliente'}
+								value={client.lastName}
+								onChange={handleNameChangeClient}
+							/>
+						</Grid>
 						<Grid item xs={3}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Teléfono cliente:
-							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'phoneNumber'}
 								name={'phoneNumber'}
+								label={'Teléfono cliente'}
 								value={client.phoneNumber}
 								onChange={handlePhoneChangeClient}
+								disabled={client.id || !(client.firstName && client.lastName)}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -846,16 +805,15 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							/>
 						</Grid>
 						<Grid item xs={3}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Correo cliente:
-							</Typography>
 							<TextField
 								margin={'none'}
 								fullWidth
 								id={'email'}
 								name={'email'}
+								label={'Correo cliente'}
 								value={client.email}
 								onChange={handleEmailChangeClient}
+								disabled={client.id || !(client.firstName && client.lastName)}
 							/>
 						</Grid>
 						<Grid item xs={12}>
@@ -865,9 +823,6 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							<Typography fontWeight={400}>Atención</Typography>
 						</Grid>
 						<Grid item xs={12}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Asesor:
-							</Typography>
 							<Autocomplete
 								freeSolo
 								forcePopupIcon={true}
@@ -881,7 +836,7 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 								includeInputInList
 								value={seller.name}
 								renderInput={(params) => (
-									<TextField {...params} margin={'none'} />
+									<TextField {...params} margin={'none'} label={'Asesor'} />
 								)}
 								loading={loadingSellers}
 								onInputChange={handleInputChangeSeller}
@@ -906,9 +861,6 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 							/>
 						</Grid>
 						<Grid item xs={12}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Observaciones:
-							</Typography>
 							<TextField
 								fullWidth
 								multiline
@@ -916,6 +868,7 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 								maxRows={4}
 								id={'extraComments'}
 								name={'extraComments'}
+								label={'Observaciones'}
 								value={request.extraComments}
 								onChange={handleInputChange}
 							/>
@@ -934,7 +887,8 @@ const RequestEditDialog = ({ data, reloadRequest }) => {
 };
 
 RequestEditDialog.propTypes = {
-	data: PropTypes.object,
+	requestData: PropTypes.object,
+	requestsRefetch: PropTypes.func.isRequired,
 };
 
 export default RequestEditDialog;

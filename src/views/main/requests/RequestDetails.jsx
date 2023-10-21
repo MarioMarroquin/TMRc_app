@@ -252,7 +252,10 @@ const RequestDetails = (props) => {
 							</Grid>
 						</CardContent>
 						<CardActions>
-							<RequestEditDialog data={request} reloadRequest={refetch} />
+							<RequestEditDialog
+								requestData={request}
+								requestsRefetch={refetch}
+							/>
 						</CardActions>
 					</Card>
 				</Grid>
