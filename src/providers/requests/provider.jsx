@@ -7,6 +7,15 @@ const RequestsContext = createContext({
 	// setLoading: null,
 });
 
+const InitialSeller = {
+	id: undefined,
+	firstName: '',
+	lastName: '',
+	get name() {
+		return (this.firstName + ' ' + this.lastName).trim();
+	},
+};
+
 const RequestsProvider = ({ children }) => {
 	const [countRows, setCountRows] = useState(0);
 	const [showPending, setShowPending] = useState(false);
@@ -37,6 +46,9 @@ const RequestsProvider = ({ children }) => {
 		createdAt: false,
 	});
 
+	const [showAll, setShowAll] = useState(true); // Muestra las propias o todas
+	const [selectedSeller, setSelectedSeller] = useState(InitialSeller);
+
 	const resetFilters = () => {
 		setCountRows(0);
 		setShowPending(false);
@@ -53,6 +65,9 @@ const RequestsProvider = ({ children }) => {
 				key: 'selection',
 			},
 		]);
+
+		setShowAll(true);
+		setSelectedSeller(InitialSeller);
 	};
 
 	const value = {
@@ -66,6 +81,10 @@ const RequestsProvider = ({ children }) => {
 		setDateRange,
 		columnVisibilityModel,
 		setColumnVisibilityModel,
+		showAll,
+		setShowAll,
+		selectedSeller,
+		setSelectedSeller,
 		resetFilters,
 	};
 

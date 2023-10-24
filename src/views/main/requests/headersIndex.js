@@ -28,6 +28,10 @@ export const headers = [
 				return (
 					<Typography color={'error'}>{RequestStatus[params.value]}</Typography>
 				);
+			} else if (params.value === 'TRACING') {
+				return (
+					<Typography color={'info'}>{RequestStatus[params.value]}</Typography>
+				);
 			} else {
 				return RequestStatus[params.value];
 			}
@@ -73,7 +77,7 @@ export const headers = [
 		minWidth: 150,
 	},
 	{
-		field: 'userFor',
+		field: 'assignedUser',
 		headerName: 'ASESOR',
 		headerAlign: 'left',
 		align: 'left',

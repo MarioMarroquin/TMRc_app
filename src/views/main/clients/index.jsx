@@ -98,9 +98,10 @@ const Clients = () => {
 								}}
 								slotProps={{ loadingOverlay: { color: 'secondary' } }}
 								rowCount={countRows}
+								paginationMode={'server'}
 								paginationModel={paginationModel}
 								onPaginationModelChange={setPaginationModel}
-								rowSelectionModel={selectionModel}
+								rowSelectionModel={selectionModel} // para saber cual esta seleccionada
 								onRowSelectionModelChange={handleClick}
 								onRowClick={(data, e) => {
 									setSelectedClient(data.row);

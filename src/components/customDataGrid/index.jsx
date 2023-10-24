@@ -11,10 +11,10 @@ const CustomDataGrid = (props) => {
 	// Agregar custom toolbars
 
 	return (
-		<Box sx={{ width: '100%', height: pxToRem(550) }}>
+		<Box sx={{ width: '100%' }}>
 			<DataGrid
 				{...props}
-				paginationMode={'server'}
+				autoHeight
 				pageSizeOptions={[5, 10, 15, 20]}
 				sx={{
 					'.MuiDataGrid-columnHeaders': {
