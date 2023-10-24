@@ -1,31 +1,89 @@
 import { Fragment, useEffect, useState } from 'react';
 import {
+	Autocomplete,
 	Box,
 	Button,
 	Card,
 	CardContent,
+	Grid,
 	LinearProgress,
 	Stack,
 	Switch,
+	TextField,
 	Tooltip,
 	Typography,
 } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
 import { headers } from './headersIndex';
-import { useQuery } from '@apollo/client';
-import { GET_REQUESTS } from './requests';
+import { useLazyQuery, useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import CustomDateRange from '@components/customDateRange';
 import { pxToRem } from '@config/theme/functions';
-import { FilterAltOff, Update } from '@mui/icons-material';
+import { FilterAltOff, Person, Update } from '@mui/icons-material';
 import { useRequests } from '@providers/requests';
 import NoRowsOverlay from '@components/NoRowsOverlay';
 import useInterval from '@hooks/use-interval';
 import RequestCreateDialog from '@views/main/requests/RequestCreateDialog';
+import { useSession } from '@providers/session';
+import {
+	ROLES,
+	SCOPES,
+	SCOPESREQUEST,
+} from '@config/permisissions/permissions';
+import PropTypes from 'prop-types';
+import PermissionsGate from '@components/PermissionsGate';
+import {
+	GET_REQUESTS,
+	GET_SELLERS_ALL,
+} from '@views/main/requests/queryRequests';
+
+const CustomAutocomplete = (props) => (
+	<Autocomplete
+		freeSolo
+		fullWidth
+		autoComplete
+		includeInputInList
+		forcePopupIcon={true}
+		options={props.options}
+		getOptionLabel={(option) =>
+			typeof option === 'string'
+				? option
+				: `${option.firstName + ' ' + option.lastName}`
+		}
+		value={props.value.name}
+		renderInput={(params) => (
+			<TextField {...params} margin={'none'} label={'Asesor'} />
+		)}
+		// onInputChange={props.onInputChange}
+		onChange={props.onChange}
+		renderOption={(props, option) => (
+			<li {...props} key={option.id}>
+				<Grid container alignItems='center'>
+					<Grid>
+						<Box component={Person} sx={{ color: 'text.secondary', mr: 2 }} />
+					</Grid>
+					<Grid xs>
+						<Typography variant='body2' color='text.secondary'>
+							{option?.firstName + ' ' + option?.lastName}
+						</Typography>
+					</Grid>
+				</Grid>
+			</li>
+		)}
+	/>
+);
+
+CustomAutocomplete.propTypes = {
+	options: PropTypes.array,
+	value: PropTypes.object,
+	onInputChange: PropTypes.func,
+	onChange: PropTypes.func,
+};
 
 const Requests = (props) => {
+	const { role } = useSession();
 	const navigate = useNavigate();
-
+	const [requests, setRequests] = useState([]);
 	const {
 		countRows,
 		setCountRows,
@@ -37,10 +95,15 @@ const Requests = (props) => {
 		setDateRange,
 		columnVisibilityModel,
 		setColumnVisibilityModel,
+		showAll,
+		setShowAll,
+		selectedSeller,
+		setSelectedSeller,
 		resetFilters,
 	} = useRequests();
-
-	const [requests, setRequests] = useState([]);
+	const [sellersList, setSellersList] = useState([]);
+	const [inputSelectedSeller, setInputSelectedSeller] = useState('');
+	const [searchSellers] = useLazyQuery(GET_SELLERS_ALL);
 
 	const { data, loading, refetch } = useQuery(GET_REQUESTS, {
 		variables: {
@@ -48,13 +111,34 @@ const Requests = (props) => {
 				page: paginationModel.page,
 				pageSize: paginationModel.pageSize,
 			},
-			pending: showPending,
 			dateRange: {
 				end: dateRange[0].endDate,
 				start: dateRange[0].startDate,
 			},
+			assignedUserId: selectedSeller.id,
+			showAll: showAll,
+			pending: showPending,
 		},
 	});
+
+	const onChangeSeller = (event, value) => {
+		console.log('value', value);
+		if (!value) {
+			setSelectedSeller({
+				...selectedSeller,
+				id: undefined,
+				firstName: '',
+				lastName: '',
+			});
+		} else {
+			setSelectedSeller({
+				...selectedSeller,
+				id: value.id,
+				firstName: value.firstName,
+				lastName: value.lastName,
+			});
+		}
+	};
 
 	useInterval(refetch, 1000 * 60 * 1, {
 		skip: false,
@@ -70,36 +154,36 @@ const Requests = (props) => {
 		}
 	}, [data]);
 
+	useEffect(() => {
+		if (role !== ROLES.salesOperator)
+			searchSellers().then((res) => {
+				const aux = res.data.sellers.results;
+				setSellersList(aux);
+			});
+	}, []);
+
 	const goToRequest = (data) => {
 		const id = data.id;
-		navigate(id);
+		navigate(`${id}`); // needs to be string for route params
 	};
 
 	return (
 		<Fragment>
 			<Box sx={{ padding: `${pxToRem(0)} ${pxToRem(18)} ${pxToRem(18)}` }}>
-				<Typography mb={2} variant={'primaryBold20'}>
+				<Typography mb={pxToRem(12)} variant={'primaryBold20'}>
 					Lista de solicitudes
 				</Typography>
 
 				<Card sx={{ mb: 2 }}>
 					<CardContent>
-						<Box
-							sx={{
-								display: 'flex',
-								flexDirection: 'row',
-								justifyContent: 'space-between',
-								width: '100%',
-								flexWrap: 'wrap',
-							}}
-						>
-							<Box
-								sx={{
-									display: 'flex',
-									flexDirection: 'row',
-									justifyContent: 'center',
-									width: { xs: '100%', md: 'unset' },
-								}}
+						<Grid container spacing={2}>
+							<Grid
+								item
+								sm={12}
+								md={6}
+								lg={4}
+								display={'flex'}
+								justifyContent={'center'}
 							>
 								<CustomDateRange
 									ranges={dateRange}
@@ -109,14 +193,15 @@ const Requests = (props) => {
 										setDateRange([item.selection]);
 									}}
 								/>
-							</Box>
-							<Box
-								sx={{
-									display: 'flex',
-									flexDirection: 'row',
-									marginX: { xs: 'auto', md: 'unset' },
-									mt: { xs: pxToRem(16), md: 'unset' },
-								}}
+							</Grid>
+
+							<Grid
+								item
+								sm={12}
+								md={6}
+								lg={3}
+								display={'flex'}
+								justifyContent={'flex-end'}
 							>
 								<Tooltip title={'Limpiar filtro'} placement={'top'}>
 									<Button
@@ -130,7 +215,7 @@ const Requests = (props) => {
 								</Tooltip>
 								<Stack flexDirection={'row'} alignItems={'center'}>
 									<Typography variant={'caption'}>
-										{!showPending ? 'Mostrar pendientes' : 'Mostrar todo'}
+										{!showPending ? 'Mostrar pendientes' : 'Pendientes'}
 									</Typography>
 									<Switch
 										color={'secondary'}
@@ -140,12 +225,36 @@ const Requests = (props) => {
 										}}
 									/>
 								</Stack>
-							</Box>
-							<Box
-								sx={{
-									marginX: { xs: 'auto', md: 'unset' },
-									mt: { xs: pxToRem(16), md: 'unset' },
-								}}
+							</Grid>
+							<Grid item sm={12} lg={5} display={'flex'}>
+								<PermissionsGate
+									scopes={[SCOPESREQUEST.selectOperator, SCOPES.total]}
+								>
+									<Stack flexDirection={'row'} alignItems={'center'}>
+										<Typography display={'block'} variant={'caption'}>
+											{showAll ? 'Mostrar mis asignadas' : 'Mis asignadas'}
+										</Typography>
+										<Switch
+											color={'secondary'}
+											checked={!showAll}
+											onChange={(event) => {
+												setShowAll(!event.target.checked);
+											}}
+										/>
+									</Stack>
+									<CustomAutocomplete
+										options={sellersList}
+										value={selectedSeller}
+										onChange={onChangeSeller}
+										// onInputChange={onInputSeller}
+									/>
+								</PermissionsGate>
+							</Grid>
+							<Grid
+								item
+								sm={12}
+								display={'flex'}
+								justifyContent={{ xs: 'center', md: 'flex-end' }}
 							>
 								<Button
 									color={'info'}
@@ -159,14 +268,15 @@ const Requests = (props) => {
 									Actualizar
 								</Button>
 								<RequestCreateDialog refetchRequests={refetch} />
-							</Box>{' '}
-						</Box>
+							</Grid>
+						</Grid>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardContent>
 						<CustomDataGrid
+							paginationMode={'server'}
 							rows={requests}
 							columns={headers}
 							loading={loading}

@@ -2,7 +2,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useLoading } from '@providers/loading';
 import { Fragment, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_REQUEST, STATUS_REQUEST } from './requests';
 import {
 	Box,
 	Button,
@@ -20,34 +19,103 @@ import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
 import { ChevronLeft } from '@mui/icons-material';
 import RequestEditDialog from './RequestEditDialog';
+import PermissionsGate from '@components/PermissionsGate';
+import {
+	REQUESTDETAILSSCOPES,
+	SCOPES,
+	SCOPESREQUEST,
+} from '@config/permisissions/permissions';
+import RequestOperatorCommentDialog from '@views/main/requests/RequestOperatorCommentDialog';
+import RequestUploadDocumentDialog from '@views/main/requests/RequestUploadDocumentDialog';
+import CustomDataGrid from '@components/customDataGrid';
+import { GET_REQUEST } from '@views/main/requests/queryRequests';
+import {
+	FINISH_REQUEST,
+	TRACE_REQUEST,
+} from '@views/main/requests/mutationRequests';
+
+const REQUESTSTATUS = {
+	1: 'TRACING',
+	2: 'FINISH',
+};
 
 const RequestDetails = (props) => {
 	const { id } = useParams();
 	const { setLoading } = useLoading();
 	const navigate = useNavigate();
 	const [request, setRequest] = useState();
+	const [documents, setDocuments] = useState([]);
 
 	const { data, loading, refetch } = useQuery(GET_REQUEST, {
-		variables: { requestId: id },
+		variables: { requestId: Number(id) },
 	});
+
+	const [traceRequest] = useMutation(TRACE_REQUEST);
+	const [finishRequest] = useMutation(FINISH_REQUEST);
 
 	useEffect(() => {
 		setLoading(true);
 		if (data) {
-			const { __typename, ...aux } = data.request;
+			const { __typename, docs, ...aux } = data.request;
+			console.log('lopolll', aux);
 			setRequest(aux);
+			setDocuments(docs);
 		}
 		setLoading(false);
 	}, [data]);
 
-	const [statusRequest] = useMutation(STATUS_REQUEST);
-	const changeRequest = (status) => {
+	const changeRequestStatus = (status, sale = false) => {
 		setLoading(true);
-		statusRequest({ variables: { requestId: id, status } }).then(() => {
-			refetch();
-			setLoading(false);
-		});
+
+		if (REQUESTSTATUS[status] === 'TRACING') {
+			traceRequest({ variables: { requestId: Number(id) } })
+				.then((res) => {
+					console.log(res);
+					refetch();
+					setLoading(false);
+				})
+				.catch((err) => {
+					console.log(err);
+					setLoading(false);
+				});
+		} else if (REQUESTSTATUS[status] === 'FINISH') {
+			finishRequest({
+				variables: {
+					requestId: Number(id),
+					sale,
+				},
+			})
+				.then((res) => {
+					console.log(res);
+					refetch();
+					setLoading(false);
+				})
+				.catch((err) => {
+					console.log(err);
+					setLoading(false);
+				});
+		}
 	};
+
+	const headers = [
+		{
+			field: 'title',
+			headerName: 'NOMBRE DE ARCHIVO',
+			headerAlign: 'left',
+			align: 'left',
+			flex: 0.7,
+			minWidth: 200,
+		},
+		{
+			field: 'fileURL',
+			headerName: 'URL',
+			headerAlign: 'center',
+			align: 'center',
+			flex: 0.3,
+
+			minWidth: 200,
+		},
+	];
 
 	return (
 		<Fragment>
@@ -88,7 +156,8 @@ const RequestDetails = (props) => {
 											Asesor
 										</Typography>
 										<Typography>
-											{request?.userFor.firstName} {request?.userFor.lastName}
+											{request?.assignedUser.firstName}{' '}
+											{request?.assignedUser.lastName}
 										</Typography>
 									</Stack>
 									<Stack mr={pxToRem(25)}>
@@ -115,34 +184,59 @@ const RequestDetails = (props) => {
 									</Stack>
 								</Box>
 
-								<Box
-									sx={{
-										marginX: { xs: 'auto', md: 'unset' },
-										mt: { xs: pxToRem(16), sm: 'unset' },
-									}}
+								<PermissionsGate
+									scopes={[REQUESTDETAILSSCOPES.interact, SCOPES.total]}
 								>
-									<Button
-										variant={'outlined'}
-										color={'success'}
-										sx={{ mr: 2 }}
-										disabled={request?.isSale !== null}
-										onClick={() => {
-											changeRequest(true);
+									<Box
+										sx={{
+											marginX: { xs: 'auto', md: 'unset' },
+											mt: { xs: pxToRem(16), sm: 'unset' },
 										}}
 									>
-										Completar venta
-									</Button>
-									<Button
-										variant={'outlined'}
-										color={'error'}
-										disabled={request?.isSale !== null}
-										onClick={() => {
-											changeRequest(false);
-										}}
-									>
-										Rechazar venta
-									</Button>
-								</Box>
+										<Button
+											variant={'outlined'}
+											color={'info'}
+											sx={{
+												mr: 2,
+												display:
+													request?.requestStatus === REQUESTSTATUS[1] ||
+													request?.isSale !== null
+														? 'none'
+														: 'inline',
+											}}
+											disabled={
+												request?.requestStatus === REQUESTSTATUS[1] ||
+												request?.isSale !== null
+											}
+											onClick={() => {
+												changeRequestStatus(1);
+											}}
+										>
+											En curso
+										</Button>
+										<Button
+											variant={'outlined'}
+											color={'success'}
+											sx={{ mr: 2 }}
+											disabled={request?.isSale !== null}
+											onClick={() => {
+												changeRequestStatus(2, true);
+											}}
+										>
+											Completar venta
+										</Button>
+										<Button
+											variant={'outlined'}
+											color={'error'}
+											disabled={request?.isSale !== null}
+											onClick={() => {
+												changeRequestStatus(2);
+											}}
+										>
+											Rechazar venta
+										</Button>
+									</Box>
+								</PermissionsGate>
 							</Box>
 
 							<Divider sx={{ mt: 2 }} />
@@ -249,12 +343,77 @@ const RequestDetails = (props) => {
 									</Typography>
 									<Typography>{request?.extraComments}</Typography>
 								</Grid>
+
+								<Grid item xs={12}>
+									<Stack
+										flexDirection={'row'}
+										justifyContent={'flex-start'}
+										alignItems={'center'}
+									>
+										<Typography
+											fontWeight={700}
+											fontSize={pxToRem(12)}
+											mr={pxToRem(35)}
+										>
+											Comentarios de vendedor
+										</Typography>
+										<RequestOperatorCommentDialog
+											data={request}
+											reloadRequest={refetch}
+										/>
+									</Stack>
+									<Typography>{request?.operatorComments}</Typography>
+								</Grid>
+
+								<PermissionsGate
+									scopes={[SCOPESREQUEST.interact, SCOPES.total]}
+								>
+									<Grid
+										item
+										xs={12}
+										// sx={{
+										// 	display:
+										// 		request?.requestStatus === REQUESTSTATUS[1] ||
+										// 		request?.requestStatus === REQUESTSTATUS[2]
+										// 			? 'block'
+										// 			: 'none',
+										// }}
+									>
+										<Stack
+											flexDirection={'row'}
+											justifyContent={'flex-start'}
+											alignItems={'center'}
+										>
+											<Typography
+												fontWeight={700}
+												fontSize={pxToRem(12)}
+												mr={pxToRem(35)}
+											>
+												Documentos
+											</Typography>
+
+											<RequestUploadDocumentDialog
+												reloadRequest={refetch}
+												requestId={request?.id}
+											/>
+										</Stack>
+
+										<CustomDataGrid
+											rows={request?.documents ?? []}
+											columns={headers}
+											onRowClick={(data, e) => {
+												console.log('LOLLLLL', data);
+												open(data.row.fileURL);
+											}}
+										/>
+									</Grid>
+								</PermissionsGate>
 							</Grid>
 						</CardContent>
 						<CardActions>
 							<RequestEditDialog
 								requestData={request}
-								requestsRefetch={refetch}
+								requestRefetch={refetch}
 							/>
 						</CardActions>
 					</Card>

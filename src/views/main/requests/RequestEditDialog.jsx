@@ -19,23 +19,28 @@ import {
 	Typography,
 } from '@mui/material';
 import { ServiceType } from '@utils/enums';
-import { Edit, HomeWork, Person } from '@mui/icons-material';
+import { Edit, Person } from '@mui/icons-material';
 import { useLoading } from '@providers/loading';
 import { useLazyQuery, useMutation } from '@apollo/client';
-import {
-	GET_BRANDS,
-	GET_CLIENTS,
-	GET_COMPANIES,
-	GET_SELLERS,
-	UPDATE_REQUEST,
-} from './requests';
 import useDebounce from '@hooks/use-debounce';
 import toast from 'react-hot-toast';
-import CustomDate from '@components/customDate';
-import CustomTime from '@components/customTime';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { DateTimeField } from '@mui/x-date-pickers';
+import {
+	REQUESTCREATESCOPES,
+	ROLES,
+	SCOPES,
+} from '@config/permisissions/permissions';
+import PermissionsGate from '@components/PermissionsGate';
+import { useSession } from '@providers/session';
+import {
+	GET_BRANDS,
+	GET_COMPANIES,
+	GET_CLIENTS,
+	GET_SELLERS,
+} from '@views/main/requests/queryRequests';
+import { UPDATE_REQUEST } from '@views/main/requests/mutationRequests';
+
+const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 const InitialRequest = {
 	id: '',
@@ -82,26 +87,104 @@ const InitialSeller = {
 	},
 };
 
-const RequestEditDialog = ({
-	requestData,
-	requestRefetch: requestsRefetch,
-}) => {
+const RequestEditDialog = ({ requestData, requestRefetch }) => {
+	const { role } = useSession();
 	const { setLoading } = useLoading();
 	const [request, setRequest] = useState(InitialRequest);
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDialog = () => setIsVisible((prev) => !prev);
 
-	const handleDateChange = (requestDate) => {
-		setRequest({ ...request, requestDate });
+	// CLIENTES
+	const [searchedClients, setSearchedClients] = useState([]);
+	const [client, setClient] = useState(InitialClient);
+	const [searchClients, { loading }] = useLazyQuery(GET_CLIENTS);
+	const debouncedClient = useDebounce(client.firstName, 700);
+
+	// fetch data from server CLIENTS
+	useEffect(() => {
+		searchClients({ variables: { text: client.firstName } }).then((res) => {
+			if (!res.error) {
+				const aux = res.data.searchClients.results;
+				setSearchedClients(aux);
+			} else {
+				console.log(res.error);
+			}
+		});
+	}, [debouncedClient]);
+
+	const handleInputOnChangeClient = (event, value) => {
+		if (!value) {
+			setClient({
+				...client,
+				id: undefined,
+				firstName: '',
+				lastName: '',
+				phoneNumber: '',
+				email: '',
+			});
+		} else {
+			setClient({
+				...client,
+				id: value.id,
+				firstName: value.firstName,
+				lastName: value.lastName,
+				phoneNumber: value.phoneNumber,
+				email: value.email,
+			});
+		}
 	};
 
-	const handleTimeChange = (requestDate) => {
-		setRequest({ ...request, requestDate });
+	const handleInputChangeClient = (event, value) => {
+		const actualId = client.id;
+		const lastName = client.name;
+
+		if (!value) {
+			setClient({
+				...client,
+				id: undefined,
+				firstName: '',
+				lastName: '',
+			});
+		} else if (
+			lastName.length > value.length ||
+			(lastName.length < value.length && actualId)
+		) {
+			setClient({
+				...client,
+				id: undefined,
+				firstName: value,
+			});
+		} else {
+			setClient({
+				...client,
+				firstName: value,
+			});
+		}
 	};
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setRequest({ ...request, [name]: value });
+	const handlePhoneChangeClient = (e) => {
+		const phoneNumber = e.target.value;
+
+		if (phoneNumber === '') {
+			setClient({ ...client, phoneNumber });
+		} else {
+			if (/^\d+$/.test(phoneNumber)) setClient({ ...client, phoneNumber });
+		}
+	};
+
+	const handleEmailChangeClient = (e) => {
+		const email = e.target.value;
+
+		setClient({ ...client, email });
+	};
+
+	const handleNameChangeClient = (e) => {
+		const lastName = e.target.value;
+		const existId = client.id;
+		existId
+			? // deletes id cuz is new client
+			  setClient({ ...client, id: undefined, lastName })
+			: setClient({ ...client, lastName });
 	};
 
 	// SELLERS
@@ -168,91 +251,6 @@ const RequestEditDialog = ({
 				firstName: value,
 			});
 		}
-	};
-
-	// CLIENTES
-	const [searchedClients, setSearchedClients] = useState([]);
-	const [client, setClient] = useState(InitialClient);
-	const [searchClients, { loading }] = useLazyQuery(GET_CLIENTS);
-	const debouncedClient = useDebounce(client.firstName, 700);
-
-	// fetch data from server CLIENTS
-	useEffect(() => {
-		searchClients({ variables: { text: client.firstName } }).then((res) => {
-			if (!res.error) {
-				const aux = res.data.searchClients.results;
-				setSearchedClients(aux);
-			} else {
-				console.log(res.error);
-			}
-		});
-	}, [debouncedClient]);
-
-	const handleInputOnChangeClient = (event, value) => {
-		if (!value) {
-			setClient({
-				...client,
-				id: undefined,
-				firstName: '',
-				lastName: '',
-				phoneNumber: '',
-				email: '',
-			});
-		} else {
-			setClient({
-				...client,
-				id: value.id,
-				firstName: value.firstName,
-				lastName: value.lastName,
-				phoneNumber: value.phoneNumber,
-				email: value.email,
-			});
-		}
-	};
-
-	const handleInputChangeClient = (event, value) => {
-		const actualId = client.id;
-		const lastName = client.name;
-
-		if (!value) {
-			setClient({
-				...client,
-				id: undefined,
-				firstName: '',
-				lastName: '',
-			});
-		} else if (
-			lastName.length > value.length ||
-			(lastName.length < value.length && actualId)
-		) {
-			setClient({
-				...client,
-				id: undefined,
-				firstName: value,
-				lastName: '',
-			});
-		} else {
-			setClient({
-				...client,
-				firstName: value,
-			});
-		}
-	};
-
-	const handlePhoneChangeClient = (e) => {
-		const phoneNumber = e.target.value;
-
-		if (phoneNumber === '') {
-			setClient({ ...client, phoneNumber });
-		} else {
-			if (/^\d+$/.test(phoneNumber)) setClient({ ...client, phoneNumber });
-		}
-	};
-
-	const handleEmailChangeClient = (e) => {
-		const email = e.target.value;
-
-		setClient({ ...client, email });
 	};
 
 	// COMPANY
@@ -397,7 +395,24 @@ const RequestEditDialog = ({
 		}
 	};
 
+	const handleInputChange = (e) => {
+		const { name, value } = e.target;
+		setRequest({ ...request, [name]: value });
+	};
+
 	const [updateRequest] = useMutation(UPDATE_REQUEST);
+
+	const cleanStates = () => {
+		setRequest(InitialRequest);
+		setClient(InitialClient);
+		setBrand(InitialBrand);
+		setCompany(InitialCompany);
+		setSeller(InitialSeller);
+		setSearchedCompanies([]);
+		setSearchedClients([]);
+		setSearchedBrands([]);
+		setSearchedSellers([]);
+	};
 
 	const check = () => {
 		if (!request.serviceType) {
@@ -412,17 +427,57 @@ const RequestEditDialog = ({
 			}
 		}
 
-		if (
-			(!client.phoneNumber || !client.email) &&
-			(!company.phoneNumber || !company.email)
-		) {
-			if (company.name || client.firstName) {
-				toast.error('Agrega una forma de contacto');
+		if (!client.id) {
+			if (
+				(client.firstName && !client.lastName) ||
+				(!client.firstName && client.lastName)
+			) {
+				toast.error('Completa el nombre del cliente.');
 				return true;
+			}
+
+			if (client.firstName && client.lastName) {
+				if (!client.phoneNumber && !client.email) {
+					toast.error('Agrega una forma de contacto');
+					return true;
+				}
+
+				if (client.phoneNumber)
+					if (client.phoneNumber.length < 10) {
+						toast.error('Número incompleto');
+						return true;
+					}
+
+				if (client.email)
+					if (!EMAIL.test(client.email)) {
+						toast.error('Revisa el email');
+						return true;
+					}
 			}
 		}
 
-		if (!seller.id) {
+		if (!company.id) {
+			if (company.name) {
+				if (!company.phoneNumber && !company.email) {
+					toast.error('Agrega una forma de contacto');
+					return true;
+				}
+
+				if (company.phoneNumber)
+					if (company.phoneNumber.length < 10) {
+						toast.error('Número incompleto');
+						return true;
+					}
+
+				if (company.email)
+					if (!EMAIL.test(company.email)) {
+						toast.error('Revisa el email');
+						return true;
+					}
+			}
+		}
+
+		if (!seller.id && role !== ROLES.salesOperator) {
 			toast.error('Elige un vendedor');
 			return true;
 		}
@@ -439,6 +494,8 @@ const RequestEditDialog = ({
 			setLoading(false);
 			return;
 		}
+
+		const reqAux = (({ id, ...rest }) => ({ ...rest }))(request);
 
 		const auxObject = {
 			sellerId: seller.id ?? undefined, // tiene que tener de a fuerza
@@ -458,17 +515,17 @@ const RequestEditDialog = ({
 			company: company.name
 				? (({ id, ...rest }) => ({ ...rest }))(company)
 				: null,
-			requestId: request.id,
-			request: (({ id, ...rest }) => ({ ...rest }))(request),
+			// requestId: request.id,
+			...reqAux,
 		};
 
 		console.log('LOL', auxObject);
 
-		updateRequest({ variables: auxObject })
+		updateRequest({ variables: { requestId: request.id, request: auxObject } })
 			.then((res) => {
 				if (!res.errors) {
 					toast.success('Guardado');
-					requestsRefetch();
+					requestRefetch();
 					toggleDialog();
 				} else {
 					console.log('Errores', res.errors);
@@ -485,6 +542,8 @@ const RequestEditDialog = ({
 
 	useEffect(() => {
 		if (requestData) {
+			console.log('data12', requestData);
+
 			const {
 				createdAt,
 				createdBy,
@@ -494,7 +553,9 @@ const RequestEditDialog = ({
 				brand,
 				client,
 				company,
-				userFor,
+				assignedUser,
+				shortId,
+				documents,
 				...auxReq
 			} = requestData;
 
@@ -524,9 +585,9 @@ const RequestEditDialog = ({
 			};
 
 			const auxSeller = {
-				id: requestData.userFor?.id ?? undefined,
-				firstName: requestData.userFor?.firstName ?? '',
-				lastName: requestData.userFor?.lastName ?? '',
+				id: requestData.assignedUser?.id ?? undefined,
+				firstName: requestData.assignedUser?.firstName ?? '',
+				lastName: requestData.assignedUser?.lastName ?? '',
 				get name() {
 					return (this.firstName + ' ' + this.lastName).trim();
 				},
@@ -553,7 +614,7 @@ const RequestEditDialog = ({
 				Editar
 			</Button>
 
-			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'md'}>
+			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'sm'}>
 				<DialogTitle>Editar solicitud</DialogTitle>
 				<DialogContent>
 					<Grid container columnSpacing={1} rowSpacing={1}>
@@ -584,23 +645,6 @@ const RequestEditDialog = ({
 											{item[1]}
 										</MenuItem>
 									))}
-								</Select>
-							</FormControl>
-						</Grid>
-						<Grid item xs={6} md={4}>
-							<Typography variant={'caption'} color={'text.primaryLight'}>
-								Estatus:
-							</Typography>
-
-							<FormControl margin={'none'}>
-								<Select
-									id={'requestStatus'}
-									name={'requestStatus'}
-									value={request.requestStatus}
-									onChange={handleInputChange}
-								>
-									<MenuItem value={'PENDING'}>Pendiente</MenuItem>
-									<MenuItem value={'FINISHED'}>Cotizado</MenuItem>
 								</Select>
 							</FormControl>
 						</Grid>
@@ -786,7 +830,7 @@ const RequestEditDialog = ({
 								onChange={handleNameChangeClient}
 							/>
 						</Grid>
-						<Grid item xs={3}>
+						<Grid item xs={6} md={3}>
 							<TextField
 								margin={'none'}
 								fullWidth
@@ -804,7 +848,7 @@ const RequestEditDialog = ({
 								}}
 							/>
 						</Grid>
-						<Grid item xs={3}>
+						<Grid item xs={6} md={3}>
 							<TextField
 								margin={'none'}
 								fullWidth
@@ -817,49 +861,59 @@ const RequestEditDialog = ({
 							/>
 						</Grid>
 						<Grid item xs={12}>
+							<Typography fontWeight={400} fontSize={14} align={'right'} mt={1}>
+								En caso de no contar con cliente o compañía, guarda la forma de
+								contacto en <b>comentarios</b>.
+							</Typography>
+						</Grid>
+						<Grid item xs={12}>
 							<Divider sx={{ my: 2 }} />
 						</Grid>
-						<Grid item xs={12}>
-							<Typography fontWeight={400}>Atención</Typography>
-						</Grid>
-						<Grid item xs={12}>
-							<Autocomplete
-								freeSolo
-								forcePopupIcon={true}
-								options={searchedSellers}
-								getOptionLabel={(option) =>
-									typeof option === 'string'
-										? option
-										: `${option.firstName + ' ' + option.lastName}`
-								}
-								autoComplete
-								includeInputInList
-								value={seller.name}
-								renderInput={(params) => (
-									<TextField {...params} margin={'none'} label={'Asesor'} />
-								)}
-								loading={loadingSellers}
-								onInputChange={handleInputChangeSeller}
-								onChange={handleInputOnChangeSeller}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<Grid container alignItems='center'>
-											<Grid item>
-												<Box
-													component={Person}
-													sx={{ color: 'text.secondary', mr: 2 }}
-												/>
+						<PermissionsGate
+							scopes={[SCOPES.total, REQUESTCREATESCOPES.create]}
+						>
+							<Grid item xs={12}>
+								<Typography fontWeight={400}>Atención</Typography>
+							</Grid>
+							<Grid item xs={12}>
+								<Autocomplete
+									freeSolo
+									forcePopupIcon={true}
+									options={searchedSellers}
+									getOptionLabel={(option) =>
+										typeof option === 'string'
+											? option
+											: `${option.firstName + ' ' + option.lastName}`
+									}
+									autoComplete
+									includeInputInList
+									value={seller.name}
+									renderInput={(params) => (
+										<TextField {...params} margin={'none'} label={'Asesor'} />
+									)}
+									loading={loadingSellers}
+									onInputChange={handleInputChangeSeller}
+									onChange={handleInputOnChangeSeller}
+									renderOption={(props, option) => (
+										<li {...props} key={option.id}>
+											<Grid container alignItems='center'>
+												<Grid item>
+													<Box
+														component={Person}
+														sx={{ color: 'text.secondary', mr: 2 }}
+													/>
+												</Grid>
+												<Grid item xs>
+													<Typography variant='body2' color='text.secondary'>
+														{option?.firstName + ' ' + option?.lastName}
+													</Typography>
+												</Grid>
 											</Grid>
-											<Grid item xs>
-												<Typography variant='body2' color='text.secondary'>
-													{option?.firstName + ' ' + option?.lastName}
-												</Typography>
-											</Grid>
-										</Grid>
-									</li>
-								)}
-							/>
-						</Grid>
+										</li>
+									)}
+								/>
+							</Grid>
+						</PermissionsGate>
 						<Grid item xs={12}>
 							<TextField
 								fullWidth

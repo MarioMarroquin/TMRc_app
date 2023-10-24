@@ -7,6 +7,7 @@ export const ROLES = {
 };
 
 export const SCOPES = {
+	total: 'TOTAL',
 	view: 'view',
 	create: 'create',
 	edit: 'edit',
@@ -15,10 +16,23 @@ export const SCOPES = {
 
 export const SCOPESREQUEST = {
 	interact: 'interact',
+	changeStatus: 'changeStatus',
+	selectOperator: 'selectOperator',
+};
+
+export const REQUESTDETAILSSCOPES = {
+	interact: 'interact',
+	edit: 'edit',
+	writeOperator: 'writeOperator',
+	writeManager: 'writeManager',
+};
+
+export const REQUESTCREATESCOPES = {
+	create: 'create',
 };
 
 export const PERMISSIONS = {
-	[ROLES.admin]: [SCOPES.view, SCOPES.create, SCOPES.edit, SCOPES.delete],
-	[ROLES.desk]: [SCOPES.view, SCOPES.create],
+	[ROLES.admin]: [SCOPES.total],
+	[ROLES.desk]: [REQUESTCREATESCOPES.create],
 	[ROLES.salesOperator]: [SCOPESREQUEST.interact],
 };

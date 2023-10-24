@@ -1,6 +1,6 @@
 const palette = {
 	background: {
-		default: '#f7faff',
+		default: '#F1F1F1',
 		paper: '#FFFFFF',
 	},
 

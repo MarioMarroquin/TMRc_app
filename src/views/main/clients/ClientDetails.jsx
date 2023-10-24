@@ -64,6 +64,7 @@ const ClientDetails = (props) => {
 				<Card>
 					<CardContent>
 						<CustomDataGrid
+							paginationMode={'server'}
 							rows={clientRequests}
 							columns={headers}
 							loading={loadingClientReqs}

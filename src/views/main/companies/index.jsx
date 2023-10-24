@@ -99,6 +99,7 @@ const Companies = () => {
 								<CompanyCreateDialog reloadCompanies={refetch} />
 							</Toolbar>
 							<CustomDataGrid
+								paginationMode={'server'}
 								rows={companies}
 								columns={headers}
 								loading={loading}

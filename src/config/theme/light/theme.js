@@ -11,6 +11,7 @@ const theme = createTheme(
 			primaryBold20: {
 				fontSize: 20,
 				fontWeight: 700,
+				display: 'block',
 			},
 		},
 		palette: {

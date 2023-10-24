@@ -21,19 +21,26 @@ import {
 	useTheme,
 } from '@mui/material';
 import { ServiceType } from '@utils/enums';
-import { HomeWork, Person } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
 import { useLazyQuery, useMutation } from '@apollo/client';
-import {
-	CREATE_REQUEST,
-	GET_BRANDS,
-	GET_CLIENTS,
-	GET_COMPANIES,
-	GET_SELLERS,
-} from './requests';
 import useDebounce from '@hooks/use-debounce';
 import { useLoading } from '@providers/loading';
 import toast from 'react-hot-toast';
 import { DateTimeField } from '@mui/x-date-pickers';
+import PermissionsGate from '@components/PermissionsGate';
+import {
+	REQUESTCREATESCOPES,
+	ROLES,
+	SCOPES,
+} from '@config/permisissions/permissions';
+import { useSession } from '@providers/session';
+import {
+	GET_BRANDS,
+	GET_COMPANIES,
+	GET_CLIENTS,
+	GET_SELLERS,
+} from '@views/main/requests/queryRequests';
+import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
@@ -83,25 +90,11 @@ const InitialSeller = {
 
 const RequestCreateDialog = ({ refetchRequests }) => {
 	const theme = useTheme();
+	const { role } = useSession();
 	const { setLoading } = useLoading();
 	const [request, setRequest] = useState(InitialRequest);
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDialog = () => setIsVisible((prev) => !prev);
-
-	const handleDateChange = (requestDate) => {
-		setRequest({ ...request, requestDate });
-	};
-
-	const handleTimeChange = (time) => {
-		const auxTime = time.split(':');
-		const requestDate = request.requestDate;
-		requestDate.setHours(auxTime[0], auxTime[1], 0);
-		setRequest({ ...request, requestDate });
-	};
-
-	useEffect(() => {
-		console.log('request: ', request.requestDate);
-	}, [request]);
 
 	// CLIENTES
 	const [searchedClients, setSearchedClients] = useState([]);
@@ -486,7 +479,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 			}
 		}
 
-		if (!seller.id) {
+		if (!seller.id && role !== ROLES.salesOperator) {
 			toast.error('Elige un vendedor');
 			return true;
 		}
@@ -504,15 +497,8 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 			return;
 		}
 
-		const { productStatus, ...requestCopy } = request;
-
-		// check product status, if empty is null
-		productStatus === ''
-			? (requestCopy.productStatus = null)
-			: (requestCopy.productStatus = productStatus);
-
 		const finalRequest = {
-			...requestCopy,
+			...request,
 			sellerId: seller.id, // tiene que tener de a fuerza
 			brandId: brand.id ?? null,
 			brand: brand.name
@@ -543,7 +529,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 					console.log('Errores', res.errors);
 					toast.error('Error al crear');
 				}
-				// cleanStates();
+				cleanStates();
 				setLoading(false);
 			})
 			.catch((err) => {
@@ -565,7 +551,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 
 	return (
 		<Fragment>
-			<Button variant={'text'} sx={{ ml: 'auto' }} onClick={toggleDialog}>
+			<Button variant={'text'} onClick={toggleDialog}>
 				{useMediaQuery(theme.breakpoints.down('sm'))
 					? 'Crear'
 					: 'Crear solicitud'}
@@ -615,6 +601,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 									onChange={handleInputChange}
 								>
 									<MenuItem value={'PENDING'}>Pendiente</MenuItem>
+									<MenuItem value={'TRACING'}>En curso</MenuItem>
 									<MenuItem value={'FINISHED'}>Cotizado</MenuItem>
 								</Select>
 							</FormControl>
@@ -841,47 +828,52 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 						<Grid item xs={12}>
 							<Divider sx={{ my: 2 }} />
 						</Grid>
-						<Grid item xs={12}>
-							<Typography fontWeight={400}>Atención</Typography>
-						</Grid>
-						<Grid item xs={12}>
-							<Autocomplete
-								freeSolo
-								forcePopupIcon={true}
-								options={searchedSellers}
-								getOptionLabel={(option) =>
-									typeof option === 'string'
-										? option
-										: `${option.firstName + ' ' + option.lastName}`
-								}
-								autoComplete
-								includeInputInList
-								value={seller.name}
-								renderInput={(params) => (
-									<TextField {...params} margin={'none'} label={'Asesor'} />
-								)}
-								loading={loadingSellers}
-								onInputChange={handleInputChangeSeller}
-								onChange={handleInputOnChangeSeller}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<Grid container alignItems='center'>
-											<Grid item>
-												<Box
-													component={Person}
-													sx={{ color: 'text.secondary', mr: 2 }}
-												/>
+
+						<PermissionsGate
+							scopes={[SCOPES.total, REQUESTCREATESCOPES.create]}
+						>
+							<Grid item xs={12}>
+								<Typography fontWeight={400}>Atención</Typography>
+							</Grid>
+							<Grid item xs={12}>
+								<Autocomplete
+									freeSolo
+									forcePopupIcon={true}
+									options={searchedSellers}
+									getOptionLabel={(option) =>
+										typeof option === 'string'
+											? option
+											: `${option.firstName + ' ' + option.lastName}`
+									}
+									autoComplete
+									includeInputInList
+									value={seller.name}
+									renderInput={(params) => (
+										<TextField {...params} margin={'none'} label={'Asesor'} />
+									)}
+									loading={loadingSellers}
+									onInputChange={handleInputChangeSeller}
+									onChange={handleInputOnChangeSeller}
+									renderOption={(props, option) => (
+										<li {...props} key={option.id}>
+											<Grid container alignItems='center'>
+												<Grid item>
+													<Box
+														component={Person}
+														sx={{ color: 'text.secondary', mr: 2 }}
+													/>
+												</Grid>
+												<Grid item xs>
+													<Typography variant='body2' color='text.secondary'>
+														{option?.firstName + ' ' + option?.lastName}
+													</Typography>
+												</Grid>
 											</Grid>
-											<Grid item xs>
-												<Typography variant='body2' color='text.secondary'>
-													{option?.firstName + ' ' + option?.lastName}
-												</Typography>
-											</Grid>
-										</Grid>
-									</li>
-								)}
-							/>
-						</Grid>
+										</li>
+									)}
+								/>
+							</Grid>
+						</PermissionsGate>
 						<Grid item xs={12}>
 							<TextField
 								fullWidth
