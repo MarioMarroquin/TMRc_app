@@ -21,7 +21,7 @@ import {
 	useTheme,
 } from '@mui/material';
 import { ServiceType } from '@utils/enums';
-import { Person } from '@mui/icons-material';
+import { Add, Person } from '@mui/icons-material';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import useDebounce from '@hooks/use-debounce';
 import { useLoading } from '@providers/loading';
@@ -551,7 +551,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 
 	return (
 		<Fragment>
-			<Button variant={'text'} onClick={toggleDialog}>
+			<Button variant={'contained'} onClick={toggleDialog} startIcon={<Add />}>
 				{useMediaQuery(theme.breakpoints.down('sm'))
 					? 'Crear'
 					: 'Crear solicitud'}
@@ -580,6 +580,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 								<Select
 									id={'serviceType'}
 									name={'serviceType'}
+									label={'Tipo de Servicio'}
 									value={request.serviceType}
 									onChange={handleInputChange}
 								>
@@ -597,6 +598,7 @@ const RequestCreateDialog = ({ refetchRequests }) => {
 								<Select
 									id={'requestStatus'}
 									name={'requestStatus'}
+									label={'Estatus'}
 									value={request.requestStatus}
 									onChange={handleInputChange}
 								>

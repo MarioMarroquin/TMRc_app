@@ -22,6 +22,20 @@ const CustomDateRange = (props) => {
 		}
 	}, [props.ranges[0]]);
 
+	if (props.extended) {
+		return (
+			<Fragment>
+				<DateRange
+					{...props}
+					editableDateInputs={true}
+					showDateDisplay={false}
+					rangeColors={[theme.palette.secondary.main]}
+					locale={es}
+				/>
+			</Fragment>
+		);
+	}
+
 	return (
 		<Fragment>
 			<Box
@@ -92,6 +106,7 @@ const CustomDateRange = (props) => {
 
 CustomDateRange.propTypes = {
 	ranges: PropTypes.array,
+	extended: PropTypes.bool,
 };
 
 export default CustomDateRange;
