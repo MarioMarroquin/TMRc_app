@@ -3,17 +3,13 @@ import {
 	Autocomplete,
 	Box,
 	Button,
-	Card,
-	CardContent,
+	Divider,
 	Grid,
-	IconButton,
 	InputAdornment,
 	LinearProgress,
-	Paper,
 	Stack,
 	Switch,
 	TextField,
-	Tooltip,
 	Typography,
 } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
@@ -22,19 +18,11 @@ import { useLazyQuery, useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import CustomDateRange from '@components/customDateRange';
 import { pxToRem } from '@config/theme/functions';
-import {
-	FilterAltOff,
-	Person,
-	Search,
-	Sync,
-	Update,
-	Visibility,
-	VisibilityOff,
-} from '@mui/icons-material';
+import { Person, Search, Sync } from '@mui/icons-material';
 import { useRequests } from '@providers/requests';
 import NoRowsOverlay from '@components/NoRowsOverlay';
 import useInterval from '@hooks/use-interval';
-import RequestCreateDialog from '@views/main/requests/RequestCreateDialog';
+import RequestCreate from '@views/main/requests/RequestCreate';
 import { useSession } from '@providers/session';
 import {
 	ROLES,
@@ -174,6 +162,9 @@ const Requests = (props) => {
 		if (data) {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
+
+			console.log('aux', aux);
+			console.log('auxCount', auxCount);
 			setRequests(aux);
 			setCountRows(auxCount);
 		}
@@ -231,9 +222,54 @@ const Requests = (props) => {
 						</Button>
 					</Stack>
 
+					<Stack
+						flexDirection={'row'}
+						justifyContent={'flex-end'}
+						mt={pxToRem(32)}
+						mb={pxToRem(4)}
+						px={pxToRem(16)}
+					>
+						<Stack flexDirection={'row'} alignItems={'center'}>
+							<Switch
+								color={'secondary'}
+								checked={showPending}
+								onChange={(event) => {
+									setShowPending(event.target.checked);
+								}}
+							/>
+							<Typography variant={'primaryLight12'}>
+								Mostrar pendientes
+								{/* {!showPending ? 'Mostrar pendientes' : 'Pendientes'} */}
+							</Typography>
+						</Stack>
+
+						<PermissionsGate
+							scopes={[SCOPESREQUEST.selectOperator, SCOPES.total]}
+						>
+							<Divider
+								orientation='vertical'
+								variant='middle'
+								flexItem
+								sx={{ ml: pxToRem(12) }}
+							/>
+
+							<Stack flexDirection={'row'} alignItems={'center'}>
+								<Switch
+									color={'secondary'}
+									checked={!showAll}
+									onChange={(event) => {
+										setShowAll(!event.target.checked);
+									}}
+								/>
+								<Typography variant={'primaryLight12'}>
+									Mostrar mis asignadas
+									{/* {showAll ? 'Mostrar mis asignadas' : 'Mis asignadas'} */}
+								</Typography>
+							</Stack>
+						</PermissionsGate>
+					</Stack>
 					<Box
 						sx={{
-							mt: 4, // 32px
 							p: pxToRem(14),
 							borderRadius: 1,
 							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
@@ -287,20 +323,29 @@ const Requests = (props) => {
 							<Typography variant={'primaryLight16'} mb={pxToRem(4)}>
 								{format(liveDate, "EEEE',' d 'de' MMM", { locale: es })}
 							</Typography>
-							<Typography variant={'primaryBold25'}>
+							<Typography variant={'primaryBold32'}>
 								{format(liveDate, 'HH:mm', { locale: es })}
 							</Typography>
 						</Stack>
-						<RequestCreateDialog refetchRequests={refetch} />
+						<RequestCreate refetchRequests={refetch} />
 					</Box>
 
+					<Typography
+						variant={'primaryLight12'}
+						mt={pxToRem(29)}
+						ml={pxToRem(8)}
+						mb={pxToRem(15)}
+					>
+						Filtro de fecha
+					</Typography>
 					<Box
 						sx={{
-							mt: 2, // 32px
 							p: pxToRem(14),
 							borderRadius: 1,
 							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
 													0px 10px 25px rgba(0, 0, 0, 0.07);`,
+							display: 'flex',
+							flexDirection: 'column',
 						}}
 					>
 						<CustomDateRange
@@ -312,6 +357,17 @@ const Requests = (props) => {
 							}}
 							extended
 						/>
+
+						{/* <Button */}
+						{/* 	sx={{ alignSelf: 'flex-end', mt: pxToRem(8) }} */}
+						{/* 	variant={'outlined'} */}
+						{/* 	onClick={() => { */}
+						{/* 		resetFilters(); */}
+						{/* 	}} */}
+						{/* 	startIcon={<RestartAlt />} */}
+						{/* > */}
+						{/* 	Restablecer */}
+						{/* </Button> */}
 					</Box>
 				</Box>
 			</Box>

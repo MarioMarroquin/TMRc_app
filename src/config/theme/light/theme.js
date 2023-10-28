@@ -27,9 +27,21 @@ const theme = createTheme(
 				display: 'block',
 				lineHeight: 'normal',
 			},
-			primaryBold25: {
+			primaryNormal16: {
+				fontSize: 16,
+				fontWeight: 500,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryBold32: {
 				fontSize: 32,
 				fontWeight: 700,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryLight12: {
+				fontSize: 12,
+				fontWeight: 400,
 				display: 'block',
 				lineHeight: 'normal',
 			},
@@ -114,6 +126,7 @@ const theme = createTheme(
 				},
 			},
 			MuiButton: {
+				defaultProps: { variant: 'contained' },
 				styleOverrides: {
 					root: {
 						borderRadius: pxToRem(12),
