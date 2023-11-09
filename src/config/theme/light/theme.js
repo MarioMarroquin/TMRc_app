@@ -10,14 +10,27 @@ const theme = createTheme(
 		typography: {
 			fontSize: 14,
 			fontFamily: 'Inter',
-			primaryBold20: {
-				fontSize: 20,
-				fontWeight: 700,
+			primaryLight12: {
+				fontSize: 12,
+				fontWeight: 400,
 				display: 'block',
+				lineHeight: 'normal',
 			},
 			primaryBold12: {
 				fontSize: 12,
 				fontWeight: 700,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryNormal13: {
+				fontSize: 13,
+				fontWeight: 500,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryNormal14: {
+				fontSize: 14,
+				fontWeight: 500,
 				display: 'block',
 				lineHeight: 'normal',
 			},
@@ -33,14 +46,33 @@ const theme = createTheme(
 				display: 'block',
 				lineHeight: 'normal',
 			},
+			primaryBold14: {
+				fontSize: 22,
+				fontWeight: 700,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryBold20: {
+				fontSize: 20,
+				fontWeight: 700,
+				display: 'block',
+			},
 			primaryBold32: {
 				fontSize: 32,
 				fontWeight: 700,
 				display: 'block',
 				lineHeight: 'normal',
 			},
-			primaryLight12: {
+			secondaryLight12: {
+				color: palette.text.secondary,
 				fontSize: 12,
+				fontWeight: 400,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			secondaryLight14: {
+				color: palette.text.secondary,
+				fontSize: 14,
 				fontWeight: 400,
 				display: 'block',
 				lineHeight: 'normal',
@@ -59,7 +91,7 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						'& .MuiInputBase-root': {
-							height: '48px',
+							minHeight: '48px',
 						},
 						'& label.Mui-focused': {
 							color: palette.secondary.main,
@@ -164,7 +196,7 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						'& .MuiInputBase-root': {
-							height: '48px',
+							minHeight: '48px',
 						},
 						'& label.Mui-focused': {
 							color: palette.secondary.main,

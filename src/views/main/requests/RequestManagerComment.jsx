@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { Fragment, useEffect, useState } from 'react';
+import { pxToRem } from '@config/theme/functions';
 import {
 	Box,
 	Button,
@@ -10,26 +11,25 @@ import {
 	Typography,
 	useTheme,
 } from '@mui/material';
+import { Edit } from '@mui/icons-material';
 import { useLoading } from '@providers/loading';
 import { useMutation } from '@apollo/client';
+import { UPDATE_MANAGER_COMMENT_REQUEST } from '@views/main/requests/mutationRequests';
 import toast from 'react-hot-toast';
-import { Edit } from '@mui/icons-material';
-import { UPDATE_OPERATOR_COMMENT_REQUEST } from '@views/main/requests/mutationRequests';
-import { pxToRem } from '@config/theme/functions';
 
 const InitialInfo = {
 	requestId: undefined,
-	operatorComments: '',
+	managerComments: '',
 };
 
-const RequestOperatorCommentDialog = ({ data, reloadRequest }) => {
+const RequestManagerComment = ({ data, reloadRequest }) => {
 	const theme = useTheme();
-	const { setLoading } = useLoading();
+	const { setLoading, loading } = useLoading();
 	const [info, setInfo] = useState(InitialInfo);
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDialog = () => setIsVisible((prev) => !prev);
 
-	const [updateComment] = useMutation(UPDATE_OPERATOR_COMMENT_REQUEST);
+	const [updateComment] = useMutation(UPDATE_MANAGER_COMMENT_REQUEST);
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -62,9 +62,9 @@ const RequestOperatorCommentDialog = ({ data, reloadRequest }) => {
 
 	useEffect(() => {
 		if (data) {
-			const { id, operatorComments } = data;
+			const { id, managerComments } = data;
 
-			setInfo({ requestId: id, operatorComments });
+			setInfo({ requestId: id, managerComments });
 		}
 	}, [data, isVisible]);
 
@@ -117,7 +117,7 @@ const RequestOperatorCommentDialog = ({ data, reloadRequest }) => {
 					}}
 				>
 					<Typography variant={'primaryNormal16'} mb={pxToRem(24)}>
-						Editar comentario
+						Comentario
 					</Typography>
 
 					<TextField
@@ -125,22 +125,26 @@ const RequestOperatorCommentDialog = ({ data, reloadRequest }) => {
 						fullWidth
 						multiline
 						maxRows={4}
-						id={'operatorComments'}
-						name={'operatorComments'}
+						id={'managerComments'}
+						name={'managerComments'}
 						label={'Comentarios'}
-						value={info.operatorComments}
+						value={info.managerComments}
 						onChange={handleInputChange}
 					/>
 
 					<Stack mt={'auto'} flexDirection={'row'} justifyContent={'flex-end'}>
 						<Button
-							onClick={toggleDialog}
-							variant={'outlined'}
 							sx={{ mr: pxToRem(8) }}
+							disabled={loading}
+							onClick={toggleDialog}
+							variant={'text'}
 						>
 							Salir
 						</Button>
-						<Button disabled={!info.operatorComments} onClick={onFinish}>
+						<Button
+							disabled={!info.managerComments || loading}
+							onClick={onFinish}
+						>
 							Guardar
 						</Button>
 					</Stack>
@@ -150,8 +154,8 @@ const RequestOperatorCommentDialog = ({ data, reloadRequest }) => {
 	);
 };
 
-RequestOperatorCommentDialog.propTypes = {
+RequestManagerComment.propTypes = {
 	data: PropTypes.object,
 };
 
-export default RequestOperatorCommentDialog;
+export default RequestManagerComment;

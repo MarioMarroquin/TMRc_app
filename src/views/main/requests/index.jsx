@@ -26,8 +26,8 @@ import RequestCreate from '@views/main/requests/RequestCreate';
 import { useSession } from '@providers/session';
 import {
 	ROLES,
-	SCOPES,
-	SCOPESREQUEST,
+	SCOPES_GENERAL,
+	SCOPES_REQUEST,
 } from '@config/permisissions/permissions';
 import PropTypes from 'prop-types';
 import PermissionsGate from '@components/PermissionsGate';
@@ -201,7 +201,11 @@ const Requests = (props) => {
 				>
 					<Stack flexDirection={'row'}>
 						<PermissionsGate
-							scopes={[SCOPESREQUEST.selectOperator, SCOPES.total]}
+							scopes={[
+								SCOPES_GENERAL.total,
+								SCOPES_REQUEST.total,
+								SCOPES_REQUEST.filterOperator,
+							]}
 						>
 							<CustomAutocomplete
 								options={sellersList}
@@ -211,9 +215,9 @@ const Requests = (props) => {
 							/>
 						</PermissionsGate>
 						<Button
+							variant={'contained'}
 							color={'secondary'}
 							sx={{ ml: pxToRem(16) }}
-							variant={'contained'}
 							onClick={() => {
 								refetch();
 							}}
@@ -244,7 +248,7 @@ const Requests = (props) => {
 						</Stack>
 
 						<PermissionsGate
-							scopes={[SCOPESREQUEST.selectOperator, SCOPES.total]}
+							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST.filterOperator]}
 						>
 							<Divider
 								orientation='vertical'
@@ -270,6 +274,7 @@ const Requests = (props) => {
 					</Stack>
 					<Box
 						sx={{
+							display: 'flex',
 							p: pxToRem(14),
 							borderRadius: 1,
 							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
@@ -340,12 +345,11 @@ const Requests = (props) => {
 					</Typography>
 					<Box
 						sx={{
+							display: 'flex',
 							p: pxToRem(14),
 							borderRadius: 1,
 							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
 													0px 10px 25px rgba(0, 0, 0, 0.07);`,
-							display: 'flex',
-							flexDirection: 'column',
 						}}
 					>
 						<CustomDateRange

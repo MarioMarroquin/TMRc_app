@@ -5,9 +5,12 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	Drawer,
 	IconButton,
+	Stack,
 	TextField,
 	Typography,
+	useTheme,
 } from '@mui/material';
 import { Upload } from '@mui/icons-material';
 import { createRef, Fragment, useState } from 'react';
@@ -20,14 +23,20 @@ import {
 	SAVE_DOCUMENT,
 	UPDATE_DOCUMENT,
 } from '@views/main/requests/mutationRequests';
+import PropTypes from 'prop-types';
+import { pxToRem } from '@config/theme/functions';
 
 const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 	const { setLoading, loading } = useLoading();
 	const [title, setTitle] = useState('');
 	const [isVisible, setIsVisible] = useState(false);
-	const toggleDialog = () => setIsVisible((prev) => !prev);
+	const toggleDialog = () => {
+		setIsVisible((prev) => !prev);
+		cleanStates();
+	};
 	const [saveDocument] = useMutation(SAVE_DOCUMENT);
 	const [updateDocument] = useMutation(UPDATE_DOCUMENT);
+	const theme = useTheme();
 
 	const inputFileRef = createRef(null);
 	const [docFile, setDocFile] = useState(null);
@@ -51,6 +60,11 @@ const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 			inputFileRef.current.value = null;
 			setDocFile(null);
 		}
+	};
+
+	const cleanStates = () => {
+		setTitle('');
+		setDocFile(null);
 	};
 
 	const onFinish = async () => {
@@ -94,8 +108,7 @@ const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 								document: { fileURL: downloadURL, path, requestId },
 							},
 						}).then((response) => {
-							setTitle('');
-							setDocFile(null);
+							cleanStates();
 							toast.success('Documento cargado', { id: toastId });
 							reloadRequest();
 							toggleDialog();
@@ -113,76 +126,125 @@ const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 
 	return (
 		<Fragment>
-			<IconButton onClick={toggleDialog}>
-				<Upload />
-			</IconButton>
+			<Button
+				variant={'contained'}
+				startIcon={<Upload />}
+				onClick={toggleDialog}
+			>
+				Cargar
+			</Button>
 
-			<Dialog open={isVisible} onClose={toggleDialog} fullWidth maxWidth={'sm'}>
-				<DialogTitle>Subir archivo</DialogTitle>
-				<DialogContent>
-					<Box
-						sx={{
-							display: 'flex',
-							flexDirection: 'column',
-						}}
-					>
-						<TextField
-							autoFocus
-							fullWidth
-							margin={'none'}
-							id={'title'}
-							name={'title'}
-							label={'Nombre de archivo'}
-							value={title}
-							onChange={handleInputChange}
-						/>
-						<input
-							ref={inputFileRef}
-							//accept='.png, .jpg, .jpeg'
-							hidden
-							id='doc-upload'
-							type='file'
-							onChange={handleOnChange}
-						/>
-						<label htmlFor='doc-upload'>
-							<Box
-								mt={3}
-								display={'flex'}
-								flexDirection='row'
-								justifyContent={'space-between'}
-								alignItems='center'
+			<Drawer
+				anchor={'right'}
+				open={isVisible}
+				// open={true}
+				onClose={toggleDialog}
+				sx={{
+					'& .MuiDrawer-paper': {
+						width: 350,
+						height: 280,
+						// height: `calc(100vh - 32px)`,
+						top: pxToRem(64),
+						borderRadius: pxToRem(16),
+						marginRight: pxToRem(22),
+						border: 'none',
+						whiteSpace: 'nowrap',
+						boxSizing: 'border-box',
+						backdropFilter: `saturate(200%) blur(1.875rem)`,
+						boxShadow: `0px 1px 2px rgba(3, 7, 18, 0.05),
+												1px 3px 9px rgba(3, 7, 18, 0.10),
+												3px 8px 20px rgba(3, 7, 18, 0.15),
+												4px 13px 36px rgba(3, 7, 18, 0.20),
+												7px 21px 56px rgba(3, 7, 18, 0.25),
+												10px 30px 80px rgba(3, 7, 18, 0.30);`,
+					},
+				}}
+				slotProps={{
+					backdrop: {
+						sx: {
+							bgcolor: `${theme.palette.background.default}90`,
+							backdropFilter: `blur(${pxToRem(8)})`,
+						},
+					},
+				}}
+			>
+				<Box
+					sx={{
+						p: pxToRem(16),
+						height: '100%',
+						display: 'flex',
+						flexDirection: 'column',
+					}}
+				>
+					<Typography variant={'primaryNormal16'} mb={pxToRem(24)}>
+						Sube tu archivo PDF
+					</Typography>
+
+					<TextField
+						autoFocus
+						margin={'none'}
+						fullWidth
+						id={'title'}
+						name={'title'}
+						label={'Nombre de archivo'}
+						value={title}
+						onChange={handleInputChange}
+					/>
+
+					<input
+						ref={inputFileRef}
+						//accept='.png, .jpg, .jpeg'
+						hidden
+						id='doc-upload'
+						type='file'
+						onChange={handleOnChange}
+					/>
+					<label htmlFor='doc-upload'>
+						<Box
+							mt={3}
+							display={'flex'}
+							flexDirection='column'
+							justifyContent={'space-between'}
+							alignItems='center'
+						>
+							<Typography variant='caption' display='block' gutterBottom>
+								{!docFile ? 'Selecciona un archivo' : docFile.name}
+							</Typography>
+							<IconButton
+								component='span'
+								onClick={handleClick}
+								color='primary'
 							>
-								<Typography variant='caption' display='block' gutterBottom>
-									{!docFile ? 'Selecciona un archivo' : docFile.name}
-								</Typography>
-								<IconButton
-									component='span'
-									onClick={handleClick}
-									color='primary'
-								>
-									<Upload />
-								</IconButton>
-							</Box>
-						</label>
-					</Box>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						disabled={loading}
-						onClick={toggleDialog}
-						variant={'outlined'}
-					>
-						Salir
-					</Button>
-					<Button disabled={!title || loading} onClick={onFinish}>
-						Guardar
-					</Button>
-				</DialogActions>
-			</Dialog>
+								<Upload />
+							</IconButton>
+						</Box>
+					</label>
+
+					<Stack mt={'auto'} flexDirection={'row'} justifyContent={'flex-end'}>
+						<Button
+							sx={{ mr: pxToRem(8) }}
+							disabled={loading}
+							onClick={toggleDialog}
+							variant={'text'}
+						>
+							Cancelar
+						</Button>
+						<Button
+							disabled={!(title && docFile) || loading}
+							onClick={onFinish}
+						>
+							Guardar
+						</Button>
+					</Stack>
+				</Box>
+			</Drawer>
 		</Fragment>
 	);
 };
 
-RequestUploadDocumentDialog.propTypes = {};
+RequestUploadDocumentDialog.propTypes = {
+	requestId: PropTypes.string.isRequired,
+	reloadRequest: PropTypes.func.isRequired,
+};
 
 export default RequestUploadDocumentDialog;

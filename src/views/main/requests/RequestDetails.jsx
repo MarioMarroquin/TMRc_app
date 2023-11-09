@@ -2,29 +2,17 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useLoading } from '@providers/loading';
 import { Fragment, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import {
-	Box,
-	Button,
-	Card,
-	CardActions,
-	CardContent,
-	CardHeader,
-	Divider,
-	Grid,
-	Stack,
-	Typography,
-} from '@mui/material';
+import { Box, Button, Divider, Grid, Stack, Typography } from '@mui/material';
 import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
 import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
-import { ChevronLeft } from '@mui/icons-material';
-import RequestEditDialog from './RequestEditDialog';
-import PermissionsGate from '@components/PermissionsGate';
 import {
-	REQUESTDETAILSSCOPES,
-	SCOPES,
-	SCOPESREQUEST,
-} from '@config/permisissions/permissions';
+	CancelPresentation,
+	Flag,
+	PriceCheck,
+	Sync,
+} from '@mui/icons-material';
+import RequestEdit from './RequestEdit';
 import RequestOperatorCommentDialog from '@views/main/requests/RequestOperatorCommentDialog';
 import RequestUploadDocumentDialog from '@views/main/requests/RequestUploadDocumentDialog';
 import CustomDataGrid from '@components/customDataGrid';
@@ -33,10 +21,18 @@ import {
 	FINISH_REQUEST,
 	TRACE_REQUEST,
 } from '@views/main/requests/mutationRequests';
+import toast from 'react-hot-toast';
+import NoRowsOverlay from '@components/NoRowsOverlay';
+import RequestManagerComment from '@views/main/requests/RequestManagerComment';
+import PermissionsGate from '@components/PermissionsGate';
+import {
+	SCOPES_GENERAL,
+	SCOPES_REQUEST_DETAILS,
+} from '@config/permisissions/permissions';
 
 const REQUESTSTATUS = {
 	1: 'TRACING',
-	2: 'FINISH',
+	2: 'FINISHED',
 };
 
 const RequestDetails = (props) => {
@@ -78,7 +74,7 @@ const RequestDetails = (props) => {
 					console.log(err);
 					setLoading(false);
 				});
-		} else if (REQUESTSTATUS[status] === 'FINISH') {
+		} else if (REQUESTSTATUS[status] === 'FINISHED') {
 			finishRequest({
 				variables: {
 					requestId: Number(id),
@@ -103,322 +99,490 @@ const RequestDetails = (props) => {
 			headerName: 'NOMBRE DE ARCHIVO',
 			headerAlign: 'left',
 			align: 'left',
-			flex: 0.7,
-			minWidth: 200,
+			flex: 0.6,
 		},
 		{
 			field: 'fileURL',
 			headerName: 'URL',
 			headerAlign: 'center',
 			align: 'center',
-			flex: 0.3,
-
-			minWidth: 200,
+			flex: 0.4,
 		},
 	];
 
 	return (
 		<Fragment>
-			<Button
-				variant={'text'}
-				startIcon={<ChevronLeft />}
-				sx={{ mb: pxToRem(16) }}
-				onClick={() => {
-					navigate('/requests');
+			<Box
+				sx={{
+					display: 'flex',
+					flexDirection: 'row',
 				}}
 			>
-				atrás
-			</Button>
-			<Grid container spacing={2}>
-				<Grid item xs={12}>
-					<Card>
-						<CardHeader title='Detalles de Solicitud' />
-						<CardContent>
-							<Box
+				<Box
+					sx={{
+						width: '60%',
+						display: 'flex',
+						flexDirection: 'column',
+						px: pxToRem(22),
+					}}
+				>
+					<Box
+						sx={{
+							mb: pxToRem(16),
+							display: 'flex',
+							flexDirection: 'row',
+							justifyContent: 'space-between',
+							alignItems: 'flex-start',
+						}}
+					>
+						<Stack>
+							<Typography variant={'primaryLight12'}>Fecha</Typography>
+							{request && (
+								<Typography variant={'primaryNormal14'}>
+									{format(new Date(request.requestDate), 'dd/MM/yyyy - HH:mm')}
+								</Typography>
+							)}
+
+							<Divider sx={{ my: pxToRem(4) }} />
+
+							<Typography variant={'primaryLight12'}>Estatus</Typography>
+							<Typography variant={'primaryNormal14'}>
+								{request?.requestStatus
+									? RequestStatus[request?.requestStatus]
+									: 'N/D'}
+							</Typography>
+						</Stack>
+
+						<PermissionsGate
+							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
+						>
+							<Button
+								variant={'contained'}
+								color={'info'}
+								startIcon={<Flag />}
 								sx={{
-									display: 'flex',
-									flexDirection: 'row',
-									justifyContent: 'space-between',
-									width: '100%',
-									flexWrap: 'wrap',
+									ml: 'auto',
+									display:
+										request?.requestStatus === REQUESTSTATUS[1] ||
+										request?.isSale !== null
+											? 'none'
+											: 'inline-flex',
+								}}
+								disabled={
+									request?.requestStatus === REQUESTSTATUS[1] ||
+									request?.isSale !== null
+								}
+								onClick={() => {
+									changeRequestStatus(1);
 								}}
 							>
-								<Box
-									sx={{
-										display: 'flex',
-										flexDirection: 'row',
-										justifyContent: 'center',
-										width: { xs: '100%', sm: 'unset' },
-									}}
-								>
-									<Stack mr={pxToRem(25)}>
-										<Typography fontWeight={700} fontSize={pxToRem(14)}>
-											Asesor
-										</Typography>
-										<Typography>
-											{request?.assignedUser.firstName}{' '}
-											{request?.assignedUser.lastName}
-										</Typography>
-									</Stack>
-									<Stack mr={pxToRem(25)}>
-										<Typography fontWeight={700} fontSize={pxToRem(14)}>
-											Estatus
-										</Typography>
-										<Typography>
-											{request?.requestStatus
-												? RequestStatus[request?.requestStatus]
-												: 'N/D'}
-										</Typography>
-									</Stack>
-									<Stack>
-										<Typography fontWeight={700} fontSize={pxToRem(14)}>
-											Venta
-										</Typography>
-										<Typography>
-											{request?.isSale
-												? 'Si'
-												: request?.isSale === false
-												? 'No'
-												: 'N/D'}
-										</Typography>
-									</Stack>
-								</Box>
+								En curso
+							</Button>
+						</PermissionsGate>
+					</Box>
 
-								<PermissionsGate
-									scopes={[REQUESTDETAILSSCOPES.interact, SCOPES.total]}
-								>
-									<Box
-										sx={{
-											marginX: { xs: 'auto', md: 'unset' },
-											mt: { xs: pxToRem(16), sm: 'unset' },
-										}}
-									>
-										<Button
-											variant={'outlined'}
-											color={'info'}
-											sx={{
-												mr: 2,
-												display:
-													request?.requestStatus === REQUESTSTATUS[1] ||
-													request?.isSale !== null
-														? 'none'
-														: 'inline',
-											}}
-											disabled={
-												request?.requestStatus === REQUESTSTATUS[1] ||
-												request?.isSale !== null
-											}
-											onClick={() => {
-												changeRequestStatus(1);
-											}}
+					<Grid container rowSpacing={pxToRem(26)}>
+						<Grid item xs={12}>
+							<Box
+								sx={{
+									height: '100%',
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
+									display: 'flex',
+									flexDirection: 'column',
+								}}
+							>
+								<Grid container rowSpacing={2}>
+									<Grid item xs={3}>
+										<Stack>
+											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+												Medio de Contacto
+											</Typography>
+											<Typography variant={'primaryNormal14'}>
+												{request?.contactMedium || 'Sin definir'}
+											</Typography>
+										</Stack>
+									</Grid>
+									<Grid item xs={3}>
+										<Stack>
+											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+												Medio de Publicidad
+											</Typography>
+											<Typography
+												variant={
+													request?.advertisingMedium
+														? 'primaryNormal14'
+														: 'secondaryLight14'
+												}
+											>
+												{request?.advertisingMedium || 'Sin definir'}
+											</Typography>
+										</Stack>
+									</Grid>
+
+									<Grid item xs={6}>
+										<Stack>
+											<Typography
+												variant={'secondaryLight12'}
+												mb={pxToRem(4)}
+												align={'right'}
+											>
+												Tipo de Servicio
+											</Typography>
+											<Typography variant={'primaryNormal14'} align={'right'}>
+												{request?.serviceType
+													? ServiceType[request.serviceType]
+													: 'N/D'}
+											</Typography>
+										</Stack>
+									</Grid>
+
+									<Grid item xs={3}>
+										<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+											Marca
+										</Typography>
+										<Typography variant={'primaryNormal14'}>
+											{request?.brand?.name}
+										</Typography>
+									</Grid>
+									<Grid item xs={3}>
+										<Typography
+											variant={'secondaryLight12'}
+											mb={pxToRem(4)}
+											align={'right'}
 										>
-											En curso
-										</Button>
-										<Button
-											variant={'outlined'}
-											color={'success'}
-											sx={{ mr: 2 }}
-											disabled={request?.isSale !== null}
-											onClick={() => {
-												changeRequestStatus(2, true);
-											}}
-										>
-											Completar venta
-										</Button>
-										<Button
-											variant={'outlined'}
-											color={'error'}
-											disabled={request?.isSale !== null}
-											onClick={() => {
-												changeRequestStatus(2);
-											}}
-										>
-											Rechazar venta
-										</Button>
-									</Box>
-								</PermissionsGate>
+											Estatus de producto
+										</Typography>
+										<Typography variant={'primaryNormal14'} align={'right'}>
+											{request?.productStatus
+												? ProductStatus[request?.productStatus]
+												: 'N/D'}
+										</Typography>
+									</Grid>
+								</Grid>
 							</Box>
-
-							<Divider sx={{ mt: 2 }} />
+						</Grid>
+						<Grid item xs>
 							<Box
 								sx={{
 									display: 'flex',
-									justifyContent: { xs: 'center', sm: 'flex-end' },
-									padding: pxToRem(8),
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
 								}}
 							>
-								<Stack sx={{ mr: 2 }}>
-									<Typography fontWeight={700} fontSize={pxToRem(14)}>
-										Fecha
-									</Typography>
-									{request && (
-										<Typography>
-											{format(
-												new Date(request.requestDate),
-												'dd/MM/yyyy - HH:mm'
-											)}
-										</Typography>
-									)}
-								</Stack>
+								<Grid container>
+									<Grid item xs={6}>
+										<Stack>
+											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+												Empresa
+											</Typography>
+											<Typography variant={'primaryNormal14'} mb={pxToRem(2)}>
+												{request?.company?.name}
+											</Typography>
+											<Typography variant={'primaryNormal13'} mb={pxToRem(2)}>
+												{request?.company?.phoneNumber}
+											</Typography>
+											<Typography variant={'primaryNormal13'}>
+												{request?.company?.email}
+											</Typography>
+										</Stack>
+									</Grid>
+
+									<Grid item xs={6}>
+										<Stack>
+											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+												Cliente
+											</Typography>
+											<Typography variant={'primaryNormal14'} mb={pxToRem(2)}>
+												{request?.client?.firstName} {request?.client?.lastName}
+											</Typography>
+
+											<Typography variant={'primaryNormal13'} mb={pxToRem(2)}>
+												{request?.client?.phoneNumber}
+											</Typography>
+											<Typography variant={'primaryNormal13'}>
+												{request?.client?.email}
+											</Typography>
+										</Stack>
+									</Grid>
+								</Grid>
+							</Box>
+						</Grid>
+
+						<Grid item xs={12}>
+							<Box
+								sx={{
+									display: 'flex',
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
+								}}
+							>
 								<Stack>
-									<Typography fontWeight={700} fontSize={pxToRem(14)}>
-										Tipo de Servicio
-									</Typography>
-									<Typography align={'right'}>
-										{request?.serviceType
-											? ServiceType[request.serviceType]
-											: 'N/D'}
-									</Typography>
-								</Stack>
-							</Box>
-
-							<Divider sx={{ mt: 2 }} />
-
-							<Grid container sx={{ m: 0, p: 2 }} rowSpacing={2}>
-								<Grid item xs={6} sm={3}>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Medio de Contacto
-									</Typography>
-									<Typography>{request?.contactMedium}</Typography>
-								</Grid>
-
-								<Grid item xs={6} sm={3}>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Medio de Publicidad
-									</Typography>
-									<Typography>{request?.advertisingMedium}</Typography>
-								</Grid>
-
-								<Grid item xs={6} sm={3} md={3}>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Marca
-									</Typography>
-									<Typography>{request?.brand?.name}</Typography>
-								</Grid>
-
-								<Grid item xs={6} sm={3}>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Estatus de producto
-									</Typography>
-									<Typography>
-										{request?.productStatus
-											? ProductStatus[request?.productStatus]
-											: 'N/D'}
-									</Typography>
-								</Grid>
-
-								<Grid item xs={12}>
 									<Typography fontWeight={700} fontSize={pxToRem(12)}>
 										Comentarios
 									</Typography>
 									<Typography>{request?.comments}</Typography>
-								</Grid>
-
-								<Grid item xs={12} sm={6}>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Empresa
-									</Typography>
-									<Typography>{request?.company?.name}</Typography>
-									<Typography color={'text.primaryLight'} fontSize={14}>
-										{request?.company?.phoneNumber} {request?.company?.email}
-									</Typography>
-								</Grid>
-
-								<Grid item xs={12} sm={6}>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Cliente
-									</Typography>
-									<Typography>
-										{request?.client?.firstName} {request?.client?.lastName}
-									</Typography>
-
-									<Typography color={'text.primaryLight'} fontSize={14}>
-										{request?.client?.phoneNumber} {request?.client?.email}
-									</Typography>
-								</Grid>
-
-								<Grid item xs={12}>
+								</Stack>
+							</Box>
+						</Grid>
+						<Grid item xs={12}>
+							<Box
+								sx={{
+									display: 'flex',
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
+								}}
+							>
+								<Stack>
 									<Typography fontWeight={700} fontSize={pxToRem(12)}>
 										Observaciones
 									</Typography>
 									<Typography>{request?.extraComments}</Typography>
-								</Grid>
+								</Stack>
+							</Box>
+						</Grid>
 
-								<Grid item xs={12}>
-									<Stack
-										flexDirection={'row'}
-										justifyContent={'flex-start'}
-										alignItems={'center'}
+						<Grid item xs={12}>
+							<Box
+								sx={{
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
+									display: 'flex',
+									flexDirection: 'column',
+								}}
+							>
+								<Stack
+									flexDirection={'row'}
+									justifyContent={'space-between'}
+									alignItems={'center'}
+									width={'100%'}
+								>
+									<Typography
+										fontWeight={700}
+										fontSize={pxToRem(12)}
+										mr={pxToRem(35)}
 									>
-										<Typography
-											fontWeight={700}
-											fontSize={pxToRem(12)}
-											mr={pxToRem(35)}
-										>
-											Comentarios de vendedor
-										</Typography>
+										Comentarios de vendedor
+									</Typography>
+									<PermissionsGate
+										scopes={[
+											SCOPES_GENERAL.total,
+											SCOPES_REQUEST_DETAILS.commentOperator,
+										]}
+									>
 										<RequestOperatorCommentDialog
 											data={request}
 											reloadRequest={refetch}
 										/>
-									</Stack>
-									<Typography>{request?.operatorComments}</Typography>
-								</Grid>
+									</PermissionsGate>
+								</Stack>
+								<Typography>{request?.operatorComments}</Typography>
+							</Box>
+						</Grid>
 
-								<PermissionsGate
-									scopes={[SCOPESREQUEST.interact, SCOPES.total]}
+						<Grid item xs={12}>
+							<Box
+								sx={{
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
+									display: 'flex',
+									flexDirection: 'column',
+								}}
+							>
+								<Stack
+									flexDirection={'row'}
+									justifyContent={'space-between'}
+									alignItems={'center'}
+									width={'100%'}
 								>
-									<Grid
-										item
-										xs={12}
-										// sx={{
-										// 	display:
-										// 		request?.requestStatus === REQUESTSTATUS[1] ||
-										// 		request?.requestStatus === REQUESTSTATUS[2]
-										// 			? 'block'
-										// 			: 'none',
-										// }}
+									<Typography fontWeight={700} fontSize={pxToRem(12)}>
+										Comentarios de gerente
+									</Typography>
+									<PermissionsGate
+										scopes={[
+											SCOPES_GENERAL.total,
+											SCOPES_REQUEST_DETAILS.commentManager,
+										]}
 									>
-										<Stack
-											flexDirection={'row'}
-											justifyContent={'flex-start'}
-											alignItems={'center'}
-										>
-											<Typography
-												fontWeight={700}
-												fontSize={pxToRem(12)}
-												mr={pxToRem(35)}
-											>
-												Documentos
-											</Typography>
-
-											<RequestUploadDocumentDialog
-												reloadRequest={refetch}
-												requestId={request?.id}
-											/>
-										</Stack>
-
-										<CustomDataGrid
-											rows={request?.documents ?? []}
-											columns={headers}
-											onRowClick={(data, e) => {
-												console.log('LOLLLLL', data);
-												open(data.row.fileURL);
-											}}
+										<RequestManagerComment
+											data={request}
+											reloadRequest={refetch}
 										/>
-									</Grid>
-								</PermissionsGate>
-							</Grid>
-						</CardContent>
-						<CardActions>
-							<RequestEditDialog
-								requestData={request}
-								requestRefetch={refetch}
+									</PermissionsGate>
+								</Stack>
+								<Typography>{request?.managerComments}</Typography>
+							</Box>
+						</Grid>
+					</Grid>
+				</Box>
+
+				<Box
+					sx={{
+						width: '40%',
+						display: 'flex',
+						flexDirection: 'column',
+						px: pxToRem(22),
+					}}
+				>
+					<Box
+						sx={{
+							mb: pxToRem(20),
+							display: 'flex',
+							flexDirection: 'row',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+						}}
+					>
+						<Button
+							variant={'contained'}
+							color={'secondary'}
+							onClick={() => {
+								const toastId = toast.loading('Actualizando...');
+								refetch().then((res) => {
+									console.log('Actualizado', res);
+
+									toast.success('Actualizado', { id: toastId });
+								});
+							}}
+						>
+							<Sync />
+						</Button>
+
+						<PermissionsGate
+							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.edit]}
+						>
+							<RequestEdit requestData={request} requestRefetch={refetch} />
+						</PermissionsGate>
+					</Box>
+
+					<Box
+						sx={{
+							mb: pxToRem(20),
+							p: pxToRem(14),
+							borderRadius: 1,
+							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
+													0px 10px 25px rgba(0, 0, 0, 0.07);`,
+							display: 'flex',
+							flexDirection: 'row',
+							justifyContent: 'space-between',
+							flexWrap: 'wrap',
+						}}
+					>
+						<Stack>
+							<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+								Asignado:
+							</Typography>
+							<Typography variant={'primaryNormal13'}>
+								{request?.assignedUser.firstName}{' '}
+								{request?.assignedUser.lastName}
+							</Typography>
+
+							<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
+								Venta
+							</Typography>
+							<Typography variant={'primaryNormal13'}>
+								{request?.isSale
+									? 'Si'
+									: request?.isSale === false
+									? 'No'
+									: 'N/D'}
+							</Typography>
+						</Stack>
+
+						<PermissionsGate
+							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
+						>
+							<Stack sx={{ m: '2px auto 0' }}>
+								<Button
+									sx={{ my: pxToRem(4) }}
+									variant={'contained'}
+									color={'success'}
+									startIcon={<PriceCheck />}
+									disabled={request?.isSale !== null}
+									onClick={() => {
+										changeRequestStatus(2, true);
+									}}
+								>
+									Completar venta
+								</Button>
+								<Button
+									sx={{ my: pxToRem(4) }}
+									variant={'contained'}
+									color={'error'}
+									startIcon={<CancelPresentation />}
+									disabled={request?.isSale !== null}
+									onClick={() => {
+										changeRequestStatus(2);
+									}}
+								>
+									Rechazar venta
+								</Button>
+							</Stack>
+						</PermissionsGate>
+					</Box>
+
+					<Box
+						sx={{
+							mb: pxToRem(16),
+							display: 'flex',
+							flexDirection: 'row',
+							justifyContent: 'space-between',
+							alignItems: 'flex-end',
+						}}
+					>
+						<Typography variant={'primaryBold14'}>Documentos</Typography>
+
+						<PermissionsGate
+							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
+						>
+							<RequestUploadDocumentDialog
+								reloadRequest={refetch}
+								requestId={request?.id}
 							/>
-						</CardActions>
-					</Card>
-				</Grid>
-			</Grid>
+						</PermissionsGate>
+					</Box>
+
+					<Box
+						sx={{
+							p: pxToRem(14),
+							borderRadius: 1,
+							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
+													0px 10px 25px rgba(0, 0, 0, 0.07);`,
+							display: 'flex',
+							flexDirection: 'column',
+						}}
+					>
+						<CustomDataGrid
+							rows={request?.documents ?? []}
+							columns={headers}
+							onRowClick={(data, e) => {
+								open(data.row.fileURL);
+							}}
+							slots={{
+								noRowsOverlay: NoRowsOverlay,
+							}}
+						/>
+					</Box>
+				</Box>
+			</Box>
 		</Fragment>
 	);
 };
