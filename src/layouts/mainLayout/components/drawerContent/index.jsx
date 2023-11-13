@@ -10,6 +10,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
 import { routes } from '../../../../routes';
+import { pxToRem } from '@config/theme/functions';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
@@ -31,6 +32,7 @@ const DrawerContent = () => {
 					justifyContent: 'center',
 					alignItems: 'center',
 					px: [1],
+					mt: pxToRem(24),
 				}}
 			>
 				<img src={TMRLogo} alt={'TMR Logo'} width={100} />
@@ -38,7 +40,7 @@ const DrawerContent = () => {
 
 			{/* <Divider /> */}
 
-			<List component={'nav'}>
+			<List component={'nav'} sx={{ mt: pxToRem(50) }}>
 				{routes.map(({ icon, name, path }) => {
 					return (
 						<ListItemButton
@@ -48,21 +50,35 @@ const DrawerContent = () => {
 								navigate(path, { replace: true });
 							}}
 							sx={{
-								color: theme.palette.secondary.main,
+								py: 2, // 56px in total
+								borderTopRightRadius: 12,
+								borderBottomRightRadius: 12,
 								'&:hover': {
-									backgroundColor: theme.palette.hover.main,
+									backgroundColor: `${theme.palette.secondary.main}15`,
 								},
 								'&.Mui-selected': {
-									color: theme.palette.primary.main,
-									backgroundColor: theme.palette.background.default,
+									color: theme.palette.background.default,
+									backgroundColor: theme.palette.primary.main,
 									'&:hover': {
-										backgroundColor: theme.palette.hover.main,
+										backgroundColor: `${theme.palette.primary.main}90`,
 									},
 								},
 							}}
 						>
-							<ListItemIcon sx={{ color: 'inherit' }}>{icon}</ListItemIcon>
-							<ListItemText primary={name} />
+							<ListItemIcon
+								sx={{
+									color: 'inherit',
+									justifyContent: 'center',
+								}}
+							>
+								{icon}
+							</ListItemIcon>
+							<ListItemText
+								primary={name}
+								primaryTypographyProps={{
+									variant: 'primaryBold12',
+								}}
+							/>
 						</ListItemButton>
 					);
 				})}

@@ -2,11 +2,12 @@ import { DataGrid, gridClasses } from '@mui/x-data-grid';
 import { Box, useTheme } from '@mui/material';
 import { pxToRem } from '@config/theme/functions';
 
-const selectedSecondaryColor = 'rgba(222,222,222,0.85)';
+const selectedSecondaryColor = 'rgba(157,53,53,0.85)';
 
 const CustomDataGrid = (props) => {
 	const theme = useTheme();
-	const iconColor = theme.palette.secondary.main;
+	const primaryColor = theme.palette.primary.main;
+	const hoverColor = theme.palette.secondary.hover;
 
 	// Agregar custom toolbars
 
@@ -31,10 +32,10 @@ const CustomDataGrid = (props) => {
 						borderBottom: 'none',
 					},
 					'.MuiDataGrid-sortIcon': {
-						color: iconColor,
+						color: primaryColor,
 					},
 					'	.MuiDataGrid-menuIconButton': {
-						color: iconColor,
+						color: primaryColor,
 					},
 					'&.MuiDataGrid-root': {
 						border: 'none',
@@ -43,15 +44,18 @@ const CustomDataGrid = (props) => {
 						border: 'none',
 					},
 					'& .MuiDataGrid-row:hover': {
-						borderRadius: 1,
+						borderRadius: pxToRem(12),
+						backgroundColor: hoverColor,
 					},
 					'& .MuiDataGrid-row.Mui-selected': {
-						background: selectedSecondaryColor,
-						borderRadius: 1,
+						borderRadius: pxToRem(12),
+						backgroundColor: primaryColor,
+						color: theme.palette.background.default,
 						'&:hover': {
-							backgroundColor: selectedSecondaryColor,
+							backgroundColor: `${primaryColor}90`,
 						},
 					},
+
 					[`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]:
 						{
 							outline: 'none',

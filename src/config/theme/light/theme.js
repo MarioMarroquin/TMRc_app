@@ -6,12 +6,76 @@ import { pxToRem } from '@config/theme/functions';
 
 const theme = createTheme(
 	{
+		shape: { borderRadius: 16 },
 		typography: {
+			fontSize: 14,
 			fontFamily: 'Inter',
+			primaryLight12: {
+				fontSize: 12,
+				fontWeight: 400,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryBold12: {
+				fontSize: 12,
+				fontWeight: 700,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryNormal13: {
+				fontSize: 13,
+				fontWeight: 500,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryNormal14: {
+				fontSize: 14,
+				fontWeight: 500,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryLight16: {
+				fontSize: 16,
+				fontWeight: 400,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryNormal16: {
+				fontSize: 16,
+				fontWeight: 500,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			primaryBold14: {
+				fontSize: 22,
+				fontWeight: 700,
+				display: 'block',
+				lineHeight: 'normal',
+			},
 			primaryBold20: {
 				fontSize: 20,
 				fontWeight: 700,
 				display: 'block',
+			},
+			primaryBold32: {
+				fontSize: 32,
+				fontWeight: 700,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			secondaryLight12: {
+				color: palette.text.secondary,
+				fontSize: 12,
+				fontWeight: 400,
+				display: 'block',
+				lineHeight: 'normal',
+			},
+			secondaryLight14: {
+				color: palette.text.secondary,
+				fontSize: 14,
+				fontWeight: 400,
+				display: 'block',
+				lineHeight: 'normal',
 			},
 		},
 		palette: {
@@ -20,7 +84,63 @@ const theme = createTheme(
 		},
 		components: {
 			MuiTextField: {
-				defaultProps: { fullWidth: true, variant: 'filled', size: 'small' },
+				defaultProps: {
+					fullWidth: true,
+					margin: 'dense',
+				},
+				styleOverrides: {
+					root: {
+						'& .MuiInputBase-root': {
+							minHeight: '48px',
+						},
+						'& label.Mui-focused': {
+							color: palette.secondary.main,
+						},
+						'& .MuiOutlinedInput-root': {
+							'& fieldset': {
+								borderColor: 'transparent',
+							},
+							'&:hover fieldset': {
+								borderColor: 'transparent',
+							},
+							'&.Mui-focused fieldset': {
+								borderColor: palette.secondary.main,
+							},
+						},
+						borderRadius: pxToRem(12),
+						fieldset: {
+							borderRadius: pxToRem(12),
+						},
+						input: {
+							fontSize: 14,
+							'&::placeholder': {
+								color: '#CDCDCD',
+								opacity: 1,
+							},
+						},
+					},
+				},
+			},
+			MuiOutlinedInput: {
+				styleOverrides: {
+					root: {
+						paddingTop: '0px !important',
+						paddingBottom: '0px !important',
+						paddingLeft: '8px !important',
+						borderRadius: pxToRem(12),
+						backgroundColor: '#F4F4F4',
+						'&:hover': {
+							backgroundColor: palette.secondary.hover,
+						},
+						'&.Mui-disabled': {
+							opacity: 0.4,
+							backgroundColor: '#fcfcfe',
+						},
+						'&.Mui-focused': {
+							backgroundColor: palette.secondary.light,
+						},
+					},
+				},
 			},
 			MuiAutocomplete: {
 				defaultProps: {
@@ -37,10 +157,20 @@ const theme = createTheme(
 					),
 				},
 			},
+			MuiButton: {
+				defaultProps: { variant: 'contained' },
+				styleOverrides: {
+					root: {
+						borderRadius: pxToRem(12),
+						height: pxToRem(48),
+						textTransform: 'none',
+					},
+				},
+			},
 			MuiSelect: {
 				styleOverrides: {
-					filled: {
-						borderRadius: `${pxToRem(12)} ${pxToRem(12)} 0 0}`,
+					root: {
+						fontSize: 14,
 					},
 				},
 				defaultProps: {
@@ -61,33 +191,55 @@ const theme = createTheme(
 					},
 				},
 			},
-			MuiFilledInput: {
+			MuiFormControl: {
+				defaultProps: { fullWidth: true, variant: 'outlined' },
 				styleOverrides: {
 					root: {
-						borderRadius: `${pxToRem(12)} ${pxToRem(12)} 0 0}`,
-						backgroundColor: '#f9f9f9',
-						'&:hover': {
-							backgroundColor: '#f7faff',
+						'& .MuiInputBase-root': {
+							minHeight: '48px',
 						},
-						'&.Mui-disabled': {
-							opacity: 0.4,
-							backgroundColor: '#fcfcfe',
+						'& label.Mui-focused': {
+							color: palette.secondary.main,
 						},
-						'&.Mui-focused': {
-							backgroundColor: '#f9fcff',
-							'&:hover': {
-								backgroundColor: '#f7faff',
+						'& .MuiOutlinedInput-root': {
+							'& fieldset': {
+								borderColor: 'transparent',
+							},
+							'&:hover fieldset': {
+								borderColor: 'transparent',
+							},
+							'&.Mui-focused fieldset': {
+								borderColor: palette.secondary.main,
 							},
 						},
 					},
 				},
 			},
-			MuiFormControl: {
-				defaultProps: { fullWidth: true, variant: 'filled', size: 'small' },
-			},
 			MuiInputLabel: {
 				styleOverrides: { root: { fontSize: 12 } },
 			},
+			//
+			// MuiFilledInput: {
+			// 	styleOverrides: {
+			// 		root: {
+			// 			borderRadius: `${pxToRem(12)} ${pxToRem(12)} 0 0}`,
+			// 			backgroundColor: '#f9f9f9',
+			// 			'&:hover': {
+			// 				backgroundColor: '#f7faff',
+			// 			},
+			// 			'&.Mui-disabled': {
+			// 				opacity: 0.4,
+			// 				backgroundColor: '#fcfcfe',
+			// 			},
+			// 			'&.Mui-focused': {
+			// 				backgroundColor: '#f9fcff',
+			// 				'&:hover': {
+			// 					backgroundColor: '#f7faff',
+			// 				},
+			// 			},
+			// 		},
+			// 	},
+			// },
 		},
 	},
 	esES,

@@ -50,7 +50,6 @@ const RequestsProvider = ({ children }) => {
 	const [selectedSeller, setSelectedSeller] = useState(InitialSeller);
 
 	const resetFilters = () => {
-		setCountRows(0);
 		setShowPending(false);
 
 		setPaginationModel({

@@ -31,6 +31,20 @@ const UPDATE_OPERATOR_COMMENT_REQUEST = gql`
 	}
 `;
 
+const UPDATE_MANAGER_COMMENT_REQUEST = gql`
+	mutation UpdateManagerOperatorComment(
+		$requestId: Int!
+		$managerComments: String!
+	) {
+		updateRequestManagerComment(
+			requestId: $requestId
+			managerComments: $managerComments
+		) {
+			id
+		}
+	}
+`;
+
 const SAVE_DOCUMENT = gql`
 	mutation SaveDocument($document: CreateDocumentInput!) {
 		saveDocument(document: $document) {
@@ -67,6 +81,7 @@ export {
 	CREATE_REQUEST,
 	UPDATE_REQUEST,
 	UPDATE_OPERATOR_COMMENT_REQUEST,
+	UPDATE_MANAGER_COMMENT_REQUEST,
 	SAVE_DOCUMENT,
 	UPDATE_DOCUMENT,
 	TRACE_REQUEST,
