@@ -6,8 +6,8 @@
   "author": "Mario Marroquin <ma.marroquin@outlook.com>",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server .",
-    "build": "webpack ."
+    "dev": "webpack-dev-server .",
+    "build": "webpack --mode production"
   },
   "devDependencies": {
     "@babel/cli": "^7.21.0",
