@@ -9,6 +9,7 @@ import { GET_USER_BY_TOKEN } from './requests';
 import { useLoading } from '@providers/loading';
 import { Avatar, Box, Typography } from '@mui/material';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
+import useLiveTime from '@hooks/use-liveTime';
 
 const SessionContext = createContext({});
 
@@ -17,6 +18,7 @@ const SessionProvider = ({ children }) => {
 	const [isLogged, setIsLogged] = useState(!!cookies.load('session'));
 	// const { userId } = useMemo(() => (token ? jwt.decode(token) : {}), [token]);
 	const [user, setUser] = useState();
+	const [liveDate, setLiveDate] = useState(new Date());
 
 	const apolloClient = useApolloClient();
 	const { setLoading } = useLoading();
@@ -52,6 +54,12 @@ const SessionProvider = ({ children }) => {
 			logout();
 		}
 	};
+
+	const saveLiveDate = (aux) => {
+		setLiveDate(aux);
+	};
+
+	useLiveTime(saveLiveDate);
 
 	useInterval(
 		getAccessToken,
@@ -99,6 +107,7 @@ const SessionProvider = ({ children }) => {
 				reloadSession,
 				user,
 				role: user?.role ?? '',
+				liveDate,
 			}}
 		>
 			{isLogged ? (

@@ -1,6 +1,6 @@
 const palette = {
 	background: {
-		default: '#F1F1F1',
+		default: '#FFFFFF',
 		paper: '#FFFFFF',
 	},
 
@@ -11,8 +11,8 @@ const palette = {
 		secondary: '#A0A0A0',
 	},
 
-	primary: { main: '#5A5E6E' },
-	secondary: { main: '#A6ABBD' },
+	primary: { main: '#000000' },
+	secondary: { main: '#fabb18', hover: '#fabb1815', light: '#fabb1805' },
 };
 
 export default palette;

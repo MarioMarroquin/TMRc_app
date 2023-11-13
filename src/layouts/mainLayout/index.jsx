@@ -12,7 +12,7 @@ import MobileDrawer from '@layouts/mainLayout/components/mobileDrawer';
 import DesktopDrawer from '@layouts/mainLayout/components/desktopDrawer';
 import { pxToRem } from '@config/theme/functions';
 
-const drawerWidth = 240;
+const drawerWidth = 200;
 
 const MainLayout = () => {
 	const themeAux = useTheme();
@@ -25,11 +25,11 @@ const MainLayout = () => {
 				display: 'flex',
 			}}
 		>
-			<TopBar open={open} toggleDrawer={toggleDrawer} />
+			<TopBar open={true} toggleDrawer={toggleDrawer} />
 			{useMediaQuery(themeAux.breakpoints.down('sm')) ? (
 				<MobileDrawer open={open} toggleDrawer={toggleDrawer} />
 			) : (
-				<DesktopDrawer open={open} toggleDrawer={toggleDrawer} />
+				<DesktopDrawer open={true} toggleDrawer={toggleDrawer} />
 			)}
 			<Box
 				component={'main'}
@@ -39,7 +39,7 @@ const MainLayout = () => {
 				}}
 			>
 				<Toolbar sx={{ mt: pxToRem(16) }} />
-				<Container maxWidth={'lg'} sx={{ my: pxToRem(16) }}>
+				<Container disableGutters a maxWidth={'xl'} sx={{ my: pxToRem(16) }}>
 					<Outlet />
 				</Container>
 			</Box>

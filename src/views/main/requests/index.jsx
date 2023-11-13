@@ -3,14 +3,13 @@ import {
 	Autocomplete,
 	Box,
 	Button,
-	Card,
-	CardContent,
+	Divider,
 	Grid,
+	InputAdornment,
 	LinearProgress,
 	Stack,
 	Switch,
 	TextField,
-	Tooltip,
 	Typography,
 } from '@mui/material';
 import CustomDataGrid from '@components/customDataGrid';
@@ -19,16 +18,16 @@ import { useLazyQuery, useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import CustomDateRange from '@components/customDateRange';
 import { pxToRem } from '@config/theme/functions';
-import { FilterAltOff, Person, Update } from '@mui/icons-material';
+import { Person, Search, Sync } from '@mui/icons-material';
 import { useRequests } from '@providers/requests';
 import NoRowsOverlay from '@components/NoRowsOverlay';
 import useInterval from '@hooks/use-interval';
-import RequestCreateDialog from '@views/main/requests/RequestCreateDialog';
+import RequestCreate from '@views/main/requests/RequestCreate';
 import { useSession } from '@providers/session';
 import {
 	ROLES,
-	SCOPES,
-	SCOPESREQUEST,
+	SCOPES_GENERAL,
+	SCOPES_REQUEST,
 } from '@config/permisissions/permissions';
 import PropTypes from 'prop-types';
 import PermissionsGate from '@components/PermissionsGate';
@@ -36,6 +35,8 @@ import {
 	GET_REQUESTS,
 	GET_SELLERS_ALL,
 } from '@views/main/requests/queryRequests';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const CustomAutocomplete = (props) => (
 	<Autocomplete
@@ -52,7 +53,19 @@ const CustomAutocomplete = (props) => (
 		}
 		value={props.value.name}
 		renderInput={(params) => (
-			<TextField {...params} margin={'none'} label={'Asesor'} />
+			<TextField
+				{...params}
+				margin={'none'}
+				placeholder={'Asesor'}
+				InputProps={{
+					...params.InputProps,
+					startAdornment: (
+						<InputAdornment sx={{ mr: 0, ml: pxToRem(8) }} position='start'>
+							<Search />
+						</InputAdornment>
+					),
+				}}
+			/>
 		)}
 		// onInputChange={props.onInputChange}
 		onChange={props.onChange}
@@ -81,7 +94,7 @@ CustomAutocomplete.propTypes = {
 };
 
 const Requests = (props) => {
-	const { role } = useSession();
+	const { role, liveDate } = useSession();
 	const navigate = useNavigate();
 	const [requests, setRequests] = useState([]);
 	const {
@@ -149,6 +162,9 @@ const Requests = (props) => {
 		if (data) {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
+
+			console.log('aux', aux);
+			console.log('auxCount', auxCount);
 			setRequests(aux);
 			setCountRows(auxCount);
 		}
@@ -169,113 +185,104 @@ const Requests = (props) => {
 
 	return (
 		<Fragment>
-			<Box sx={{ padding: `${pxToRem(0)} ${pxToRem(18)} ${pxToRem(18)}` }}>
-				<Typography mb={pxToRem(12)} variant={'primaryBold20'}>
-					Lista de solicitudes
-				</Typography>
+			<Box
+				sx={{
+					display: 'flex',
+					flexDirection: 'row',
+				}}
+			>
+				<Box
+					sx={{
+						width: '60%',
+						display: 'flex',
+						flexDirection: 'column',
+						px: pxToRem(22),
+					}}
+				>
+					<Stack flexDirection={'row'}>
+						<PermissionsGate
+							scopes={[
+								SCOPES_GENERAL.total,
+								SCOPES_REQUEST.total,
+								SCOPES_REQUEST.filterOperator,
+							]}
+						>
+							<CustomAutocomplete
+								options={sellersList}
+								value={selectedSeller}
+								onChange={onChangeSeller}
+								// onInputChange={onInputSeller}
+							/>
+						</PermissionsGate>
+						<Button
+							variant={'contained'}
+							color={'secondary'}
+							sx={{ ml: pxToRem(16) }}
+							onClick={() => {
+								refetch();
+							}}
+						>
+							<Sync />
+						</Button>
+					</Stack>
 
-				<Card sx={{ mb: 2 }}>
-					<CardContent>
-						<Grid container spacing={2}>
-							<Grid
-								item
-								sm={12}
-								md={6}
-								lg={4}
-								display={'flex'}
-								justifyContent={'center'}
-							>
-								<CustomDateRange
-									ranges={dateRange}
-									onChange={(item) => {
-										item.selection.endDate.setHours(23, 59, 59);
-										item.selection.startDate.setHours(0, 0, 0);
-										setDateRange([item.selection]);
+					<Stack
+						flexDirection={'row'}
+						justifyContent={'flex-end'}
+						mt={pxToRem(32)}
+						mb={pxToRem(4)}
+						px={pxToRem(16)}
+					>
+						<Stack flexDirection={'row'} alignItems={'center'}>
+							<Switch
+								color={'secondary'}
+								checked={showPending}
+								onChange={(event) => {
+									setShowPending(event.target.checked);
+								}}
+							/>
+							<Typography variant={'primaryLight12'}>
+								Mostrar pendientes
+								{/* {!showPending ? 'Mostrar pendientes' : 'Pendientes'} */}
+							</Typography>
+						</Stack>
+
+						<PermissionsGate
+							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST.filterOperator]}
+						>
+							<Divider
+								orientation='vertical'
+								variant='middle'
+								flexItem
+								sx={{ ml: pxToRem(12) }}
+							/>
+
+							<Stack flexDirection={'row'} alignItems={'center'}>
+								<Switch
+									color={'secondary'}
+									checked={!showAll}
+									onChange={(event) => {
+										setShowAll(!event.target.checked);
 									}}
 								/>
-							</Grid>
-
-							<Grid
-								item
-								sm={12}
-								md={6}
-								lg={3}
-								display={'flex'}
-								justifyContent={'flex-end'}
-							>
-								<Tooltip title={'Limpiar filtro'} placement={'top'}>
-									<Button
-										variant={'text'}
-										onClick={() => {
-											resetFilters();
-										}}
-									>
-										<FilterAltOff />
-									</Button>
-								</Tooltip>
-								<Stack flexDirection={'row'} alignItems={'center'}>
-									<Typography variant={'caption'}>
-										{!showPending ? 'Mostrar pendientes' : 'Pendientes'}
-									</Typography>
-									<Switch
-										color={'secondary'}
-										checked={showPending}
-										onChange={(event) => {
-											setShowPending(event.target.checked);
-										}}
-									/>
-								</Stack>
-							</Grid>
-							<Grid item sm={12} lg={5} display={'flex'}>
-								<PermissionsGate
-									scopes={[SCOPESREQUEST.selectOperator, SCOPES.total]}
-								>
-									<Stack flexDirection={'row'} alignItems={'center'}>
-										<Typography display={'block'} variant={'caption'}>
-											{showAll ? 'Mostrar mis asignadas' : 'Mis asignadas'}
-										</Typography>
-										<Switch
-											color={'secondary'}
-											checked={!showAll}
-											onChange={(event) => {
-												setShowAll(!event.target.checked);
-											}}
-										/>
-									</Stack>
-									<CustomAutocomplete
-										options={sellersList}
-										value={selectedSeller}
-										onChange={onChangeSeller}
-										// onInputChange={onInputSeller}
-									/>
-								</PermissionsGate>
-							</Grid>
-							<Grid
-								item
-								sm={12}
-								display={'flex'}
-								justifyContent={{ xs: 'center', md: 'flex-end' }}
-							>
-								<Button
-									color={'info'}
-									sx={{ mr: 2 }}
-									variant={'text'}
-									startIcon={<Update />}
-									onClick={() => {
-										refetch();
-									}}
-								>
-									Actualizar
-								</Button>
-								<RequestCreateDialog refetchRequests={refetch} />
-							</Grid>
-						</Grid>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent>
+								<Typography variant={'primaryLight12'}>
+									Mostrar mis asignadas
+									{/* {showAll ? 'Mostrar mis asignadas' : 'Mis asignadas'} */}
+								</Typography>
+							</Stack>
+						</PermissionsGate>
+					</Stack>
+					<Box
+						sx={{
+							display: 'flex',
+							p: pxToRem(14),
+							borderRadius: 1,
+							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
+													0px 10px 25px rgba(0, 0, 0, 0.07);`,
+						}}
+					>
 						<CustomDataGrid
+							rowHeight={45}
 							paginationMode={'server'}
 							rows={requests}
 							columns={headers}
@@ -298,8 +305,75 @@ const Requests = (props) => {
 							}}
 							onRowDoubleClick={(data, e) => goToRequest(data.row)}
 						/>
-					</CardContent>
-				</Card>
+					</Box>
+				</Box>
+
+				<Box
+					sx={{
+						width: '40%',
+						display: 'flex',
+						flexDirection: 'column',
+						px: pxToRem(22),
+					}}
+				>
+					<Box
+						sx={{
+							display: 'flex',
+							flexDirection: 'row',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+						}}
+					>
+						<Stack>
+							<Typography variant={'primaryLight16'} mb={pxToRem(4)}>
+								{format(liveDate, "EEEE',' d 'de' MMM", { locale: es })}
+							</Typography>
+							<Typography variant={'primaryBold32'}>
+								{format(liveDate, 'HH:mm', { locale: es })}
+							</Typography>
+						</Stack>
+						<RequestCreate refetchRequests={refetch} />
+					</Box>
+
+					<Typography
+						variant={'primaryLight12'}
+						mt={pxToRem(29)}
+						ml={pxToRem(8)}
+						mb={pxToRem(15)}
+					>
+						Filtro de fecha
+					</Typography>
+					<Box
+						sx={{
+							display: 'flex',
+							p: pxToRem(14),
+							borderRadius: 1,
+							boxShadow: `0px 3px 6px rgba(0, 0, 0, 0.04),
+													0px 10px 25px rgba(0, 0, 0, 0.07);`,
+						}}
+					>
+						<CustomDateRange
+							ranges={dateRange}
+							onChange={(item) => {
+								item.selection.endDate.setHours(23, 59, 59);
+								item.selection.startDate.setHours(0, 0, 0);
+								setDateRange([item.selection]);
+							}}
+							extended
+						/>
+
+						{/* <Button */}
+						{/* 	sx={{ alignSelf: 'flex-end', mt: pxToRem(8) }} */}
+						{/* 	variant={'outlined'} */}
+						{/* 	onClick={() => { */}
+						{/* 		resetFilters(); */}
+						{/* 	}} */}
+						{/* 	startIcon={<RestartAlt />} */}
+						{/* > */}
+						{/* 	Restablecer */}
+						{/* </Button> */}
+					</Box>
+				</Box>
 			</Box>
 		</Fragment>
 	);

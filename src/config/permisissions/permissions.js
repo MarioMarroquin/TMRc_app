@@ -6,7 +6,7 @@ export const ROLES = {
 	salesOperator: 'SALESOPERATOR',
 };
 
-export const SCOPES = {
+export const SCOPES_GENERAL = {
 	total: 'TOTAL',
 	view: 'view',
 	create: 'create',
@@ -14,25 +14,34 @@ export const SCOPES = {
 	delete: 'delete',
 };
 
-export const SCOPESREQUEST = {
-	interact: 'interact',
-	changeStatus: 'changeStatus',
-	selectOperator: 'selectOperator',
+export const SCOPES_REQUEST = {
+	total: 'total',
+	create: 'create',
+	filterOperator: 'filterOperator',
 };
 
-export const REQUESTDETAILSSCOPES = {
+export const SCOPES_REQUEST_DETAILS = {
+	total: 'total',
 	interact: 'interact',
 	edit: 'edit',
-	writeOperator: 'writeOperator',
-	writeManager: 'writeManager',
-};
-
-export const REQUESTCREATESCOPES = {
-	create: 'create',
+	commentOperator: 'commentOperator',
+	commentManager: 'commentManager',
 };
 
 export const PERMISSIONS = {
-	[ROLES.admin]: [SCOPES.total],
-	[ROLES.desk]: [REQUESTCREATESCOPES.create],
-	[ROLES.salesOperator]: [SCOPESREQUEST.interact],
+	[ROLES.admin]: [SCOPES_GENERAL.total],
+	[ROLES.desk]: [SCOPES_REQUEST.total],
+	[ROLES.salesManager]: [
+		SCOPES_REQUEST.total,
+		SCOPES_REQUEST.filterOperator,
+		SCOPES_REQUEST_DETAILS.total,
+		SCOPES_REQUEST_DETAILS.interact,
+		SCOPES_REQUEST_DETAILS.edit,
+		SCOPES_REQUEST_DETAILS.commentManager,
+	],
+	[ROLES.salesOperator]: [
+		SCOPES_REQUEST_DETAILS.interact,
+		SCOPES_REQUEST_DETAILS.edit,
+		SCOPES_REQUEST_DETAILS.commentOperator,
+	],
 };

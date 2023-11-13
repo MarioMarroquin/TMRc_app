@@ -4,46 +4,46 @@ import {
 	Autocomplete,
 	Box,
 	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
 	Divider,
+	Drawer,
 	FormControl,
 	Grid,
 	InputAdornment,
 	InputLabel,
 	MenuItem,
 	Select,
+	Stack,
 	TextField,
 	Typography,
+	useMediaQuery,
+	useTheme,
 } from '@mui/material';
 import { ServiceType } from '@utils/enums';
-import { Edit, Person } from '@mui/icons-material';
-import { useLoading } from '@providers/loading';
+import { Add, Person } from '@mui/icons-material';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import useDebounce from '@hooks/use-debounce';
+import { useLoading } from '@providers/loading';
 import toast from 'react-hot-toast';
 import { DateTimeField } from '@mui/x-date-pickers';
-import {
-	REQUESTCREATESCOPES,
-	ROLES,
-	SCOPES,
-} from '@config/permisissions/permissions';
 import PermissionsGate from '@components/PermissionsGate';
+import {
+	ROLES,
+	SCOPES_GENERAL,
+	SCOPES_REQUEST,
+} from '@config/permisissions/permissions';
 import { useSession } from '@providers/session';
 import {
 	GET_BRANDS,
-	GET_COMPANIES,
 	GET_CLIENTS,
+	GET_COMPANIES,
 	GET_SELLERS,
 } from '@views/main/requests/queryRequests';
-import { UPDATE_REQUEST } from '@views/main/requests/mutationRequests';
+import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
+import { pxToRem } from '@config/theme/functions';
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 const InitialRequest = {
-	id: '',
 	requestDate: new Date(),
 	serviceType: '',
 	contactMedium: '',
@@ -51,7 +51,7 @@ const InitialRequest = {
 	productStatus: '',
 	comments: '',
 	extraComments: '',
-	requestStatus: '',
+	requestStatus: 'PENDING',
 	isSale: null,
 };
 
@@ -87,7 +87,8 @@ const InitialSeller = {
 	},
 };
 
-const RequestEditDialog = ({ requestData, requestRefetch }) => {
+const RequestCreate = ({ refetchRequests }) => {
+	const theme = useTheme();
 	const { role } = useSession();
 	const { setLoading } = useLoading();
 	const [request, setRequest] = useState(InitialRequest);
@@ -225,8 +226,8 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 	};
 
 	const handleInputChangeSeller = (event, value) => {
-		const actualId = seller.id;
-		const lastName = seller.firstName + ' ' + seller.lastName;
+		const actualId = client.id;
+		const lastName = seller.name;
 
 		if (!value) {
 			setSeller({
@@ -290,6 +291,8 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 				email: value.email,
 			});
 		}
+
+		console.log('value', value);
 	};
 
 	const handleInputChangeCompany = (event, value) => {
@@ -400,7 +403,7 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 		setRequest({ ...request, [name]: value });
 	};
 
-	const [updateRequest] = useMutation(UPDATE_REQUEST);
+	const [createRequest] = useMutation(CREATE_REQUEST);
 
 	const cleanStates = () => {
 		setRequest(InitialRequest);
@@ -495,10 +498,9 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 			return;
 		}
 
-		const reqAux = (({ id, ...rest }) => ({ ...rest }))(request);
-
-		const auxObject = {
-			sellerId: seller.id ?? undefined, // tiene que tener de a fuerza
+		const finalRequest = {
+			...request,
+			sellerId: seller.id, // tiene que tener de a fuerza
 			brandId: brand.id ?? null,
 			brand: brand.name
 				? (({ id, ...rest }) => ({
@@ -506,227 +508,312 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 				  }))(brand)
 				: null,
 			clientId: client.id ?? null,
-			client: client.firstName
-				? (({ id, name, ...rest }) => ({
-						...rest,
-				  }))(client)
-				: null,
+			client:
+				client.firstName && client.lastName
+					? (({ id, name, ...rest }) => ({
+							...rest,
+					  }))(client)
+					: null,
 			companyId: company.id ?? null,
 			company: company.name
 				? (({ id, ...rest }) => ({ ...rest }))(company)
 				: null,
-			// requestId: request.id,
-			...reqAux,
 		};
 
-		console.log('LOL', auxObject);
+		console.log('comp', company);
+		console.log('akliii', finalRequest);
 
-		updateRequest({ variables: { requestId: request.id, request: auxObject } })
+		if (!finalRequest.clientId && finalRequest.client) {
+			if (!finalRequest.client.email.length) finalRequest.client.email = null;
+
+			if (!finalRequest.client.phoneNumber.length)
+				finalRequest.client.phoneNumber = null;
+		}
+
+		if (!finalRequest.companyId && finalRequest.company) {
+			if (!finalRequest.company.email.length) finalRequest.company.email = null;
+
+			if (!finalRequest.company.phoneNumber.length)
+				finalRequest.company.phoneNumber = null;
+		}
+
+		createRequest({ variables: { request: finalRequest } })
 			.then((res) => {
 				if (!res.errors) {
-					toast.success('Guardado');
-					requestRefetch();
+					toast.success('Solicitud creada');
+					refetchRequests();
 					toggleDialog();
 				} else {
 					console.log('Errores', res.errors);
-					toast.error('Error al guardar');
+					toast.error('Error al crear');
 				}
+				cleanStates();
 				setLoading(false);
 			})
 			.catch((err) => {
 				console.log('Error', err);
-				toast.error('Error al guardar');
+				toast.error('Ocurrio un error');
 				setLoading(false);
 			});
 	};
 
 	useEffect(() => {
-		if (requestData) {
-			console.log('data12', requestData);
-
-			const {
-				createdAt,
-				createdBy,
-				updatedAt,
-				updatedBy,
-				requestDate,
-				brand,
-				client,
-				company,
-				assignedUser,
-				shortId,
-				documents,
-				...auxReq
-			} = requestData;
-
-			console.log('data', requestData);
-
-			const auxBrand = {
-				id: requestData.brand?.id ?? undefined,
-				name: requestData.brand?.name ?? '',
-			};
-
-			const auxCompany = {
-				id: requestData.company?.id ?? undefined,
-				name: requestData.company?.name ?? '',
-				phoneNumber: requestData.company?.phoneNumber ?? '',
-				email: requestData.company?.email ?? '',
-			};
-
-			const auxClient = {
-				id: requestData.client?.id ?? undefined,
-				firstName: requestData.client?.firstName ?? '',
-				lastName: requestData.client?.lastName ?? '',
-				phoneNumber: requestData.client?.phoneNumber ?? '',
-				email: requestData.client?.email ?? '',
-				get name() {
-					return (this.firstName + ' ' + this.lastName).trim();
-				},
-			};
-
-			const auxSeller = {
-				id: requestData.assignedUser?.id ?? undefined,
-				firstName: requestData.assignedUser?.firstName ?? '',
-				lastName: requestData.assignedUser?.lastName ?? '',
-				get name() {
-					return (this.firstName + ' ' + this.lastName).trim();
-				},
-			};
-
-			console.log('first sell', auxSeller);
-
-			setRequest({ requestDate: new Date(requestDate), ...auxReq });
-			setBrand(auxBrand);
-			setCompany(auxCompany);
-			setClient(auxClient);
-			setSeller(auxSeller);
+		if (isVisible) {
+			setRequest(InitialRequest);
 		}
-	}, [requestData, isVisible]);
+	}, [isVisible]);
+
+	const isAv = () => {
+		return Boolean(client.firstName);
+	};
 
 	return (
 		<Fragment>
-			<Button
-				variant={'text'}
-				startIcon={<Edit />}
-				color={'warning'}
-				onClick={toggleDialog}
-			>
-				Editar
+			<Button variant={'contained'} onClick={toggleDialog} startIcon={<Add />}>
+				{useMediaQuery(theme.breakpoints.down('sm'))
+					? 'Crear'
+					: 'Crear solicitud'}
 			</Button>
 
-			<Dialog open={isVisible} onClose={toggleDialog} maxWidth={'sm'}>
-				<DialogTitle>Editar solicitud</DialogTitle>
-				<DialogContent>
-					<Grid container columnSpacing={1} rowSpacing={1}>
-						<Grid item xs={12}>
-							<Typography fontWeight={400}>Datos</Typography>
-						</Grid>
-						<Grid item xs={8} md={4}>
-							<DateTimeField
-								label={'Fecha'}
-								value={request.requestDate}
-								format={'dd MMM yy - HH:mm'}
-								onChange={(newValue) =>
-									setRequest({ ...request, requestDate: newValue })
-								}
-							/>
-						</Grid>
-						<Grid item xs={6} md={4}>
-							<FormControl margin={'none'}>
-								<InputLabel>Tipo de Servicio</InputLabel>
-								<Select
-									id={'serviceType'}
-									name={'serviceType'}
-									value={request.serviceType}
+			<Drawer
+				anchor={'right'}
+				open={isVisible}
+				// open={true}
+				onClose={toggleDialog}
+				sx={{
+					'& .MuiDrawer-paper': {
+						p: pxToRem(16),
+						width: 600,
+						height: `calc(100vh - 128px)`,
+						// height: `calc(100vh - 32px)`,
+						top: pxToRem(64),
+						borderRadius: pxToRem(16),
+						marginRight: pxToRem(22),
+						border: 'none',
+						whiteSpace: 'nowrap',
+						boxSizing: 'border-box',
+						backdropFilter: `saturate(200%) blur(1.875rem)`,
+						boxShadow: `0px 1px 2px rgba(3, 7, 18, 0.05),
+												1px 3px 9px rgba(3, 7, 18, 0.10),
+												3px 8px 20px rgba(3, 7, 18, 0.15),
+												4px 13px 36px rgba(3, 7, 18, 0.20),
+												7px 21px 56px rgba(3, 7, 18, 0.25),
+												10px 30px 80px rgba(3, 7, 18, 0.30);`,
+
+						// backgroundColor: theme.palette.background.paper,
+						// backgroundColor: 'unset',
+
+						// transition: (theme) =>
+						// 	theme.transitions.create('width', {
+						// 		easing: theme.transitions.easing.sharp,
+						// 		duration: theme.transitions.duration.enteringScreen,
+						// 	}),
+						// ...(!open && {
+						// 	overflowX: 'hidden',
+						// 	width: (theme) => ({ sm: theme.spacing(8) }),
+						// 	transition: (theme) =>
+						// 		theme.transitions.create('width', {
+						// 			easing: theme.transitions.easing.sharp,
+						// 			duration: theme.transitions.duration.leavingScreen,
+						// 		}),
+						// }),
+					},
+				}}
+				slotProps={{
+					backdrop: {
+						sx: {
+							bgcolor: `${theme.palette.background.default}90`,
+							backdropFilter: `blur(${pxToRem(8)})`,
+						},
+					},
+				}}
+			>
+				<Box
+					sx={{
+						display: 'flex',
+						flexDirection: 'column',
+					}}
+				>
+					<Typography variant={'primaryNormal16'} mb={pxToRem(16)}>
+						Nueva solicitud
+					</Typography>
+
+					<Grid
+						container
+						columnSpacing={1}
+						rowSpacing={1}
+						sx={{ marginBottom: pxToRem(24) }}
+					>
+						<Grid container rowSpacing={1} item sm={5}>
+							<Grid item xs={12}>
+								<DateTimeField
+									sx={{ m: 0 }}
+									label={'Fecha'}
+									value={request.requestDate}
+									format={'dd MMM yy - HH:mm'}
+									onChange={(newValue) =>
+										setRequest({ ...request, requestDate: newValue })
+									}
+								/>
+							</Grid>
+
+							{/* <Grid item xs={12}> */}
+							{/* 	<FormControl margin={'none'}> */}
+							{/* 		<InputLabel>Estatus</InputLabel> */}
+							{/* 		<Select */}
+							{/* 			id={'requestStatus'} */}
+							{/* 			name={'requestStatus'} */}
+							{/* 			value={request.requestStatus} */}
+							{/* 			onChange={handleInputChange} */}
+							{/* 		> */}
+							{/* 			<MenuItem value={'PENDING'}>Pendiente</MenuItem> */}
+							{/* 			<MenuItem value={'TRACING'}>En curso</MenuItem> */}
+							{/* 			<MenuItem value={'FINISHED'}>Cotizado</MenuItem> */}
+							{/* 		</Select> */}
+							{/* 	</FormControl> */}
+							{/* </Grid> */}
+							<Grid item xs={12}>
+								<FormControl margin={'none'}>
+									<InputLabel>Tipo de Servicio</InputLabel>
+									<Select
+										id={'serviceType'}
+										name={'serviceType'}
+										label={'Tipo de Servicio'}
+										value={request.serviceType}
+										onChange={handleInputChange}
+									>
+										{Object.entries(ServiceType).map((item) => (
+											<MenuItem key={item[0]} value={item[0]}>
+												{item[1]}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									margin={'none'}
+									fullWidth
+									id={'contactMedium'}
+									name={'contactMedium'}
+									label={'Medio de Contacto'}
+									value={request.contactMedium}
 									onChange={handleInputChange}
-								>
-									{Object.entries(ServiceType).map((item) => (
-										<MenuItem key={item[0]} value={item[0]}>
-											{item[1]}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-						</Grid>
-						<Grid item xs={6} md={4}>
-							<TextField
-								margin={'none'}
-								fullWidth
-								id={'contactMedium'}
-								name={'contactMedium'}
-								label={'Medio de Contacto'}
-								value={request.contactMedium}
-								onChange={handleInputChange}
-							/>
-						</Grid>
-						<Grid item xs={6} md={4}>
-							<TextField
-								margin={'none'}
-								fullWidth
-								id={'advertisingMedium'}
-								name={'advertisingMedium'}
-								label={'Medio de Publicidad'}
-								value={request.advertisingMedium}
-								onChange={handleInputChange}
-							/>
-						</Grid>
-						<Grid item xs={12}>
-							<Divider sx={{ my: 2 }} />
-						</Grid>
-						<Grid item xs={12}>
-							<Typography fontWeight={400}>Producto</Typography>
-						</Grid>
-						<Grid item xs={7}>
-							<Autocomplete
-								freeSolo
-								forcePopupIcon={true}
-								options={searchedBrands}
-								getOptionLabel={(option) =>
-									typeof option === 'string' ? option : option.name
-								}
-								autoComplete
-								includeInputInList
-								ListboxProps={{ style: { padding: 0 } }}
-								value={brand.name}
-								renderInput={(params) => (
-									<TextField {...params} margin={'none'} label={'Marca'} />
-								)}
-								loading={loadingBrands}
-								onInputChange={handleInputChangeBrand}
-								onChange={handleInputOnChangeBrand}
-							/>
-						</Grid>
-						<Grid item xs={5}>
-							<FormControl margin={'none'}>
-								<InputLabel>Estado</InputLabel>
-								<Select
-									id={'productStatus'}
-									name={'productStatus'}
-									value={request.productStatus}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									margin={'none'}
+									fullWidth
+									id={'advertisingMedium'}
+									name={'advertisingMedium'}
+									label={'Medio de Publicidad'}
+									value={request.advertisingMedium}
 									onChange={handleInputChange}
-								>
-									<MenuItem value={'NEW'}>Nuevo</MenuItem>
-									<MenuItem value={'USED'}>Usado</MenuItem>
-								</Select>
-							</FormControl>
+								/>
+							</Grid>
 						</Grid>
-						<Grid item xs={12}>
-							<TextField
-								fullWidth
-								multiline
-								maxRows={4}
-								margin={'none'}
-								id={'comments'}
-								name={'comments'}
-								label={'Comentarios'}
-								value={request.comments}
-								onChange={handleInputChange}
-							/>
+
+						<Grid item sm={2} display={'flex'} justifyContent={'center'}>
+							<Divider orientation={'vertical'} />
+						</Grid>
+
+						<Grid container rowSpacing={1} item sm={5}>
+							<PermissionsGate
+								scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST.total]}
+							>
+								<Grid item xs={12}>
+									<Autocomplete
+										freeSolo
+										forcePopupIcon={true}
+										options={searchedSellers}
+										getOptionLabel={(option) =>
+											typeof option === 'string'
+												? option
+												: `${option.firstName + ' ' + option.lastName}`
+										}
+										autoComplete
+										includeInputInList
+										value={seller.name}
+										renderInput={(params) => (
+											<TextField {...params} margin={'none'} label={'Asesor'} />
+										)}
+										loading={loadingSellers}
+										onInputChange={handleInputChangeSeller}
+										onChange={handleInputOnChangeSeller}
+										renderOption={(props, option) => (
+											<li {...props} key={option.id}>
+												<Grid container alignItems='center'>
+													<Grid item>
+														<Box
+															component={Person}
+															sx={{ color: 'text.secondary', mr: 2 }}
+														/>
+													</Grid>
+													<Grid item xs>
+														<Typography variant='body2' color='text.secondary'>
+															{option?.firstName + ' ' + option?.lastName}
+														</Typography>
+													</Grid>
+												</Grid>
+											</li>
+										)}
+									/>
+								</Grid>
+							</PermissionsGate>
+							<Grid item xs={12}>
+								<Autocomplete
+									freeSolo
+									forcePopupIcon={true}
+									options={searchedBrands}
+									getOptionLabel={(option) =>
+										typeof option === 'string' ? option : option.name
+									}
+									autoComplete
+									includeInputInList
+									ListboxProps={{ style: { padding: 0 } }}
+									value={brand.name}
+									renderInput={(params) => (
+										<TextField {...params} margin={'none'} label={'Marca'} />
+									)}
+									loading={loadingBrands}
+									onInputChange={handleInputChangeBrand}
+									onChange={handleInputOnChangeBrand}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<FormControl margin={'none'}>
+									<InputLabel>Estado</InputLabel>
+									<Select
+										id={'productStatus'}
+										name={'productStatus'}
+										value={request.productStatus}
+										onChange={handleInputChange}
+									>
+										<MenuItem value={'NEW'}>Nuevo</MenuItem>
+										<MenuItem value={'USED'}>Usado</MenuItem>
+									</Select>
+								</FormControl>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									fullWidth
+									multiline
+									maxRows={4}
+									margin={'none'}
+									id={'comments'}
+									name={'comments'}
+									label={'Comentarios'}
+									value={request.comments}
+									onChange={handleInputChange}
+								/>
+							</Grid>
 						</Grid>
 
 						<Grid item xs={12}>
 							<Divider sx={{ my: 2 }} />
 						</Grid>
+
 						<Grid item xs={12}>
 							<Typography fontWeight={400}>Contacto</Typography>
 						</Grid>
@@ -740,6 +827,7 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 								}
 								autoComplete
 								includeInputInList
+								ListboxProps={{ style: { padding: 0 } }}
 								value={company.name}
 								renderInput={(params) => (
 									<TextField {...params} margin={'none'} label={'Compañía'} />
@@ -779,7 +867,7 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 								disabled={company.id || !company.name}
 							/>
 						</Grid>
-						<Grid item xs={6}>
+						<Grid item xs={6} md={3}>
 							<Autocomplete
 								freeSolo
 								forcePopupIcon={true}
@@ -861,7 +949,7 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 							/>
 						</Grid>
 						<Grid item xs={12}>
-							<Typography fontWeight={400} fontSize={14} align={'right'} mt={1}>
+							<Typography variant={'primaryLight12'}>
 								En caso de no contar con cliente o compañía, guarda la forma de
 								contacto en <b>comentarios</b>.
 							</Typography>
@@ -869,51 +957,7 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 						<Grid item xs={12}>
 							<Divider sx={{ my: 2 }} />
 						</Grid>
-						<PermissionsGate
-							scopes={[SCOPES.total, REQUESTCREATESCOPES.create]}
-						>
-							<Grid item xs={12}>
-								<Typography fontWeight={400}>Atención</Typography>
-							</Grid>
-							<Grid item xs={12}>
-								<Autocomplete
-									freeSolo
-									forcePopupIcon={true}
-									options={searchedSellers}
-									getOptionLabel={(option) =>
-										typeof option === 'string'
-											? option
-											: `${option.firstName + ' ' + option.lastName}`
-									}
-									autoComplete
-									includeInputInList
-									value={seller.name}
-									renderInput={(params) => (
-										<TextField {...params} margin={'none'} label={'Asesor'} />
-									)}
-									loading={loadingSellers}
-									onInputChange={handleInputChangeSeller}
-									onChange={handleInputOnChangeSeller}
-									renderOption={(props, option) => (
-										<li {...props} key={option.id}>
-											<Grid container alignItems='center'>
-												<Grid item>
-													<Box
-														component={Person}
-														sx={{ color: 'text.secondary', mr: 2 }}
-													/>
-												</Grid>
-												<Grid item xs>
-													<Typography variant='body2' color='text.secondary'>
-														{option?.firstName + ' ' + option?.lastName}
-													</Typography>
-												</Grid>
-											</Grid>
-										</li>
-									)}
-								/>
-							</Grid>
-						</PermissionsGate>
+
 						<Grid item xs={12}>
 							<TextField
 								fullWidth
@@ -928,21 +972,27 @@ const RequestEditDialog = ({ requestData, requestRefetch }) => {
 							/>
 						</Grid>
 					</Grid>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={toggleDialog} variant={'outlined'}>
+				</Box>
+				<Stack mt={'auto'} mb={pxToRem(4)} flexDirection={'row'}>
+					<Button variant={'text'} onClick={cleanStates} sx={{ mr: 'auto' }}>
+						Limpiar
+					</Button>
+					<Button
+						onClick={toggleDialog}
+						variant={'outlined'}
+						sx={{ mr: pxToRem(8) }}
+					>
 						Salir
 					</Button>
 					<Button onClick={onFinish}>Guardar</Button>
-				</DialogActions>
-			</Dialog>
+				</Stack>
+			</Drawer>
 		</Fragment>
 	);
 };
 
-RequestEditDialog.propTypes = {
-	requestData: PropTypes.object,
-	requestsRefetch: PropTypes.func.isRequired,
+RequestCreate.propTypes = {
+	refetchRequests: PropTypes.func.isRequired,
 };
 
-export default RequestEditDialog;
+export default RequestCreate;
