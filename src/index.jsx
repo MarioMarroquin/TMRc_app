@@ -1,10 +1,8 @@
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { BrowserRouter as Router } from 'react-router-dom';
-
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import './App.css';
-
 import { ApolloProvider } from '@apollo/client';
 import client from '@graphql';
 import { LoadingProvider } from '@providers/loading';
