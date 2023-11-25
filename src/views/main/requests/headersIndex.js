@@ -49,6 +49,27 @@ export const headers = [
 		},
 	},
 	{
+		field: 'brand',
+		headerName: 'MARCA',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return params.value?.name || '';
+		},
+	},
+	{
+		field: 'assignedUser',
+		headerName: 'ASESOR',
+		headerAlign: 'left',
+		align: 'left',
+		minWidth: 150,
+		flex: 0.5,
+		valueGetter: (params) => {
+			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
+		},
+	},
+	{
 		field: 'serviceType',
 		headerName: 'SERVICIO',
 		headerAlign: 'left',
@@ -75,27 +96,6 @@ export const headers = [
 		headerAlign: 'left',
 		align: 'center',
 		minWidth: 150,
-	},
-	{
-		field: 'assignedUser',
-		headerName: 'ASESOR',
-		headerAlign: 'left',
-		align: 'left',
-		minWidth: 150,
-		flex: 0.5,
-		valueGetter: (params) => {
-			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
-		},
-	},
-	{
-		field: 'brand',
-		headerName: 'MARCA',
-		headerAlign: 'left',
-		align: 'left',
-		width: 200,
-		valueGetter: (params) => {
-			return params.value?.name || '';
-		},
 	},
 	{
 		field: 'productStatus',
