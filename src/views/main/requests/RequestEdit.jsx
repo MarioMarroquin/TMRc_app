@@ -521,7 +521,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 			...reqAux,
 		};
 
-		console.log('LOL', auxObject);
+		// console.log('LOL', auxObject);
 
 		updateRequest({ variables: { requestId: request.id, request: auxObject } })
 			.then((res) => {
@@ -544,7 +544,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 
 	useEffect(() => {
 		if (requestData) {
-			console.log('data12', requestData);
+			// console.log('data12', requestData);
 
 			const {
 				createdAt,
@@ -561,7 +561,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 				...auxReq
 			} = requestData;
 
-			console.log('data', requestData);
+			// console.log('data', requestData);
 
 			const auxBrand = {
 				id: requestData.brand?.id ?? undefined,
@@ -595,7 +595,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 				},
 			};
 
-			console.log('first sell', auxSeller);
+			// console.log('first sell', auxSeller);
 
 			setRequest({ requestDate: new Date(requestDate), ...auxReq });
 			setBrand(auxBrand);

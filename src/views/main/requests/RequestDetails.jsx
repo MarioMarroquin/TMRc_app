@@ -53,7 +53,7 @@ const RequestDetails = (props) => {
 		setLoading(true);
 		if (data) {
 			const { __typename, docs, ...aux } = data.request;
-			console.log('lopolll', aux);
+			// console.log('lopolll', aux);
 			setRequest(aux);
 			setDocuments(docs);
 		}

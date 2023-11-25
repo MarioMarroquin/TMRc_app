@@ -292,7 +292,7 @@ const RequestCreate = ({ refetchRequests }) => {
 			});
 		}
 
-		console.log('value', value);
+		// console.log('value', value);
 	};
 
 	const handleInputChangeCompany = (event, value) => {
@@ -520,8 +520,8 @@ const RequestCreate = ({ refetchRequests }) => {
 				: null,
 		};
 
-		console.log('comp', company);
-		console.log('akliii', finalRequest);
+		// console.log('comp', company);
+		// console.log('akliii', finalRequest);
 
 		if (!finalRequest.clientId && finalRequest.client) {
 			if (!finalRequest.client.email.length) finalRequest.client.email = null;
@@ -536,6 +536,8 @@ const RequestCreate = ({ refetchRequests }) => {
 			if (!finalRequest.company.phoneNumber.length)
 				finalRequest.company.phoneNumber = null;
 		}
+
+		console.log('LLamada final', finalRequest);
 
 		createRequest({ variables: { request: finalRequest } })
 			.then((res) => {

@@ -135,7 +135,7 @@ const Requests = (props) => {
 	});
 
 	const onChangeSeller = (event, value) => {
-		console.log('value', value);
+		// console.log('value', value);
 		if (!value) {
 			setSelectedSeller({
 				...selectedSeller,
@@ -163,8 +163,8 @@ const Requests = (props) => {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
 
-			console.log('aux', aux);
-			console.log('auxCount', auxCount);
+			// console.log('aux', aux);
+			// console.log('auxCount', auxCount);
 			setRequests(aux);
 			setCountRows(auxCount);
 		}
