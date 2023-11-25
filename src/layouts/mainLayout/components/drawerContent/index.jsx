@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import { routes } from '../../../../routes';
+import { mainRoutes } from '../../../../routes';
 import { pxToRem } from '@config/theme/functions';
 
 const DrawerContent = () => {
@@ -41,7 +41,7 @@ const DrawerContent = () => {
 			{/* <Divider /> */}
 
 			<List component={'nav'} sx={{ mt: pxToRem(50) }}>
-				{routes.map(({ icon, name, path }) => {
+				{mainRoutes.map(({ icon, name, path }) => {
 					return (
 						<ListItemButton
 							key={path}
