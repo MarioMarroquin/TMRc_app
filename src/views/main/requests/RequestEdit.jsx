@@ -797,7 +797,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 							</Grid>
 							<Grid item xs={12}>
 								<FormControl margin={'none'}>
-									<InputLabel>Estado</InputLabel>
+									<InputLabel>Estado de Maquinaria</InputLabel>
 									<Select
 										id={'productStatus'}
 										name={'productStatus'}
