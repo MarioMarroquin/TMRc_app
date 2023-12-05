@@ -8,15 +8,11 @@ import { format } from 'date-fns';
 import { useMutation } from '@apollo/client';
 import { CREATE_REQUEST_COMMENT } from '@views/main/requests/mutationRequests';
 import toast from 'react-hot-toast';
-import {
-	ROLES,
-	SCOPES_GENERAL,
-	SCOPES_REQUEST_DETAILS,
-} from '@config/permisissions/permissions';
+import { SCOPES_GENERAL } from '@config/permisissions/permissions';
 import PermissionsGate from '@components/PermissionsGate';
 import { useSession } from '@providers/session';
 import { pxToRem } from '@config/theme/functions';
-import { Box, TextField, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 
 const DataGridCommentHeaders = [
 	{

@@ -61,7 +61,6 @@ const RequestDetails = (props) => {
 	useEffect(() => {
 		setLoading(true);
 		if (data) {
-			console.log('weird data', data);
 			const {
 				__typename,
 				documents,
@@ -69,7 +68,6 @@ const RequestDetails = (props) => {
 				managerComments,
 				...aux
 			} = data.request;
-			console.log('lopolll', aux);
 			setRequest(aux);
 			setDocuments(documents);
 			setCommentsByOperator(operatorComments);

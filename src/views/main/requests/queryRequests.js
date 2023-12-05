@@ -16,6 +16,8 @@ const GET_REQUEST = gql`
 			isSale
 			operatorComments {
 				id
+				createdAt
+				comment
 			}
 			managerComments {
 				id
