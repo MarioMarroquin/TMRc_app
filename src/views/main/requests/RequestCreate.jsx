@@ -953,7 +953,7 @@ const RequestCreate = ({ refetchRequests }) => {
 						<Grid item xs={12}>
 							<Typography variant={'primaryLight12'}>
 								En caso de no contar con cliente o compañía, guarda la forma de
-								contacto en <b>comentarios</b>.
+								contacto en <b>observaciones</b>.
 							</Typography>
 						</Grid>
 						<Grid item xs={12}>

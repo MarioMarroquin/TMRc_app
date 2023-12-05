@@ -34,6 +34,12 @@ const theme = createTheme(
 				display: 'block',
 				lineHeight: 'normal',
 			},
+			primaryLight14: {
+				fontSize: 14,
+				fontWeight: 400,
+				display: 'block',
+				lineHeight: 'normal',
+			},
 			primaryLight16: {
 				fontSize: 16,
 				fontWeight: 400,

@@ -29,7 +29,7 @@ const MainLayout = () => {
 			{useMediaQuery(themeAux.breakpoints.down('sm')) ? (
 				<MobileDrawer open={open} toggleDrawer={toggleDrawer} />
 			) : (
-				<DesktopDrawer open={true} toggleDrawer={toggleDrawer} />
+				<DesktopDrawer open toggleDrawer={toggleDrawer} />
 			)}
 			<Box
 				component={'main'}
@@ -39,7 +39,7 @@ const MainLayout = () => {
 				}}
 			>
 				<Toolbar sx={{ mt: pxToRem(16) }} />
-				<Container disableGutters a maxWidth={'xl'} sx={{ my: pxToRem(16) }}>
+				<Container disableGutters maxWidth={'xl'} sx={{ my: pxToRem(16) }}>
 					<Outlet />
 				</Container>
 			</Box>

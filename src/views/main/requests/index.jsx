@@ -163,7 +163,7 @@ const Requests = (props) => {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
 
-			// console.log('aux', aux);
+			console.log('aux', aux);
 			// console.log('auxCount', auxCount);
 			setRequests(aux);
 			setCountRows(auxCount);
@@ -250,26 +250,28 @@ const Requests = (props) => {
 						<PermissionsGate
 							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST.filterOperator]}
 						>
-							<Divider
-								orientation='vertical'
-								variant='middle'
-								flexItem
-								sx={{ ml: pxToRem(12) }}
-							/>
-
-							<Stack flexDirection={'row'} alignItems={'center'}>
-								<Switch
-									color={'secondary'}
-									checked={!showAll}
-									onChange={(event) => {
-										setShowAll(!event.target.checked);
-									}}
+							<Fragment>
+								<Divider
+									orientation='vertical'
+									variant='middle'
+									flexItem
+									sx={{ ml: pxToRem(12) }}
 								/>
-								<Typography variant={'primaryLight12'}>
-									Mostrar mis asignadas
-									{/* {showAll ? 'Mostrar mis asignadas' : 'Mis asignadas'} */}
-								</Typography>
-							</Stack>
+
+								<Stack flexDirection={'row'} alignItems={'center'}>
+									<Switch
+										color={'secondary'}
+										checked={!showAll}
+										onChange={(event) => {
+											setShowAll(!event.target.checked);
+										}}
+									/>
+									<Typography variant={'primaryLight12'}>
+										Mostrar mis asignadas
+										{/* {showAll ? 'Mostrar mis asignadas' : 'Mis asignadas'} */}
+									</Typography>
+								</Stack>
+							</Fragment>
 						</PermissionsGate>
 					</Stack>
 					<Box

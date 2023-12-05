@@ -13,7 +13,6 @@ import {
 	Sync,
 } from '@mui/icons-material';
 import RequestEdit from './RequestEdit';
-import RequestOperatorCommentDialog from '@views/main/requests/RequestOperatorCommentDialog';
 import RequestUploadDocumentDialog from '@views/main/requests/RequestUploadDocumentDialog';
 import CustomDataGrid from '@components/customDataGrid';
 import { GET_REQUEST } from '@views/main/requests/queryRequests';
@@ -23,12 +22,12 @@ import {
 } from '@views/main/requests/mutationRequests';
 import toast from 'react-hot-toast';
 import NoRowsOverlay from '@components/NoRowsOverlay';
-import RequestManagerComment from '@views/main/requests/RequestManagerComment';
 import PermissionsGate from '@components/PermissionsGate';
 import {
 	SCOPES_GENERAL,
 	SCOPES_REQUEST_DETAILS,
 } from '@config/permisissions/permissions';
+import RequestDetailsComments from '@views/main/requests/RequestDetailsComments';
 
 const REQUESTSTATUS = {
 	1: 'TRACING',
@@ -41,21 +40,40 @@ const RequestDetails = (props) => {
 	const navigate = useNavigate();
 	const [request, setRequest] = useState();
 	const [documents, setDocuments] = useState([]);
+	const [commentsByManager, setCommentsByManager] = useState([]);
+	const [commentsByOperator, setCommentsByOperator] = useState([]);
 
 	const { data, loading, refetch } = useQuery(GET_REQUEST, {
-		variables: { requestId: Number(id) },
+		variables: { requestId: Number(id) }, // tiene que ser Number porque params lo hace string
 	});
 
 	const [traceRequest] = useMutation(TRACE_REQUEST);
 	const [finishRequest] = useMutation(FINISH_REQUEST);
 
 	useEffect(() => {
+		if (loading) {
+			setLoading(true);
+		} else {
+			setLoading(false);
+		}
+	}, [loading]);
+
+	useEffect(() => {
 		setLoading(true);
 		if (data) {
-			const { __typename, docs, ...aux } = data.request;
-			// console.log('lopolll', aux);
+			console.log('weird data', data);
+			const {
+				__typename,
+				documents,
+				operatorComments,
+				managerComments,
+				...aux
+			} = data.request;
+			console.log('lopolll', aux);
 			setRequest(aux);
-			setDocuments(docs);
+			setDocuments(documents);
+			setCommentsByOperator(operatorComments);
+			setCommentsByManager(managerComments);
 		}
 		setLoading(false);
 	}, [data]);
@@ -93,20 +111,41 @@ const RequestDetails = (props) => {
 		}
 	};
 
-	const headers = [
+	const DataGridDocsHeaders = [
 		{
 			field: 'title',
-			headerName: 'NOMBRE DE ARCHIVO',
+			headerName: 'NOMBRE',
 			headerAlign: 'left',
 			align: 'left',
-			flex: 0.6,
+			flex: 0.4,
 		},
 		{
 			field: 'fileURL',
 			headerName: 'URL',
 			headerAlign: 'center',
+			align: 'left',
+			flex: 0.6,
+		},
+	];
+
+	const DataGridCommentHeaders = [
+		{
+			field: 'createdAt',
+			headerName: 'Fecha',
+			headerAlign: 'left',
 			align: 'center',
-			flex: 0.4,
+			valueFormatter: (params) => {
+				return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
+			},
+		},
+		{
+			field: 'comment',
+			headerName: 'Fecha',
+			headerAlign: 'left',
+			align: 'center',
+			valueFormatter: (params) => {
+				return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
+			},
 		},
 	];
 
@@ -328,25 +367,6 @@ const RequestDetails = (props) => {
 							>
 								<Stack>
 									<Typography fontWeight={700} fontSize={pxToRem(12)}>
-										Comentarios
-									</Typography>
-									<Typography>{request?.comments}</Typography>
-								</Stack>
-							</Box>
-						</Grid>
-						<Grid item xs={12}>
-							<Box
-								sx={{
-									display: 'flex',
-									p: pxToRem(14),
-									borderRadius: 1,
-									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
-															20px 10px 40px rgba(25, 27, 32, 0.10);
-															`,
-								}}
-							>
-								<Stack>
-									<Typography fontWeight={700} fontSize={pxToRem(12)}>
 										Observaciones
 									</Typography>
 									<Typography>{request?.extraComments}</Typography>
@@ -379,19 +399,13 @@ const RequestDetails = (props) => {
 									>
 										Comentarios de vendedor
 									</Typography>
-									<PermissionsGate
-										scopes={[
-											SCOPES_GENERAL.total,
-											SCOPES_REQUEST_DETAILS.commentOperator,
-										]}
-									>
-										<RequestOperatorCommentDialog
-											data={request}
-											reloadRequest={refetch}
-										/>
-									</PermissionsGate>
 								</Stack>
-								<Typography>{request?.operatorComments}</Typography>
+								<RequestDetailsComments
+									comments={commentsByOperator}
+									requestId={request?.id}
+									refetch={refetch}
+									SCOPE={SCOPES_REQUEST_DETAILS.commentOperator}
+								/>
 							</Box>
 						</Grid>
 
@@ -408,27 +422,20 @@ const RequestDetails = (props) => {
 								}}
 							>
 								<Stack
-									flexDirection={'row'}
+									flexDirection={'column'}
 									justifyContent={'space-between'}
-									alignItems={'center'}
 									width={'100%'}
 								>
 									<Typography fontWeight={700} fontSize={pxToRem(12)}>
 										Comentarios de gerente
 									</Typography>
-									<PermissionsGate
-										scopes={[
-											SCOPES_GENERAL.total,
-											SCOPES_REQUEST_DETAILS.commentManager,
-										]}
-									>
-										<RequestManagerComment
-											data={request}
-											reloadRequest={refetch}
-										/>
-									</PermissionsGate>
+									<RequestDetailsComments
+										comments={commentsByManager}
+										requestId={request?.id}
+										refetch={refetch}
+										SCOPE={SCOPES_REQUEST_DETAILS.commentManager}
+									/>
 								</Stack>
-								<Typography>{request?.managerComments}</Typography>
 							</Box>
 						</Grid>
 					</Grid>
@@ -555,7 +562,7 @@ const RequestDetails = (props) => {
 						>
 							<RequestUploadDocumentDialog
 								reloadRequest={refetch}
-								requestId={request?.id}
+								requestId={request?.id ?? -1}
 							/>
 						</PermissionsGate>
 					</Box>
@@ -571,13 +578,16 @@ const RequestDetails = (props) => {
 						}}
 					>
 						<CustomDataGrid
-							rows={request?.documents ?? []}
-							columns={headers}
+							rows={documents}
+							columns={DataGridDocsHeaders}
 							onRowClick={(data, e) => {
 								open(data.row.fileURL);
 							}}
 							slots={{
 								noRowsOverlay: NoRowsOverlay,
+							}}
+							initialState={{
+								pagination: { paginationModel: { pageSize: 5 } },
 							}}
 						/>
 					</Box>
