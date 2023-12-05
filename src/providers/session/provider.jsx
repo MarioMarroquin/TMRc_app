@@ -94,7 +94,7 @@ const SessionProvider = ({ children }) => {
 			const aux = dataUser.userByToken;
 			setUser(aux);
 			setLoading(false);
-			console.log(aux);
+			console.log('auxxxxx', aux);
 		}
 	}, [dataUser]);
 

@@ -544,7 +544,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 
 	useEffect(() => {
 		if (requestData) {
-			// console.log('data12', requestData);
+			console.log('data12', requestData);
 
 			const {
 				createdAt,
@@ -860,7 +860,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 								label={'Teléfono empresa'}
 								value={company.phoneNumber}
 								onChange={handlePhoneChangeCompany}
-								disabled={company.id || !company.name}
+								disabled={!!company.id || !company.name}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -878,7 +878,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 								label={'Correo empresa'}
 								value={company.email}
 								onChange={handleEmailChangeCompany}
-								disabled={company.id || !company.name}
+								disabled={!!company.id || !company.name}
 							/>
 						</Grid>
 						<Grid item xs={6} md={3}>
@@ -941,7 +941,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 								label={'Teléfono cliente'}
 								value={client.phoneNumber}
 								onChange={handlePhoneChangeClient}
-								disabled={client.id || !(client.firstName && client.lastName)}
+								disabled={!!client.id || !(client.firstName && client.lastName)}
 								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 								InputProps={{
 									startAdornment: (
@@ -959,13 +959,13 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 								label={'Correo cliente'}
 								value={client.email}
 								onChange={handleEmailChangeClient}
-								disabled={client.id || !(client.firstName && client.lastName)}
+								disabled={!!client.id || !(client.firstName && client.lastName)}
 							/>
 						</Grid>
 						<Grid item xs={12}>
 							<Typography variant={'primaryLight12'}>
 								En caso de no contar con cliente o compañía, guarda la forma de
-								contacto en <b>comentarios</b>.
+								contacto en <b>observaciones</b>.
 							</Typography>
 						</Grid>
 						<Grid item xs={12}>
@@ -1005,7 +1005,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 
 RequestEdit.propTypes = {
 	requestData: PropTypes.object,
-	requestsRefetch: PropTypes.func.isRequired,
+	requestRefetch: PropTypes.func.isRequired,
 };
 
 export default RequestEdit;

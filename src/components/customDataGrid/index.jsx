@@ -55,7 +55,9 @@ const CustomDataGrid = (props) => {
 							backgroundColor: `${primaryColor}90`,
 						},
 					},
-
+					'& .MuiDataGrid-row--editing': {
+						boxShadow: 'none',
+					},
 					[`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]:
 						{
 							outline: 'none',

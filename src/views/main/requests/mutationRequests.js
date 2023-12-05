@@ -77,8 +77,17 @@ const FINISH_REQUEST = gql`
 	}
 `;
 
+const CREATE_REQUEST_COMMENT = gql`
+	mutation CreateRequestComment($requestComment: CreateRequestCommentInput!) {
+		createRequestComment(requestComment: $requestComment) {
+			id
+		}
+	}
+`;
+
 export {
 	CREATE_REQUEST,
+	CREATE_REQUEST_COMMENT,
 	UPDATE_REQUEST,
 	UPDATE_OPERATOR_COMMENT_REQUEST,
 	UPDATE_MANAGER_COMMENT_REQUEST,

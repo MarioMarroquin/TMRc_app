@@ -17,19 +17,19 @@ const mainRoutes = [
 		element: <Requests />,
 		children: [{ path: ':id', element: <RequestDetails /> }],
 	},
-	{
-		name: 'Compañías',
-		path: '/companies',
-		icon: <Business />,
-		element: <Companies />,
-	},
-	{
-		name: 'Clientes',
-		path: '/clients',
-		icon: <Person />,
-		element: <Clients />,
-		children: [{ path: ':id', element: <ClientDetails /> }],
-	},
+	// {
+	// 	name: 'Compañías',
+	// 	path: '/companies',
+	// 	icon: <Business />,
+	// 	element: <Companies />,
+	// },
+	// {
+	// 	name: 'Clientes',
+	// 	path: '/clients',
+	// 	icon: <Person />,
+	// 	element: <Clients />,
+	// 	children: [{ path: ':id', element: <ClientDetails /> }],
+	// },
 ];
 
 export { mainRoutes };

@@ -69,7 +69,7 @@ const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 
 	const onFinish = async () => {
 		setLoading(true);
-		const toastId = toast.loading('Cargando...');
+		// const toastId = toast.loading('Cargando...');
 
 		const doc = await saveDocument({
 			variables: {
@@ -77,51 +77,56 @@ const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 			},
 		});
 
-		if (!doc.errors) {
-			const savedDoc = doc.data.saveDocument;
-			console.log('no hay errores');
-			const path = `documents/${savedDoc.id}-${title}`;
-			const storageRef = ref(firebaseStorage, path);
+		try {
+			if (!doc.errors) {
+				const savedDoc = doc.data.saveDocument;
+				console.log('no hay errores', savedDoc);
+				const path = `documents/${savedDoc.id}-${title}`;
+				const storageRef = ref(firebaseStorage, path);
 
-			const uploadTask = uploadBytesResumable(storageRef, docFile);
+				const uploadTask = uploadBytesResumable(storageRef, docFile);
 
-			uploadTask.on(
-				'state_changed',
-				(snapshot) => {
-					const progress = Math.round(
-						(snapshot.bytesTransferred / snapshot.totalBytes) * 100
-					);
+				uploadTask.on(
+					'state_changed',
+					(snapshot) => {
+						const progress = Math.round(
+							(snapshot.bytesTransferred / snapshot.totalBytes) * 100
+						);
 
-					console.log('upload', progress);
-				},
-				(error) => {
-					alert(error);
-					toast.error('Ocurrio un error', { id: toastId });
-				},
-				() => {
-					getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-						console.log('URL', downloadURL);
+						console.log('upload', progress);
+					},
+					(error) => {
+						alert(error);
+						// toast.error('Ocurrio un error', { id: toastId });
+						toast.error('Ocurrio un error', error);
+					},
+					() => {
+						getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+							console.log('URL', downloadURL);
 
-						updateDocument({
-							variables: {
-								documentId: savedDoc.id,
-								document: { fileURL: downloadURL, path, requestId },
-							},
-						}).then((response) => {
-							cleanStates();
-							toast.success('Documento cargado', { id: toastId });
-							reloadRequest();
-							toggleDialog();
+							updateDocument({
+								variables: {
+									documentId: savedDoc.id,
+									document: { fileURL: downloadURL, path, requestId },
+								},
+							}).then((response) => {
+								cleanStates();
+								setLoading(false);
+								toast.success('Documento cargado');
+								reloadRequest();
+								toggleDialog();
+							});
 						});
-					});
-				}
-			);
-		} else {
-			toast.error('Ocurrio un error', { id: toastId });
-			console.log('hay errores');
+					}
+				);
+			} else {
+				toast.error('Ocurrio un error');
+				console.log('hay errores');
+				setLoading(false);
+			}
+		} catch (e) {
+			console.log('Error doc upload', e);
 		}
-
-		setLoading(false);
 	};
 
 	return (
@@ -243,7 +248,7 @@ const RequestUploadDocumentDialog = ({ requestId, reloadRequest }) => {
 };
 
 RequestUploadDocumentDialog.propTypes = {
-	requestId: PropTypes.string.isRequired,
+	requestId: PropTypes.number.isRequired,
 	reloadRequest: PropTypes.func.isRequired,
 };
 

@@ -14,8 +14,14 @@ const GET_REQUEST = gql`
 			extraComments
 			requestStatus
 			isSale
-			operatorComments
-			managerComments
+			operatorComments {
+				id
+			}
+			managerComments {
+				id
+				createdAt
+				comment
+			}
 			assignedUser {
 				id
 				role
@@ -106,8 +112,6 @@ const GET_REQUESTS = gql`
 				extraComments
 				requestStatus
 				isSale
-				operatorComments
-				managerComments
 				assignedUser {
 					id
 					role
