@@ -2,8 +2,34 @@ import { format } from 'date-fns';
 import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
 import { Typography } from '@mui/material';
 import formatToFolio from '@utils/functions/formatToFolio';
+import {
+	AssignmentTurnedIn,
+	PlaylistAddCheckCircle,
+	WatchLater,
+} from '@mui/icons-material';
 
 export const headers = [
+	{
+		field: 'requestStatusIcon',
+		headerName: '',
+		headerAlign: 'left',
+		align: 'left',
+		width: 10,
+		disableColumnMenu: true,
+		hideSortIcons: true,
+		renderCell: (params) => {
+			const value = params.row.requestStatus;
+			if (!value) {
+				return '';
+			} else if (value === 'PENDING') {
+				return <WatchLater color={'error'} />;
+			} else if (value === 'TRACING') {
+				return <PlaylistAddCheckCircle color={'info'} />;
+			} else {
+				return <AssignmentTurnedIn color={'success'} />;
+			}
+		},
+	},
 	{
 		field: 'shortId',
 		headerName: 'FOLIO',
@@ -33,7 +59,7 @@ export const headers = [
 					<Typography color={'info'}>{RequestStatus[params.value]}</Typography>
 				);
 			} else {
-				return RequestStatus[params.value];
+				return <Typography>{RequestStatus[params.value]}</Typography>;
 			}
 		},
 	},
@@ -49,16 +75,6 @@ export const headers = [
 		},
 	},
 	{
-		field: 'brand',
-		headerName: 'MARCA',
-		headerAlign: 'left',
-		align: 'left',
-		width: 200,
-		valueGetter: (params) => {
-			return params.value?.name || '';
-		},
-	},
-	{
 		field: 'assignedUser',
 		headerName: 'ASESOR',
 		headerAlign: 'left',
@@ -69,6 +85,17 @@ export const headers = [
 			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
 		},
 	},
+	{
+		field: 'brand',
+		headerName: 'MARCA',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return params.value?.name || '';
+		},
+	},
+
 	{
 		field: 'serviceType',
 		headerName: 'SERVICIO',

@@ -560,8 +560,11 @@ const RequestCreate = ({ refetchRequests }) => {
 	};
 
 	useEffect(() => {
+		InitialRequest.requestDate = new Date();
+
 		if (isVisible) {
-			setRequest(InitialRequest);
+			const aux = { ...InitialRequest };
+			setRequest(aux);
 		}
 	}, [isVisible]);
 
@@ -785,7 +788,7 @@ const RequestCreate = ({ refetchRequests }) => {
 							</Grid>
 							<Grid item xs={12}>
 								<FormControl margin={'none'}>
-									<InputLabel>Estado</InputLabel>
+									<InputLabel>Estado de Maquinaria</InputLabel>
 									<Select
 										id={'productStatus'}
 										name={'productStatus'}
