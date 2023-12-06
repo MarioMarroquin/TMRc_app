@@ -560,8 +560,11 @@ const RequestCreate = ({ refetchRequests }) => {
 	};
 
 	useEffect(() => {
+		InitialRequest.requestDate = new Date();
+
 		if (isVisible) {
-			setRequest(InitialRequest);
+			const aux = { ...InitialRequest };
+			setRequest(aux);
 		}
 	}, [isVisible]);
 
