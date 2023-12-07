@@ -169,7 +169,9 @@ const RequestCreate = ({ refetchRequests }) => {
 		if (phoneNumber === '') {
 			setClient({ ...client, phoneNumber });
 		} else {
-			if (/^\d+$/.test(phoneNumber)) setClient({ ...client, phoneNumber });
+			const aux = phoneNumber.split(' ').join('');
+			if (/^\d+$/.test(aux) && aux.length <= 10)
+				setClient({ ...client, phoneNumber: aux });
 		}
 	};
 
@@ -193,7 +195,6 @@ const RequestCreate = ({ refetchRequests }) => {
 	const [seller, setSeller] = useState(InitialSeller);
 	const [searchSellers, { loading: loadingSellers }] =
 		useLazyQuery(GET_SELLERS);
-	const debouncedSeller = useDebounce(seller.firstName, 700);
 
 	// fetch data from server CLIENTS
 	useEffect(() => {
@@ -205,7 +206,7 @@ const RequestCreate = ({ refetchRequests }) => {
 				console.log(res.error);
 			}
 		});
-	}, [debouncedSeller]);
+	}, []);
 
 	const handleInputOnChangeSeller = (event, value) => {
 		if (!value) {
@@ -328,7 +329,9 @@ const RequestCreate = ({ refetchRequests }) => {
 		if (phoneNumber === '') {
 			setCompany({ ...company, phoneNumber });
 		} else {
-			if (/^\d+$/.test(phoneNumber)) setCompany({ ...company, phoneNumber });
+			const aux = phoneNumber.split(' ').join('');
+			if (/^\d+$/.test(aux) && aux.length <= 10)
+				setCompany({ ...company, phoneNumber: aux });
 		}
 	};
 
@@ -724,48 +727,45 @@ const RequestCreate = ({ refetchRequests }) => {
 						</Grid>
 
 						<Grid container rowSpacing={1} item sm={5}>
-							<PermissionsGate
-								scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST.total]}
-							>
-								<Grid item xs={12}>
-									<Autocomplete
-										freeSolo
-										forcePopupIcon={true}
-										options={searchedSellers}
-										getOptionLabel={(option) =>
-											typeof option === 'string'
-												? option
-												: `${option.firstName + ' ' + option.lastName}`
-										}
-										autoComplete
-										includeInputInList
-										value={seller.name}
-										renderInput={(params) => (
-											<TextField {...params} margin={'none'} label={'Asesor'} />
-										)}
-										loading={loadingSellers}
-										onInputChange={handleInputChangeSeller}
-										onChange={handleInputOnChangeSeller}
-										renderOption={(props, option) => (
-											<li {...props} key={option.id}>
-												<Grid container alignItems='center'>
-													<Grid item>
-														<Box
-															component={Person}
-															sx={{ color: 'text.secondary', mr: 2 }}
-														/>
-													</Grid>
-													<Grid item xs>
-														<Typography variant='body2' color='text.secondary'>
-															{option?.firstName + ' ' + option?.lastName}
-														</Typography>
-													</Grid>
+							<Grid item xs={12}>
+								<Autocomplete
+									disabled={role === ROLES.salesOperator}
+									freeSolo
+									forcePopupIcon={true}
+									options={searchedSellers}
+									getOptionLabel={(option) =>
+										typeof option === 'string'
+											? option
+											: `${option.firstName + ' ' + option.lastName}`
+									}
+									autoComplete
+									includeInputInList
+									value={seller.name}
+									renderInput={(params) => (
+										<TextField {...params} margin={'none'} label={'Asesor'} />
+									)}
+									loading={loadingSellers}
+									onInputChange={handleInputChangeSeller}
+									onChange={handleInputOnChangeSeller}
+									renderOption={(props, option) => (
+										<li {...props} key={option.id}>
+											<Grid container alignItems='center'>
+												<Grid item>
+													<Box
+														component={Person}
+														sx={{ color: 'text.secondary', mr: 2 }}
+													/>
 												</Grid>
-											</li>
-										)}
-									/>
-								</Grid>
-							</PermissionsGate>
+												<Grid item xs>
+													<Typography variant='body2' color='text.secondary'>
+														{option?.firstName + ' ' + option?.lastName}
+													</Typography>
+												</Grid>
+											</Grid>
+										</li>
+									)}
+								/>
+							</Grid>
 							<Grid item xs={12}>
 								<Autocomplete
 									freeSolo
@@ -792,6 +792,7 @@ const RequestCreate = ({ refetchRequests }) => {
 									<Select
 										id={'productStatus'}
 										name={'productStatus'}
+										label={'Estado de Maquinaria'}
 										value={request.productStatus}
 										onChange={handleInputChange}
 									>
@@ -816,142 +817,164 @@ const RequestCreate = ({ refetchRequests }) => {
 						</Grid>
 
 						<Grid item xs={12}>
-							<Divider sx={{ my: 2 }} />
+							<TextField
+								fullWidth
+								multiline
+								margin={'none'}
+								maxRows={6}
+								id={'extraComments'}
+								name={'extraComments'}
+								label={'Observaciones'}
+								value={request.extraComments}
+								onChange={handleInputChange}
+							/>
 						</Grid>
+
+						{/*<Grid item xs={12}>*/}
+						{/*	<Divider sx={{ my: 2 }} />*/}
+						{/*</Grid>*/}
 
 						<Grid item xs={12}>
 							<Typography fontWeight={400}>Contacto</Typography>
 						</Grid>
-						<Grid item xs={6}>
-							<Autocomplete
-								freeSolo
-								forcePopupIcon={true}
-								options={searchedCompanies}
-								getOptionLabel={(option) =>
-									typeof option === 'string' ? option : option.name
-								}
-								autoComplete
-								includeInputInList
-								ListboxProps={{ style: { padding: 0 } }}
-								value={company.name}
-								renderInput={(params) => (
-									<TextField {...params} margin={'none'} label={'Compañía'} />
-								)}
-								loading={loadingCompanies}
-								onInputChange={handleInputChangeCompany}
-								onChange={handleInputOnChangeCompany}
-							/>
+						<Grid container rowSpacing={1} item sm={5}>
+							<Grid item xs={12}>
+								<Autocomplete
+									freeSolo
+									forcePopupIcon={true}
+									options={searchedCompanies}
+									getOptionLabel={(option) =>
+										typeof option === 'string' ? option : option.name
+									}
+									autoComplete
+									includeInputInList
+									ListboxProps={{ style: { padding: 0 } }}
+									value={company.name}
+									renderInput={(params) => (
+										<TextField {...params} margin={'none'} label={'Compañía'} />
+									)}
+									loading={loadingCompanies}
+									onInputChange={handleInputChangeCompany}
+									onChange={handleInputOnChangeCompany}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									margin={'none'}
+									fullWidth
+									id={'phoneNumber'}
+									name={'phoneNumber'}
+									label={'Teléfono empresa'}
+									value={company.phoneNumber}
+									onChange={handlePhoneChangeCompany}
+									disabled={company.id || !company.name}
+									inputProps={{ inputMode: 'numeric' }}
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position='start'>+52</InputAdornment>
+										),
+									}}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									margin={'none'}
+									fullWidth
+									id={'email'}
+									name={'email'}
+									label={'Correo empresa'}
+									value={company.email}
+									onChange={handleEmailChangeCompany}
+									disabled={company.id || !company.name}
+								/>
+							</Grid>
 						</Grid>
-						<Grid item xs={3}>
-							<TextField
-								margin={'none'}
-								fullWidth
-								id={'phoneNumber'}
-								name={'phoneNumber'}
-								label={'Teléfono empresa'}
-								value={company.phoneNumber}
-								onChange={handlePhoneChangeCompany}
-								disabled={company.id || !company.name}
-								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
-								InputProps={{
-									startAdornment: (
-										<InputAdornment position='start'>+52</InputAdornment>
-									),
-								}}
-							/>
+						<Grid item sm={2} display={'flex'} justifyContent={'center'}>
+							<Divider orientation={'vertical'} />
 						</Grid>
-						<Grid item xs={3}>
-							<TextField
-								margin={'none'}
-								fullWidth
-								id={'email'}
-								name={'email'}
-								label={'Correo empresa'}
-								value={company.email}
-								onChange={handleEmailChangeCompany}
-								disabled={company.id || !company.name}
-							/>
-						</Grid>
-						<Grid item xs={6} md={3}>
-							<Autocomplete
-								freeSolo
-								forcePopupIcon={true}
-								options={searchedClients}
-								getOptionLabel={(option) =>
-									typeof option === 'string' ? option : option.firstName
-								}
-								autoComplete
-								includeInputInList
-								value={client.firstName}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										margin={'none'}
-										label={'Nombre cliente'}
-									/>
-								)}
-								loading={loading}
-								onInputChange={handleInputChangeClient}
-								onChange={handleInputOnChangeClient}
-								renderOption={(props, option) => (
-									<li {...props} key={option.id}>
-										<Grid container alignItems='center'>
-											<Grid item>
-												<Box
-													component={Person}
-													sx={{ color: 'text.secondary', mr: 2 }}
-												/>
+
+						<Grid container rowSpacing={1} item sm={5}>
+							<Grid item xs={12}>
+								<Autocomplete
+									freeSolo
+									forcePopupIcon={true}
+									options={searchedClients}
+									getOptionLabel={(option) =>
+										typeof option === 'string' ? option : option.firstName
+									}
+									autoComplete
+									includeInputInList
+									value={client.firstName}
+									renderInput={(params) => (
+										<TextField
+											{...params}
+											margin={'none'}
+											label={'Nombre cliente'}
+										/>
+									)}
+									loading={loading}
+									onInputChange={handleInputChangeClient}
+									onChange={handleInputOnChangeClient}
+									renderOption={(props, option) => (
+										<li {...props} key={option.id}>
+											<Grid container alignItems='center'>
+												<Grid item>
+													<Box
+														component={Person}
+														sx={{ color: 'text.secondary', mr: 2 }}
+													/>
+												</Grid>
+												<Grid item xs>
+													<Typography variant='body2' color='text.secondary'>
+														{option.firstName + ' ' + option.lastName}
+													</Typography>
+												</Grid>
 											</Grid>
-											<Grid item xs>
-												<Typography variant='body2' color='text.secondary'>
-													{option.firstName + ' ' + option.lastName}
-												</Typography>
-											</Grid>
-										</Grid>
-									</li>
-								)}
-							/>
-						</Grid>
-						<Grid item xs={6} md={3}>
-							<TextField
-								fullWidth
-								margin={'none'}
-								id={'lastName'}
-								name={'lastName'}
-								label={'Apellido cliente'}
-								value={client.lastName}
-								onChange={handleNameChangeClient}
-							/>
-						</Grid>
-						<Grid item xs={6} md={3}>
-							<TextField
-								margin={'none'}
-								fullWidth
-								id={'phoneNumber'}
-								name={'phoneNumber'}
-								label={'Teléfono cliente'}
-								value={client.phoneNumber}
-								onChange={handlePhoneChangeClient}
-								disabled={client.id || !(client.firstName && client.lastName)}
-								inputProps={{ maxLength: 10, inputMode: 'numeric' }}
-								InputProps={{
-									startAdornment: (
-										<InputAdornment position='start'>+52</InputAdornment>
-									),
-								}}
-							/>
-						</Grid>
-						<Grid item xs={6} md={3}>
-							<TextField
-								margin={'none'}
-								fullWidth
-								id={'email'}
-								name={'email'}
-								label={'Correo cliente'}
-								value={client.email}
-								onChange={handleEmailChangeClient}
-								disabled={client.id || !(client.firstName && client.lastName)}
-							/>
+										</li>
+									)}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									fullWidth
+									margin={'none'}
+									id={'lastName'}
+									name={'lastName'}
+									label={'Apellido cliente'}
+									value={client.lastName}
+									onChange={handleNameChangeClient}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									margin={'none'}
+									fullWidth
+									id={'phoneNumber'}
+									name={'phoneNumber'}
+									label={'Teléfono cliente'}
+									value={client.phoneNumber}
+									onChange={handlePhoneChangeClient}
+									disabled={client.id || !(client.firstName && client.lastName)}
+									inputProps={{ inputMode: 'numeric' }}
+									InputProps={{
+										startAdornment: (
+											<InputAdornment position='start'>+52</InputAdornment>
+										),
+									}}
+								/>
+							</Grid>
+							<Grid item xs={12}>
+								<TextField
+									margin={'none'}
+									fullWidth
+									id={'email'}
+									name={'email'}
+									label={'Correo cliente'}
+									value={client.email}
+									onChange={handleEmailChangeClient}
+									disabled={client.id || !(client.firstName && client.lastName)}
+								/>
+							</Grid>
 						</Grid>
 						<Grid item xs={12}>
 							<Typography variant={'primaryLight12'}>
@@ -961,20 +984,6 @@ const RequestCreate = ({ refetchRequests }) => {
 						</Grid>
 						<Grid item xs={12}>
 							<Divider sx={{ my: 2 }} />
-						</Grid>
-
-						<Grid item xs={12}>
-							<TextField
-								fullWidth
-								multiline
-								margin={'none'}
-								maxRows={4}
-								id={'extraComments'}
-								name={'extraComments'}
-								label={'Observaciones'}
-								value={request.extraComments}
-								onChange={handleInputChange}
-							/>
 						</Grid>
 					</Grid>
 				</Box>
