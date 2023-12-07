@@ -195,6 +195,7 @@ const RequestCreate = ({ refetchRequests }) => {
 	const [seller, setSeller] = useState(InitialSeller);
 	const [searchSellers, { loading: loadingSellers }] =
 		useLazyQuery(GET_SELLERS);
+	const debouncedSeller = useDebounce(seller.firstName, 700);
 
 	// fetch data from server CLIENTS
 	useEffect(() => {
@@ -206,7 +207,7 @@ const RequestCreate = ({ refetchRequests }) => {
 				console.log(res.error);
 			}
 		});
-	}, []);
+	}, [debouncedSeller]);
 
 	const handleInputOnChangeSeller = (event, value) => {
 		if (!value) {
