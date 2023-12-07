@@ -365,6 +365,26 @@ const RequestDetails = (props) => {
 							>
 								<Stack>
 									<Typography fontWeight={700} fontSize={pxToRem(12)}>
+										Comentarios
+									</Typography>
+									<Typography>{request?.comments}</Typography>
+								</Stack>
+							</Box>
+						</Grid>
+
+						<Grid item xs={12}>
+							<Box
+								sx={{
+									display: 'flex',
+									p: pxToRem(14),
+									borderRadius: 1,
+									boxShadow: `5px 3px 10px rgba(25, 27, 32, 0.10),
+															20px 10px 40px rgba(25, 27, 32, 0.10);
+															`,
+								}}
+							>
+								<Stack>
+									<Typography fontWeight={700} fontSize={pxToRem(12)}>
 										Observaciones
 									</Typography>
 									<Typography>{request?.extraComments}</Typography>
