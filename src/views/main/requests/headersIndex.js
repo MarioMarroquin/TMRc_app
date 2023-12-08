@@ -153,7 +153,7 @@ export const headers = [
 		align: 'left',
 		width: 200,
 		valueGetter: (params) => {
-			return `${params.value?.phoneNumber}`;
+			return `${params.row.client?.phoneNumber}`;
 		},
 	},
 	{
