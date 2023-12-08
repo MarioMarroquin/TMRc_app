@@ -7,6 +7,7 @@ import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
 import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
 import {
+	ArrowBack,
 	CancelPresentation,
 	Flag,
 	PriceCheck,
@@ -149,8 +150,19 @@ const RequestDetails = (props) => {
 
 	return (
 		<Fragment>
+			<Button
+				variant={'text'}
+				startIcon={<ArrowBack />}
+				sx={{ height: pxToRem(32) }}
+				onClick={() => {
+					navigate('/requests');
+				}}
+			>
+				Regresar
+			</Button>
 			<Box
 				sx={{
+					mt: pxToRem(12),
 					display: 'flex',
 					flexDirection: 'row',
 				}}
