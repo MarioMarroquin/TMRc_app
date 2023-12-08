@@ -35,6 +35,7 @@ import {
 } from '@views/main/requests/queryRequests';
 import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
 import { pxToRem } from '@config/theme/functions';
+import titleCaseClean from '@utils/formatters/titleCaseClean';
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
@@ -134,6 +135,8 @@ const RequestCreate = ({ refetchRequests }) => {
 		const actualId = client.id;
 		const lastName = client.name;
 
+		const auxValue = titleCaseClean(value);
+
 		if (!value) {
 			setClient({
 				...client,
@@ -142,18 +145,18 @@ const RequestCreate = ({ refetchRequests }) => {
 				lastName: '',
 			});
 		} else if (
-			lastName.length > value.length ||
-			(lastName.length < value.length && actualId)
+			lastName.length > auxValue.length ||
+			(lastName.length < auxValue.length && actualId)
 		) {
 			setClient({
 				...client,
 				id: undefined,
-				firstName: value,
+				firstName: auxValue,
 			});
 		} else {
 			setClient({
 				...client,
-				firstName: value,
+				firstName: auxValue,
 			});
 		}
 	};
@@ -179,10 +182,12 @@ const RequestCreate = ({ refetchRequests }) => {
 	const handleNameChangeClient = (e) => {
 		const lastName = e.target.value;
 		const existId = client.id;
+		const aux = titleCaseClean(lastName);
+
 		existId
 			? // deletes id cuz is new client
-			  setClient({ ...client, id: undefined, lastName })
-			: setClient({ ...client, lastName });
+			  setClient({ ...client, id: undefined, lastName: aux })
+			: setClient({ ...client, lastName: aux });
 	};
 
 	// SELLERS
