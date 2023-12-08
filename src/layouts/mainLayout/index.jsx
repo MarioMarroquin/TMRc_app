@@ -39,7 +39,7 @@ const MainLayout = () => {
 				}}
 			>
 				<Toolbar sx={{ mt: pxToRem(16) }} />
-				<Container disableGutters maxWidth={'xl'} sx={{ my: pxToRem(16) }}>
+				<Container disableGutters maxWidth={'xl'}>
 					<Outlet />
 				</Container>
 			</Box>
