@@ -16,7 +16,7 @@ const CustomDataGrid = (props) => {
 			<DataGrid
 				{...props}
 				autoHeight
-				pageSizeOptions={[5, 10, 15, 20]}
+				pageSizeOptions={[5, 10, 15, 20, 50]}
 				sx={{
 					'.MuiDataGrid-columnHeaders': {
 						borderBottom: 'none',
