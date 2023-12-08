@@ -37,6 +37,11 @@ import {
 } from '@views/main/requests/queryRequests';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import {
+	GridToolbar,
+	GridToolbarContainer,
+	GridToolbarExport,
+} from '@mui/x-data-grid';
 
 const CustomAutocomplete = (props) => (
 	<Autocomplete
@@ -183,6 +188,16 @@ const Requests = (props) => {
 		navigate(`${id}`); // needs to be string for route params
 	};
 
+	function CustomToolbar() {
+		return (
+			<PermissionsGate scopes={[SCOPES_GENERAL.total]}>
+				<GridToolbarContainer>
+					<GridToolbarExport />
+				</GridToolbarContainer>
+			</PermissionsGate>
+		);
+	}
+
 	return (
 		<Fragment>
 			<Box
@@ -292,8 +307,11 @@ const Requests = (props) => {
 							slots={{
 								loadingOverlay: LinearProgress,
 								noRowsOverlay: NoRowsOverlay,
+								toolbar: CustomToolbar,
 							}}
-							slotProps={{ loadingOverlay: { color: 'secondary' } }}
+							slotProps={{
+								loadingOverlay: { color: 'secondary' },
+							}}
 							rowCount={countRows}
 							paginationModel={paginationModel}
 							onPaginationModelChange={setPaginationModel}

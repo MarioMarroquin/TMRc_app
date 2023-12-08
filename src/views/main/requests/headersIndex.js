@@ -41,28 +41,7 @@ export const headers = [
 			return aux;
 		},
 	},
-	{
-		field: 'requestStatus',
-		headerName: 'ESTATUS',
-		headerAlign: 'left',
-		align: 'left',
-		minWidth: 120,
-		renderCell: (params) => {
-			if (!params.value) {
-				return '';
-			} else if (params.value === 'PENDING') {
-				return (
-					<Typography color={'error'}>{RequestStatus[params.value]}</Typography>
-				);
-			} else if (params.value === 'TRACING') {
-				return (
-					<Typography color={'info'}>{RequestStatus[params.value]}</Typography>
-				);
-			} else {
-				return <Typography>{RequestStatus[params.value]}</Typography>;
-			}
-		},
-	},
+
 	{
 		field: 'requestDate',
 		headerName: 'FECHA',
@@ -75,28 +54,6 @@ export const headers = [
 		},
 	},
 	{
-		field: 'assignedUser',
-		headerName: 'ASESOR',
-		headerAlign: 'left',
-		align: 'left',
-		minWidth: 150,
-		flex: 0.5,
-		valueGetter: (params) => {
-			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
-		},
-	},
-	{
-		field: 'brand',
-		headerName: 'MARCA',
-		headerAlign: 'left',
-		align: 'left',
-		width: 200,
-		valueGetter: (params) => {
-			return params.value?.name || '';
-		},
-	},
-
-	{
 		field: 'serviceType',
 		headerName: 'SERVICIO',
 		headerAlign: 'left',
@@ -108,6 +65,17 @@ export const headers = [
 			} else {
 				return ServiceType[params.value];
 			}
+		},
+	},
+	{
+		field: 'assignedUser',
+		headerName: 'ASESOR',
+		headerAlign: 'left',
+		align: 'left',
+		minWidth: 150,
+		flex: 0.5,
+		valueGetter: (params) => {
+			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
 		},
 	},
 	{
@@ -124,6 +92,17 @@ export const headers = [
 		align: 'center',
 		minWidth: 150,
 	},
+	{
+		field: 'brand',
+		headerName: 'MARCA',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return params.value?.name || '';
+		},
+	},
+
 	{
 		field: 'productStatus',
 		headerName: 'ESTADO FÍSICO',
@@ -168,6 +147,16 @@ export const headers = [
 	},
 
 	{
+		field: 'clientPhoneNumber',
+		headerName: 'CLIENTE CELULAR',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return `${params.value?.phoneNumber}`;
+		},
+	},
+	{
 		field: 'extraComments',
 		headerName: 'COMENTARIOS EXTRA',
 		headerAlign: 'left',
@@ -206,6 +195,31 @@ export const headers = [
 			return `${params.row.createdBy?.firstName || ''} ${
 				params.row.createdBy?.lastName || ''
 			}`;
+		},
+	},
+	{
+		field: 'requestStatus',
+		headerName: 'ESTATUS',
+		headerAlign: 'left',
+		align: 'left',
+		minWidth: 120,
+		valueFormatter: (params) => {
+			return RequestStatus[params.value];
+		},
+		renderCell: (params) => {
+			if (!params.value) {
+				return '';
+			} else if (params.value === 'PENDING') {
+				return (
+					<Typography color={'error'}>{RequestStatus[params.value]}</Typography>
+				);
+			} else if (params.value === 'TRACING') {
+				return (
+					<Typography color={'info'}>{RequestStatus[params.value]}</Typography>
+				);
+			} else {
+				return <Typography>{RequestStatus[params.value]}</Typography>;
+			}
 		},
 	},
 	{

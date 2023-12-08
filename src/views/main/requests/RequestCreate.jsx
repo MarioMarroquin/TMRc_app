@@ -25,12 +25,7 @@ import useDebounce from '@hooks/use-debounce';
 import { useLoading } from '@providers/loading';
 import toast from 'react-hot-toast';
 import { DateTimeField } from '@mui/x-date-pickers';
-import PermissionsGate from '@components/PermissionsGate';
-import {
-	ROLES,
-	SCOPES_GENERAL,
-	SCOPES_REQUEST,
-} from '@config/permisissions/permissions';
+import { ROLES } from '@config/permisissions/permissions';
 import { useSession } from '@providers/session';
 import {
 	GET_BRANDS,
@@ -653,7 +648,7 @@ const RequestCreate = ({ refetchRequests }) => {
 						rowSpacing={1}
 						sx={{ marginBottom: pxToRem(24) }}
 					>
-						<Grid container rowSpacing={1} item sm={5}>
+						<Grid item container rowSpacing={1} sm={5}>
 							<Grid item xs={12}>
 								<DateTimeField
 									sx={{ m: 0 }}
@@ -982,9 +977,6 @@ const RequestCreate = ({ refetchRequests }) => {
 								En caso de no contar con cliente o compañía, guarda la forma de
 								contacto en <b>observaciones</b>.
 							</Typography>
-						</Grid>
-						<Grid item xs={12}>
-							<Divider sx={{ my: 2 }} />
 						</Grid>
 					</Grid>
 				</Box>
