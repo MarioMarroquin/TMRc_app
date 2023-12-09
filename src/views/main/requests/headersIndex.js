@@ -47,6 +47,9 @@ export const headers = [
 		headerAlign: 'left',
 		align: 'left',
 		minWidth: 120,
+		valueFormatter: (params) => {
+			return RequestStatus[params.value];
+		},
 		renderCell: (params) => {
 			if (!params.value) {
 				return '';
