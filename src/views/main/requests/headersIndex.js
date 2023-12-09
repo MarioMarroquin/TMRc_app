@@ -165,7 +165,16 @@ export const headers = [
 			return `${params.value?.firstName || ''} ${params.value?.lastName || ''}`;
 		},
 	},
-
+	{
+		field: 'clientPhoneNumber',
+		headerName: 'CLIENTE CELULAR',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return `${params.row.client?.phoneNumber}`;
+		},
+	},
 	{
 		field: 'extraComments',
 		headerName: 'COMENTARIOS EXTRA',
