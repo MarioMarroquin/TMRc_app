@@ -189,7 +189,7 @@ export const headers = [
 		},
 	},
 	{
-		field: 'company',
+		field: 'companyPhone',
 		headerName: 'EMPRESA NUMERO',
 		headerAlign: 'left',
 		align: 'left',
