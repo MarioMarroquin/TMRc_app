@@ -149,6 +149,16 @@ export const headers = [
 		width: 200,
 	},
 	{
+		field: 'clientEmail',
+		headerName: 'CLIENTE EMAIL',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return `${params.row.client?.email}`;
+		},
+	},
+	{
 		field: 'company',
 		headerName: 'EMPRESA',
 		headerAlign: 'left',
@@ -176,6 +186,16 @@ export const headers = [
 		width: 200,
 		valueGetter: (params) => {
 			return `${params.row.client?.phoneNumber}`;
+		},
+	},
+	{
+		field: 'company',
+		headerName: 'EMPRESA NUMERO',
+		headerAlign: 'left',
+		align: 'left',
+		width: 200,
+		valueGetter: (params) => {
+			return params.value?.phoneNumber || '';
 		},
 	},
 	{
