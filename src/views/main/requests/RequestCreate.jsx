@@ -427,6 +427,11 @@ const RequestCreate = ({ refetchRequests }) => {
 			return true;
 		}
 
+		if (!brand.name) {
+			toast.error('Elige la marca');
+			return true;
+		}
+
 		if (brand.id || brand.name) {
 			if (!request.productStatus) {
 				toast.error('Elige el estado de producto');
@@ -465,10 +470,10 @@ const RequestCreate = ({ refetchRequests }) => {
 
 		if (!company.id) {
 			if (company.name) {
-				if (!company.phoneNumber && !company.email) {
-					toast.error('Agrega una forma de contacto');
-					return true;
-				}
+				// if (!company.phoneNumber && !company.email) {
+				// 	toast.error('Agrega una forma de contacto');
+				// 	return true;
+				// }
 
 				if (company.phoneNumber)
 					if (company.phoneNumber.length < 10) {
@@ -476,11 +481,11 @@ const RequestCreate = ({ refetchRequests }) => {
 						return true;
 					}
 
-				if (company.email)
-					if (!EMAIL.test(company.email)) {
-						toast.error('Revisa el email');
-						return true;
-					}
+				// if (company.email)
+				// 	if (!EMAIL.test(company.email)) {
+				// 		toast.error('Revisa el email');
+				// 		return true;
+				// 	}
 			}
 		}
 
