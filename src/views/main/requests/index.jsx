@@ -34,7 +34,6 @@ import {
 	GET_REQUESTS,
 	GET_SELLERS_ALL,
 } from '@views/main/requests/queryRequests';
-import exportExcelReport from '@views/main/requests/exportExcelReport';
 
 const CustomAutocomplete = (props) => (
 	<Autocomplete
