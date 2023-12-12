@@ -18,6 +18,7 @@ export const SCOPES_REQUEST = {
 	total: 'total',
 	create: 'create',
 	filterOperator: 'filterOperator',
+	export: 'export',
 };
 
 export const SCOPES_REQUEST_DETAILS = {
@@ -30,7 +31,7 @@ export const SCOPES_REQUEST_DETAILS = {
 
 export const PERMISSIONS = {
 	[ROLES.admin]: [SCOPES_GENERAL.total],
-	[ROLES.desk]: [SCOPES_REQUEST.total],
+	[ROLES.desk]: [SCOPES_REQUEST.total, SCOPES_REQUEST.export],
 	[ROLES.salesManager]: [
 		SCOPES_REQUEST.total,
 		SCOPES_REQUEST.filterOperator,

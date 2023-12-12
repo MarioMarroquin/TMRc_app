@@ -1,4 +1,18 @@
 import { Fragment, useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import PropTypes from 'prop-types';
+import { es } from 'date-fns/locale';
+import useInterval from '@hooks/use-interval';
+import { useNavigate } from 'react-router-dom';
+import { useSession } from '@providers/session';
+import { pxToRem } from '@config/theme/functions';
+import { useRequests } from '@providers/requests';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import PermissionsGate from '@components/PermissionsGate';
+import CustomDateRange from '@components/customDateRange';
+import { Person, Search, Sync } from '@mui/icons-material';
+import RequestCreate from '@views/main/requests/RequestCreate';
+import RequestsMaterialTable from '@views/main/requests/RequestsMaterialTable';
 import {
 	Autocomplete,
 	Box,
@@ -6,42 +20,20 @@ import {
 	Divider,
 	Grid,
 	InputAdornment,
-	LinearProgress,
 	Stack,
 	Switch,
 	TextField,
 	Typography,
 } from '@mui/material';
-import CustomDataGrid from '@components/customDataGrid';
-import { headers } from './headersIndex';
-import { useLazyQuery, useQuery } from '@apollo/client';
-import { useNavigate } from 'react-router-dom';
-import CustomDateRange from '@components/customDateRange';
-import { pxToRem } from '@config/theme/functions';
-import { Person, Search, Sync } from '@mui/icons-material';
-import { useRequests } from '@providers/requests';
-import NoRowsOverlay from '@components/NoRowsOverlay';
-import useInterval from '@hooks/use-interval';
-import RequestCreate from '@views/main/requests/RequestCreate';
-import { useSession } from '@providers/session';
 import {
 	ROLES,
 	SCOPES_GENERAL,
 	SCOPES_REQUEST,
 } from '@config/permisissions/permissions';
-import PropTypes from 'prop-types';
-import PermissionsGate from '@components/PermissionsGate';
 import {
 	GET_REQUESTS,
 	GET_SELLERS_ALL,
 } from '@views/main/requests/queryRequests';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import {
-	GridToolbar,
-	GridToolbarContainer,
-	GridToolbarExport,
-} from '@mui/x-data-grid';
 
 const CustomAutocomplete = (props) => (
 	<Autocomplete
@@ -99,43 +91,39 @@ CustomAutocomplete.propTypes = {
 };
 
 const Requests = (props) => {
-	const { role, liveDate } = useSession();
-	const navigate = useNavigate();
-	const [requests, setRequests] = useState([]);
 	const {
-		countRows,
 		setCountRows,
 		showPending,
 		setShowPending,
 		paginationModel,
-		setPaginationModel,
 		dateRange,
 		setDateRange,
-		columnVisibilityModel,
-		setColumnVisibilityModel,
 		showAll,
 		setShowAll,
 		selectedSeller,
 		setSelectedSeller,
 		resetFilters,
 	} = useRequests();
+	const { role, liveDate } = useSession();
+	const navigate = useNavigate();
+	const [requests, setRequests] = useState([]);
 	const [sellersList, setSellersList] = useState([]);
-	const [inputSelectedSeller, setInputSelectedSeller] = useState('');
+
 	const [searchSellers] = useLazyQuery(GET_SELLERS_ALL);
 
 	const { data, loading, refetch } = useQuery(GET_REQUESTS, {
 		variables: {
-			params: {
-				page: paginationModel.page,
-				pageSize: paginationModel.pageSize,
-			},
+			showAll,
+			pending: showPending,
+			assignedUserId: selectedSeller.id,
 			dateRange: {
 				end: dateRange[0].endDate,
 				start: dateRange[0].startDate,
 			},
-			assignedUserId: selectedSeller.id,
-			showAll: showAll,
-			pending: showPending,
+			params: {
+				page: paginationModel.pageIndex,
+				pageSize: paginationModel.pageSize,
+			},
 		},
 	});
 
@@ -157,6 +145,10 @@ const Requests = (props) => {
 			});
 		}
 	};
+	const goToRequest = (data) => {
+		const id = data.id;
+		navigate(`${id}`); // needs to be string for route params
+	};
 
 	useInterval(refetch, 1000 * 60 * 1, {
 		skip: false,
@@ -168,7 +160,7 @@ const Requests = (props) => {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
 
-			console.log('aux', aux);
+			// console.log('aux', aux);
 			// console.log('auxCount', auxCount);
 			setRequests(aux);
 			setCountRows(auxCount);
@@ -183,21 +175,6 @@ const Requests = (props) => {
 			});
 	}, []);
 
-	const goToRequest = (data) => {
-		const id = data.id;
-		navigate(`${id}`); // needs to be string for route params
-	};
-
-	function CustomToolbar() {
-		return (
-			<PermissionsGate scopes={[SCOPES_GENERAL.total]}>
-				<GridToolbarContainer>
-					<GridToolbarExport />
-				</GridToolbarContainer>
-			</PermissionsGate>
-		);
-	}
-
 	return (
 		<Fragment>
 			<Box
@@ -208,7 +185,7 @@ const Requests = (props) => {
 			>
 				<Box
 					sx={{
-						width: '60%',
+						width: { xs: '60%', lg: '65%', xl: '75%' },
 						display: 'flex',
 						flexDirection: 'column',
 						px: pxToRem(22),
@@ -298,39 +275,18 @@ const Requests = (props) => {
 													0px 10px 25px rgba(0, 0, 0, 0.07);`,
 						}}
 					>
-						<CustomDataGrid
-							rowHeight={45}
-							paginationMode={'server'}
-							rows={requests}
-							columns={headers}
+						<RequestsMaterialTable
+							data={requests}
 							loading={loading}
-							slots={{
-								loadingOverlay: LinearProgress,
-								noRowsOverlay: NoRowsOverlay,
-								toolbar: CustomToolbar,
-							}}
-							slotProps={{
-								loadingOverlay: { color: 'secondary' },
-							}}
-							rowCount={countRows}
-							paginationModel={paginationModel}
-							onPaginationModelChange={setPaginationModel}
-							columnVisibilityModel={columnVisibilityModel}
-							onColumnVisibilityModelChange={(newModel) => {
-								localStorage.setItem(
-									'headersVisibility',
-									JSON.stringify(newModel)
-								);
-								setColumnVisibilityModel(newModel);
-							}}
-							onRowDoubleClick={(data, e) => goToRequest(data.row)}
+							goToRequest={goToRequest}
 						/>
 					</Box>
 				</Box>
 
 				<Box
 					sx={{
-						width: '40%',
+						width: { xs: '40%', lg: '35%', xl: '25%' },
+
 						display: 'flex',
 						flexDirection: 'column',
 						px: pxToRem(22),

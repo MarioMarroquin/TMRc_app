@@ -60,7 +60,6 @@ const RequestDetails = (props) => {
 	}, [loading]);
 
 	useEffect(() => {
-		setLoading(true);
 		if (data) {
 			const {
 				__typename,
@@ -74,7 +73,6 @@ const RequestDetails = (props) => {
 			setCommentsByOperator(operatorComments);
 			setCommentsByManager(managerComments);
 		}
-		setLoading(false);
 	}, [data]);
 
 	const changeRequestStatus = (status, sale = false) => {
