@@ -21,7 +21,7 @@ const RequestsProvider = ({ children }) => {
 	const [showPending, setShowPending] = useState(false);
 
 	const [paginationModel, setPaginationModel] = useState({
-		page: 0,
+		pageIndex: 0,
 		pageSize: 10,
 	});
 
@@ -34,17 +34,33 @@ const RequestsProvider = ({ children }) => {
 	]);
 
 	const [columnVisibilityModel, setColumnVisibilityModel] = useState({
-		contactMedium: false,
-		advertisingMedium: false,
-		brand: false,
-		productStatus: false,
-		comments: false,
-		company: false,
-		client: false,
 		extraComments: false,
 		updatedAt: false,
 		createdAt: false,
 	});
+
+	const [columnOrderModel, setColumnOrderModel] = useState([
+		'requestStatusIcon',
+		'requestStatus',
+		'shortId',
+		'requestDate',
+		'assignedUser',
+		'brand',
+		'serviceType',
+		'contactMedium',
+		'advertisingMedium',
+		'productStatus',
+		'comments',
+		'company',
+		'clientName',
+		'clientPhoneNumber',
+		'extraComments',
+		'createdAt',
+		'updatedAt',
+		'createdBy',
+		'isSale',
+	]);
+	const [columnSizeModel, setColumnSizeModel] = useState({});
 
 	const [showAll, setShowAll] = useState(true); // Muestra las propias o todas
 	const [selectedSeller, setSelectedSeller] = useState(InitialSeller);
@@ -53,7 +69,7 @@ const RequestsProvider = ({ children }) => {
 		setShowPending(false);
 
 		setPaginationModel({
-			page: 0,
+			pageIndex: 0,
 			pageSize: 10,
 		});
 
@@ -84,6 +100,10 @@ const RequestsProvider = ({ children }) => {
 		setShowAll,
 		selectedSeller,
 		setSelectedSeller,
+		columnOrderModel,
+		setColumnOrderModel,
+		columnSizeModel,
+		setColumnSizeModel,
 		resetFilters,
 	};
 
@@ -95,11 +115,33 @@ const RequestsProvider = ({ children }) => {
 	}, []);
 
 	useEffect(() => {
+		const items = JSON.parse(localStorage.getItem('headersOrder'));
+		if (items) {
+			setColumnOrderModel(items);
+		}
+	}, []);
+
+	useEffect(() => {
+		const items = JSON.parse(localStorage.getItem('headersSize'));
+		if (items) {
+			setColumnSizeModel(items);
+		}
+	}, []);
+
+	useEffect(() => {
 		localStorage.setItem(
 			'headersVisibility',
 			JSON.stringify(columnVisibilityModel)
 		);
 	}, [columnVisibilityModel]);
+
+	useEffect(() => {
+		localStorage.setItem('headersOrder', JSON.stringify(columnOrderModel));
+	}, [columnOrderModel]);
+
+	useEffect(() => {
+		localStorage.setItem('headersSize', JSON.stringify(columnSizeModel));
+	}, [columnSizeModel]);
 
 	return (
 		<RequestsContext.Provider value={value}>

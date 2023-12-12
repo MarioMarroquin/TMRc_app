@@ -6,7 +6,9 @@ import MainLayout from '@layouts/mainLayout';
 import { mainRoutes } from './routes';
 import 'react-date-range/dist/styles.css'; // main css file
 import 'react-date-range/dist/theme/default.css';
-import { Suspense } from 'react'; // theme css file
+import { Suspense } from 'react';
+import { Box } from '@mui/material';
+import TMRLogo from '@utils/logo/TMR_logo.svg'; // theme css file
 
 const routeGenerator = (route) => {
 	const { children, path, element } = route;
@@ -38,7 +40,23 @@ const App = () => {
 	}
 
 	return (
-		<Suspense fallback={<div>Loading...</div>}>
+		<Suspense
+			fallback={
+				<Box
+					sx={{
+						height: '100vh',
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						py: 40,
+						px: 10,
+						opacity: 0.5,
+					}}
+				>
+					<img src={TMRLogo} alt={'TMR Logo'} />
+				</Box>
+			}
+		>
 			<Routes>
 				<Route element={<MainLayout />}>
 					{mainRoutes.map((route) => routeGenerator(route))}
