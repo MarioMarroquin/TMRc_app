@@ -22,7 +22,7 @@ const RequestsProvider = ({ children }) => {
 
 	const [paginationModel, setPaginationModel] = useState({
 		pageIndex: 0,
-		pageSize: 10,
+		pageSize: 30,
 	});
 
 	const [dateRange, setDateRange] = useState([
@@ -70,7 +70,7 @@ const RequestsProvider = ({ children }) => {
 
 		setPaginationModel({
 			pageIndex: 0,
-			pageSize: 10,
+			pageSize: 30,
 		});
 
 		setDateRange([
@@ -129,6 +129,13 @@ const RequestsProvider = ({ children }) => {
 	}, []);
 
 	useEffect(() => {
+		const items = JSON.parse(localStorage.getItem('pageSize'));
+		if (items) {
+			setPaginationModel({ pageIndex: 0, pageSize: items?.pageSize });
+		}
+	}, []);
+
+	useEffect(() => {
 		localStorage.setItem(
 			'headersVisibility',
 			JSON.stringify(columnVisibilityModel)
@@ -142,6 +149,10 @@ const RequestsProvider = ({ children }) => {
 	useEffect(() => {
 		localStorage.setItem('headersSize', JSON.stringify(columnSizeModel));
 	}, [columnSizeModel]);
+
+	useEffect(() => {
+		localStorage.setItem('pageSize', JSON.stringify(paginationModel));
+	}, [paginationModel]);
 
 	return (
 		<RequestsContext.Provider value={value}>
