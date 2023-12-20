@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import { format } from 'date-fns';
 
 const exportExcelTable = (rowModel) => {
 	const wb = new ExcelJS.Workbook();
@@ -15,15 +16,60 @@ const exportExcelTable = (rowModel) => {
 			};
 		});
 
-	sh.columns = [...rowModelColumns];
+	const extraColumns = [
+		{
+			header: 'MI SEGUIMIENTO',
+			key: 'operatorComments',
+			width: 35,
+		},
+		{
+			header: 'SEGUIMIENTO GERENTE',
+			key: 'managerComments',
+			width: 35,
+		},
+		{
+			header: 'DOCUMENTOS',
+			key: 'documents',
+			width: 15,
+		},
+	];
+
+	sh.columns = [...rowModelColumns, ...extraColumns];
 
 	const rowModelRows = rowModel.map((row) => {
-		return row
-			.getVisibleCells()
-			.filter((column) => column.column.id !== 'mrt-row-spacer') // remove display columns
-			.map((column) => {
-				return { key: column.column.id, value: column.getValue() };
-			});
+		const operatorCommentsValue = row.original.operatorComments
+			.map((item) => {
+				return `${format(new Date(item.createdAt), 'dd/MM/yyyy - HH:mm')} -> ${
+					item.comment
+				}`;
+			})
+			.join('\r\n');
+
+		const managerCommentsValue = row.original.managerComments
+			.map((item) => {
+				return `${format(new Date(item.createdAt), 'dd/MM/yyyy - HH:mm')} -> ${
+					item.comment
+				}`;
+			})
+			.join('\r\n');
+
+		const documentsValue = row.original.documents.length;
+
+		const keyValuesAux = [
+			{ key: 'operatorComments', value: operatorCommentsValue },
+			{ key: 'managerComments', value: managerCommentsValue },
+			{ key: 'documents', value: documentsValue },
+		];
+
+		return [
+			...row
+				.getVisibleCells()
+				.filter((column) => column.column.id !== 'mrt-row-spacer') // remove display columns
+				.map((column) => {
+					return { key: column.column.id, value: column.getValue() };
+				}),
+			...keyValuesAux, // aqui va keyValuesAux
+		];
 	});
 
 	rowModelRows.forEach((row) => {
