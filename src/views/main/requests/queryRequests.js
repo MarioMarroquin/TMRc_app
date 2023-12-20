@@ -98,9 +98,9 @@ const GET_REQUESTS = gql`
 		) {
 			info {
 				count
+				pages
 				prev
 				next
-				pages
 			}
 			results {
 				id
@@ -138,22 +138,40 @@ const GET_REQUESTS = gql`
 					id
 					name
 					phoneNumber
-					website
 					email
+					website
 				}
 				createdAt
-				updatedAt
 				createdBy {
 					id
+					role
+					username
 					firstName
 					lastName
-					username
 				}
+				updatedAt
 				updatedBy {
 					id
+					role
+					username
 					firstName
 					lastName
-					username
+				}
+				operatorComments {
+					id
+					comment
+					createdAt
+				}
+				managerComments {
+					id
+					comment
+					createdAt
+				}
+				documents {
+					id
+					title
+					path
+					fileURL
 				}
 			}
 		}
