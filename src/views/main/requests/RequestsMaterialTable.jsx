@@ -10,13 +10,14 @@ import {
 	PlaylistAddCheckCircle,
 	WatchLater,
 } from '@mui/icons-material';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
 import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
 import { format } from 'date-fns';
 import { useRequests } from '@providers/requests';
 import exportExcelReport from '@views/main/requests/exportExcelReport';
 import PermissionsGate from '@components/PermissionsGate';
 import { SCOPES_REQUEST } from '@config/permisissions/permissions';
+import exportExcelTable from '@views/main/requests/exportExcelTable';
 
 const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 	const {
@@ -64,7 +65,8 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorKey: 'requestStatus',
+				accessorFn: (row) => RequestStatus[row.requestStatus],
+				id: 'requestStatus',
 				header: 'ESTATUS',
 				size: 145,
 				minSize: 140,
@@ -74,16 +76,12 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 
 					if (!value) {
 						return '';
-					} else if (value === 'PENDING') {
-						return (
-							<Typography color={'error'}>{RequestStatus[value]}</Typography>
-						);
-					} else if (value === 'TRACING') {
-						return (
-							<Typography color={'info'}>{RequestStatus[value]}</Typography>
-						);
+					} else if (value === RequestStatus.PENDING) {
+						return <Typography color={'error'}>{value}</Typography>;
+					} else if (value === RequestStatus.TRACING) {
+						return <Typography color={'info'}>{value}</Typography>;
 					} else {
-						return <Typography>{RequestStatus[value]}</Typography>;
+						return <Typography>{value}</Typography>;
 					}
 				},
 				muiTableBodyCellProps: {
@@ -91,13 +89,13 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorFn: (row) => new Date(row.requestDate),
+				accessorFn: (row) =>
+					format(new Date(row.requestDate), 'dd/MM/yyyy - HH:mm'),
 				id: 'requestDate',
 				header: 'FECHA - HORA',
 				size: 175,
 				minSize: 170,
 				maxSize: 185,
-				Cell: ({ cell }) => format(cell.getValue(), 'dd/MM/yyyy - HH:mm'),
 				muiTableBodyCellProps: {
 					align: 'center',
 				},
@@ -126,20 +124,12 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorKey: 'serviceType',
+				accessorFn: (row) => ServiceType[row.serviceType],
+				id: 'serviceType',
 				header: 'SERVICIO',
 				size: 150,
 				minSize: 145,
 				maxSize: 160,
-				Cell: ({ cell }) => {
-					const value = cell.getValue();
-
-					if (!value) {
-						return '';
-					} else {
-						return ServiceType[value];
-					}
-				},
 				muiTableBodyCellProps: {
 					align: 'center',
 				},
@@ -165,20 +155,12 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorKey: 'productStatus',
+				accessorFn: (row) => ProductStatus[row.productStatus],
+				id: 'productStatus',
 				header: 'ESTADO FISICO',
 				size: 180,
 				minSize: 175,
 				maxSize: 185,
-				Cell: ({ cell }) => {
-					const value = cell.getValue();
-
-					if (!value) {
-						return '';
-					} else {
-						return ProductStatus[value];
-					}
-				},
 				muiTableBodyCellProps: {
 					align: 'center',
 				},
@@ -238,25 +220,25 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorFn: (row) => new Date(row.createdAt),
+				accessorFn: (row) =>
+					format(new Date(row.createdAt), 'dd/MM/yyyy - HH:mm'),
 				id: 'createdAt',
 				header: 'FECHA DE CREACION',
 				size: 210,
 				minSize: 210,
 				maxSize: 210,
-				Cell: ({ cell }) => format(cell.getValue(), 'dd/MM/yyyy - HH:mm'),
 				muiTableBodyCellProps: {
 					align: 'center',
 				},
 			},
 			{
-				accessorFn: (row) => new Date(row.updatedAt),
+				accessorFn: (row) =>
+					format(new Date(row.updatedAt), 'dd/MM/yyyy - HH:mm'),
 				id: 'updatedAt',
 				header: 'ULT. ACTUALIZACION',
 				size: 210,
 				minSize: 210,
 				maxSize: 210,
-				Cell: ({ cell }) => format(cell.getValue(), 'dd/MM/yyyy - HH:mm'),
 				muiTableBodyCellProps: {
 					align: 'center',
 				},
@@ -274,22 +256,12 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorKey: 'isSale',
+				accessorFn: (row) => (row?.isSale ? 'SI' : 'NO'),
+				id: 'isSale',
 				header: 'VENTA',
 				size: 130,
 				minSize: 130,
 				maxSize: 130,
-				Cell: ({ cell }) => {
-					const value = cell.getValue();
-
-					if (value) {
-						return 'SI';
-					} else if (!value) {
-						return 'NO';
-					} else {
-						return '';
-					}
-				},
 				muiTableBodyCellProps: {
 					align: 'center',
 				},
@@ -311,7 +283,7 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 		state: {
 			columnVisibility: columnVisibilityModel,
 			pagination: paginationModel,
-			showSkeletons: loading,
+			showLoadingOverlay: loading,
 			columnOrder: columnOrderModel,
 			columnSizing: columnSizeModel,
 		},
@@ -320,6 +292,11 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 		onColumnOrderChange: setColumnOrderModel,
 		onColumnSizingChange: setColumnSizeModel,
 		onColumnVisibilityChange: setColumnVisibilityModel,
+		muiTableContainerProps: { sx: { maxHeight: '500px' } },
+		muiPaginationProps: {
+			rowsPerPageOptions: [15, 30, 50, 100, 250, 500, 700],
+		},
+		enableStickyHeader: true,
 		muiTableBodyRowProps: ({ row }) => ({
 			onDoubleClick: (event) => {
 				goToRequest(row.original);
@@ -351,17 +328,39 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 		},
 		renderTopToolbarCustomActions: ({ table }) => (
 			<Fragment>
-				<PermissionsGate scopes={[SCOPES_REQUEST.export]}>
-					<Button
-						color={'secondary'}
-						onClick={() => {
-							exportExcelReport(data);
-						}}
-					>
-						exportar a excel
-					</Button>
-				</PermissionsGate>
-				<Box />
+				<Box
+					sx={{
+						display: 'flex',
+						gap: '16px',
+						padding: '8px',
+						flexWrap: 'wrap',
+					}}
+				>
+					<PermissionsGate scopes={[SCOPES_REQUEST.export]}>
+						<Tooltip title={'Formato clásico'} placement={'top'}>
+							<Button
+								variant={'text'}
+								color={'primary'}
+								onClick={() => {
+									exportExcelReport(data);
+								}}
+							>
+								Exportar a excel
+							</Button>
+						</Tooltip>
+					</PermissionsGate>
+					<Tooltip title={'Formato tabla'} placement={'top'}>
+						<Button
+							variant={'text'}
+							color={'primary'}
+							onClick={() => {
+								exportExcelTable(table.getRowModel().rows);
+							}}
+						>
+							Exportar con formato a Excel
+						</Button>
+					</Tooltip>
+				</Box>
 			</Fragment>
 		),
 		localization: es,
