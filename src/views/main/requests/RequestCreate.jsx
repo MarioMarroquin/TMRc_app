@@ -18,7 +18,7 @@ import {
 	useMediaQuery,
 	useTheme,
 } from '@mui/material';
-import { ServiceType } from '@utils/enums';
+import { ContactMedium, ServiceType } from '@utils/enums';
 import { Add, Person } from '@mui/icons-material';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import useDebounce from '@hooks/use-debounce';
@@ -705,15 +705,22 @@ const RequestCreate = ({ refetchRequests }) => {
 								</FormControl>
 							</Grid>
 							<Grid item xs={12}>
-								<TextField
-									margin={'none'}
-									fullWidth
-									id={'contactMedium'}
-									name={'contactMedium'}
-									label={'Medio de Contacto'}
-									value={request.contactMedium}
-									onChange={handleInputChange}
-								/>
+								<FormControl margin={'none'}>
+									<InputLabel>Medio de Contacto</InputLabel>
+									<Select
+										id={'contactMedium'}
+										name={'contactMedium'}
+										label={'Medio de Contacto'}
+										value={request.contactMedium}
+										onChange={handleInputChange}
+									>
+										{ContactMedium.map((item) => (
+											<MenuItem key={item} value={item}>
+												{item}
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
 							</Grid>
 							<Grid item xs={12}>
 								<TextField
