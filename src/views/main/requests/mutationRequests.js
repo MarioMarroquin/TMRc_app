@@ -69,6 +69,14 @@ const TRACE_REQUEST = gql`
 	}
 `;
 
+const QUOTED_REQUEST = gql`
+	mutation QuotedRequest($requestId: Int!) {
+		quotedRequest(requestId: $requestId) {
+			id
+		}
+	}
+`;
+
 const FINISH_REQUEST = gql`
 	mutation FinishRequest($requestId: Int!, $sale: Boolean!) {
 		finishRequest(requestId: $requestId, sale: $sale) {
@@ -94,5 +102,6 @@ export {
 	SAVE_DOCUMENT,
 	UPDATE_DOCUMENT,
 	TRACE_REQUEST,
+	QUOTED_REQUEST,
 	FINISH_REQUEST,
 };

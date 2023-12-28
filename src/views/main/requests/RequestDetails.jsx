@@ -1,17 +1,35 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLoading } from '@providers/loading';
-import { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { Box, Button, Divider, Grid, Stack, Typography } from '@mui/material';
-import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
+import {
+	Box,
+	Button,
+	Divider,
+	Fab,
+	Grid,
+	Stack,
+	Tooltip,
+	Typography,
+} from '@mui/material';
+import {
+	ProductStatus,
+	RequestStatus,
+	RequestStatusList,
+	ServiceType,
+} from '@utils/enums';
 import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
 import {
 	ArrowBack,
+	AssignmentTurnedIn,
 	CancelPresentation,
+	ContentPasteSearch,
 	Flag,
 	PriceCheck,
+	RequestQuote,
 	Sync,
+	WatchLater,
 } from '@mui/icons-material';
 import RequestEdit from './RequestEdit';
 import RequestUploadDocumentDialog from '@views/main/requests/RequestUploadDocumentDialog';
@@ -19,6 +37,7 @@ import CustomDataGrid from '@components/customDataGrid';
 import { GET_REQUEST } from '@views/main/requests/queryRequests';
 import {
 	FINISH_REQUEST,
+	QUOTED_REQUEST,
 	TRACE_REQUEST,
 } from '@views/main/requests/mutationRequests';
 import toast from 'react-hot-toast';
@@ -29,11 +48,6 @@ import {
 	SCOPES_REQUEST_DETAILS,
 } from '@config/permisissions/permissions';
 import RequestDetailsComments from '@views/main/requests/RequestDetailsComments';
-
-const REQUESTSTATUS = {
-	1: 'TRACING',
-	2: 'FINISHED',
-};
 
 const RequestDetails = (props) => {
 	const { id } = useParams();
@@ -49,6 +63,7 @@ const RequestDetails = (props) => {
 	});
 
 	const [traceRequest] = useMutation(TRACE_REQUEST);
+	const [quotedRequest] = useMutation(QUOTED_REQUEST);
 	const [finishRequest] = useMutation(FINISH_REQUEST);
 
 	useEffect(() => {
@@ -73,12 +88,13 @@ const RequestDetails = (props) => {
 			setCommentsByOperator(operatorComments);
 			setCommentsByManager(managerComments);
 		}
+		console.log(data);
 	}, [data]);
 
 	const changeRequestStatus = (status, sale = false) => {
 		setLoading(true);
 
-		if (REQUESTSTATUS[status] === 'TRACING') {
+		if (status === RequestStatusList.TRACING.name) {
 			traceRequest({ variables: { requestId: Number(id) } })
 				.then((res) => {
 					console.log(res);
@@ -89,7 +105,18 @@ const RequestDetails = (props) => {
 					console.log(err);
 					setLoading(false);
 				});
-		} else if (REQUESTSTATUS[status] === 'FINISHED') {
+		} else if (status === RequestStatusList.QUOTED.name) {
+			quotedRequest({ variables: { requestId: Number(id) } })
+				.then((res) => {
+					console.log(res);
+					refetch();
+					setLoading(false);
+				})
+				.catch((err) => {
+					console.log(err);
+					setLoading(false);
+				});
+		} else if (status === RequestStatusList.FINISHED.name) {
 			finishRequest({
 				variables: {
 					requestId: Number(id),
@@ -148,16 +175,6 @@ const RequestDetails = (props) => {
 
 	return (
 		<Fragment>
-			<Button
-				variant={'text'}
-				startIcon={<ArrowBack />}
-				sx={{ height: pxToRem(32) }}
-				onClick={() => {
-					navigate('/requests');
-				}}
-			>
-				Regresar
-			</Button>
 			<Box
 				sx={{
 					mt: pxToRem(12),
@@ -173,59 +190,117 @@ const RequestDetails = (props) => {
 						px: pxToRem(22),
 					}}
 				>
+					<Stack
+						flexDirection={'row'}
+						justifyContent={'space-between'}
+						alignItems={'center'}
+						sx={{
+							mb: pxToRem(16),
+						}}
+					>
+						<Button
+							variant={'text'}
+							startIcon={<ArrowBack />}
+							sx={{ height: pxToRem(32) }}
+							onClick={() => {
+								navigate('/requests');
+							}}
+						>
+							Regresar
+						</Button>
+
+						<Typography variant={'primaryLight12'}>
+							# {request?.shortId}
+						</Typography>
+					</Stack>
+
 					<Box
 						sx={{
 							mb: pxToRem(16),
 							display: 'flex',
-							flexDirection: 'row',
-							justifyContent: 'space-between',
-							alignItems: 'flex-start',
+							flexDirection: 'column',
 						}}
 					>
-						<Stack>
-							<Typography variant={'primaryLight12'}>Fecha</Typography>
-							{request && (
-								<Typography variant={'primaryNormal14'}>
-									{format(new Date(request.requestDate), 'dd/MM/yyyy - HH:mm')}
-								</Typography>
-							)}
-
-							<Divider sx={{ my: pxToRem(4) }} />
-
-							<Typography variant={'primaryLight12'}>Estatus</Typography>
-							<Typography variant={'primaryNormal14'}>
-								{request?.requestStatus
-									? RequestStatus[request?.requestStatus]
-									: 'N/D'}
-							</Typography>
-						</Stack>
-
-						<PermissionsGate
-							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
+						<Stack
+							flexDirection={'row'}
+							justifyContent={'space-between'}
+							alignItems={'center'}
 						>
-							<Button
-								variant={'contained'}
-								color={'info'}
-								startIcon={<Flag />}
-								sx={{
-									ml: 'auto',
-									display:
-										request?.requestStatus === REQUESTSTATUS[1] ||
-										request?.isSale !== null
-											? 'none'
-											: 'inline-flex',
-								}}
-								disabled={
-									request?.requestStatus === REQUESTSTATUS[1] ||
-									request?.isSale !== null
+							<Stack flexDirection={'row'} alignItems={'center'}>
+								{
+									{
+										PENDING: <WatchLater color={'error'} />,
+										TRACING: <ContentPasteSearch color={'warning'} />,
+										QUOTED: <RequestQuote color={'info'} />,
+										FINISHED: <AssignmentTurnedIn color={'success'} />,
+									}[request?.requestStatus]
 								}
-								onClick={() => {
-									changeRequestStatus(1);
-								}}
+								<Stack sx={{ ml: pxToRem(16) }}>
+									<Typography variant={'primaryLight12'}>Estatus</Typography>
+									<Typography variant={'primaryBold14'}>
+										{request?.requestStatus
+											? RequestStatus[request?.requestStatus]
+											: 'N/D'}
+									</Typography>
+								</Stack>
+							</Stack>
+
+							<PermissionsGate
+								scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
 							>
-								En curso
-							</Button>
-						</PermissionsGate>
+								<Button
+									variant={'text'}
+									color={'warning'}
+									startIcon={<ContentPasteSearch />}
+									sx={{
+										ml: 'auto',
+										display:
+											request?.requestStatus !==
+												RequestStatusList.PENDING.name ||
+											request?.isSale !== null
+												? 'none'
+												: 'inline-flex',
+									}}
+									disabled={
+										request?.requestStatus !== RequestStatusList.PENDING.name ||
+										request?.isSale !== null
+									}
+									onClick={() => {
+										changeRequestStatus('TRACING');
+									}}
+								>
+									marcar en curso
+								</Button>
+							</PermissionsGate>
+
+							<PermissionsGate
+								scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
+							>
+								<Button
+									variant={'text'}
+									color={'info'}
+									startIcon={<RequestQuote />}
+									sx={{
+										ml: 'auto',
+										display:
+											request?.requestStatus !==
+												RequestStatusList.TRACING.name ||
+											request?.isSale !== null
+												? 'none'
+												: 'inline-flex',
+									}}
+									disabled={
+										request?.requestStatus !== RequestStatusList.TRACING.name ||
+										request?.isSale !== null
+									}
+									onClick={() => {
+										changeRequestStatus('QUOTED');
+									}}
+								>
+									marcar como cotizado
+								</Button>
+							</PermissionsGate>
+						</Stack>
 					</Box>
 
 					<Grid container rowSpacing={pxToRem(26)}>
@@ -243,7 +318,22 @@ const RequestDetails = (props) => {
 								}}
 							>
 								<Grid container rowSpacing={2}>
-									<Grid item xs={3}>
+									<Grid item xs={4}>
+										<Stack>
+											<Typography variant={'secondaryLight12'}>
+												Fecha
+											</Typography>
+											{request && (
+												<Typography variant={'primaryNormal14'}>
+													{format(
+														new Date(request.requestDate),
+														'dd/MM/yyyy - HH:mm'
+													)}
+												</Typography>
+											)}
+										</Stack>
+									</Grid>
+									<Grid item xs={4}>
 										<Stack>
 											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
 												Medio de Contacto
@@ -253,7 +343,7 @@ const RequestDetails = (props) => {
 											</Typography>
 										</Stack>
 									</Grid>
-									<Grid item xs={3}>
+									<Grid item xs={4}>
 										<Stack>
 											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
 												Medio de Publicidad
@@ -270,16 +360,12 @@ const RequestDetails = (props) => {
 										</Stack>
 									</Grid>
 
-									<Grid item xs={6}>
+									<Grid item xs={4}>
 										<Stack>
-											<Typography
-												variant={'secondaryLight12'}
-												mb={pxToRem(4)}
-												align={'right'}
-											>
+											<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
 												Tipo de Servicio
 											</Typography>
-											<Typography variant={'primaryNormal14'} align={'right'}>
+											<Typography variant={'primaryNormal14'}>
 												{request?.serviceType
 													? ServiceType[request.serviceType]
 													: 'N/D'}
@@ -287,7 +373,7 @@ const RequestDetails = (props) => {
 										</Stack>
 									</Grid>
 
-									<Grid item xs={3}>
+									<Grid item xs={4}>
 										<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
 											Marca
 										</Typography>
@@ -295,15 +381,11 @@ const RequestDetails = (props) => {
 											{request?.brand?.name}
 										</Typography>
 									</Grid>
-									<Grid item xs={3}>
-										<Typography
-											variant={'secondaryLight12'}
-											mb={pxToRem(4)}
-											align={'right'}
-										>
+									<Grid item xs={4}>
+										<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
 											Estatus de producto
 										</Typography>
-										<Typography variant={'primaryNormal14'} align={'right'}>
+										<Typography variant={'primaryNormal14'}>
 											{request?.productStatus
 												? ProductStatus[request?.productStatus]
 												: 'N/D'}
@@ -525,7 +607,7 @@ const RequestDetails = (props) => {
 							<Typography variant={'secondaryLight12'} mb={pxToRem(4)}>
 								Asignado:
 							</Typography>
-							<Typography variant={'primaryNormal13'}>
+							<Typography variant={'primaryNormal13'} mb={pxToRem(8)}>
 								{request?.assignedUser.firstName}{' '}
 								{request?.assignedUser.lastName}
 							</Typography>
@@ -545,31 +627,67 @@ const RequestDetails = (props) => {
 						<PermissionsGate
 							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
 						>
-							<Stack sx={{ m: '2px auto 0' }}>
-								<Button
-									sx={{ my: pxToRem(4) }}
-									variant={'contained'}
-									color={'success'}
-									startIcon={<PriceCheck />}
-									disabled={request?.isSale !== null}
-									onClick={() => {
-										changeRequestStatus(2, true);
-									}}
+							<Stack>
+								<Typography
+									variant={'primaryLight14'}
+									align={'center'}
+									mb={pxToRem(4)}
 								>
-									Completar venta
-								</Button>
-								<Button
-									sx={{ my: pxToRem(4) }}
-									variant={'contained'}
-									color={'error'}
-									startIcon={<CancelPresentation />}
-									disabled={request?.isSale !== null}
-									onClick={() => {
-										changeRequestStatus(2);
-									}}
-								>
-									Rechazar venta
-								</Button>
+									Finalizar solicitud
+								</Typography>
+								<Stack flexDirection={'row'}>
+									<Tooltip
+										title={'Completar'}
+										slotProps={{
+											popper: {
+												modifiers: [
+													{
+														name: 'offset',
+														options: {
+															offset: [0, -10],
+														},
+													},
+												],
+											},
+										}}
+									>
+										<Fab
+											sx={{ mr: pxToRem(16) }}
+											color={'success'}
+											disabled={request?.isSale !== null}
+											onClick={() => {
+												changeRequestStatus('FINISHED', true);
+											}}
+										>
+											<PriceCheck />
+										</Fab>
+									</Tooltip>
+									<Tooltip
+										title={'Rechazar'}
+										slotProps={{
+											popper: {
+												modifiers: [
+													{
+														name: 'offset',
+														options: {
+															offset: [0, -10],
+														},
+													},
+												],
+											},
+										}}
+									>
+										<Fab
+											color={'error'}
+											disabled={request?.isSale !== null}
+											onClick={() => {
+												changeRequestStatus('FINISHED');
+											}}
+										>
+											<CancelPresentation />
+										</Fab>
+									</Tooltip>
+								</Stack>
 							</Stack>
 						</PermissionsGate>
 					</Box>
@@ -583,7 +701,7 @@ const RequestDetails = (props) => {
 							alignItems: 'flex-end',
 						}}
 					>
-						<Typography variant={'primaryBold14'}>Documentos</Typography>
+						<Typography variant={'primaryBold22'}>Documentos</Typography>
 
 						<PermissionsGate
 							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}

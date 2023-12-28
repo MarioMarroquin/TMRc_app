@@ -7,11 +7,18 @@ import {
 import { MRT_Localization_ES as es } from 'material-react-table/locales/es';
 import {
 	AssignmentTurnedIn,
+	ContentPasteSearch,
 	PlaylistAddCheckCircle,
+	RequestQuote,
 	WatchLater,
 } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import { ProductStatus, RequestStatus, ServiceType } from '@utils/enums';
+import {
+	ProductStatus,
+	RequestStatus,
+	RequestStatusList,
+	ServiceType,
+} from '@utils/enums';
 import { format } from 'date-fns';
 import { useRequests } from '@providers/requests';
 import exportExcelReport from '@views/main/requests/exportExcelReport';
@@ -48,7 +55,9 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 					} else if (value === 'PENDING') {
 						return <WatchLater color={'error'} />;
 					} else if (value === 'TRACING') {
-						return <PlaylistAddCheckCircle color={'info'} />;
+						return <ContentPasteSearch color={'warning'} />;
+					} else if (value === 'QUOTED') {
+						return <RequestQuote color={'info'} />;
 					} else {
 						return <AssignmentTurnedIn color={'success'} />;
 					}
@@ -65,7 +74,7 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorFn: (row) => RequestStatus[row.requestStatus],
+				accessorFn: (row) => RequestStatusList[row.requestStatus].format,
 				id: 'requestStatus',
 				header: 'ESTATUS',
 				size: 145,
@@ -76,10 +85,6 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 
 					if (!value) {
 						return '';
-					} else if (value === RequestStatus.PENDING) {
-						return <Typography color={'error'}>{value}</Typography>;
-					} else if (value === RequestStatus.TRACING) {
-						return <Typography color={'info'}>{value}</Typography>;
 					} else {
 						return <Typography>{value}</Typography>;
 					}

@@ -3,6 +3,9 @@ import { esES } from '@mui/material/locale';
 import { esES as esESX } from '@mui/x-data-grid';
 import palette from '@config/theme/light/palette';
 import { pxToRem } from '@config/theme/functions';
+import normalFont from '@config/theme/light/normalFont';
+import lightFont from '@config/theme/light/lightFont';
+import boldfont from '@config/theme/light/boldfont';
 
 const theme = createTheme(
 	{
@@ -10,79 +13,9 @@ const theme = createTheme(
 		typography: {
 			fontSize: 14,
 			fontFamily: 'Inter',
-			primaryLight12: {
-				fontSize: 12,
-				fontWeight: 400,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryBold12: {
-				fontSize: 12,
-				fontWeight: 700,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryNormal13: {
-				fontSize: 13,
-				fontWeight: 500,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryNormal14: {
-				fontSize: 14,
-				fontWeight: 500,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryLight14: {
-				fontSize: 14,
-				fontWeight: 400,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryLight16: {
-				fontSize: 16,
-				fontWeight: 400,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryNormal16: {
-				fontSize: 16,
-				fontWeight: 500,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryBold14: {
-				fontSize: 22,
-				fontWeight: 700,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			primaryBold20: {
-				fontSize: 20,
-				fontWeight: 700,
-				display: 'block',
-			},
-			primaryBold32: {
-				fontSize: 32,
-				fontWeight: 700,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			secondaryLight12: {
-				color: palette.text.secondary,
-				fontSize: 12,
-				fontWeight: 400,
-				display: 'block',
-				lineHeight: 'normal',
-			},
-			secondaryLight14: {
-				color: palette.text.secondary,
-				fontSize: 14,
-				fontWeight: 400,
-				display: 'block',
-				lineHeight: 'normal',
-			},
+			...normalFont,
+			...lightFont,
+			...boldfont,
 		},
 		palette: {
 			mode: 'light',
