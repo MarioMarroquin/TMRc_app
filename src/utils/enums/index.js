@@ -1,11 +1,19 @@
 const ServiceType = {
 	SALE: 'VENTA',
 	RENT: 'RENTA',
+	RENTSALE: 'RENTA / VENTA',
 	REF: 'REF',
 	SERVICE: 'SERVICIO',
 };
 
-const ContactMedium = ['TMR', 'WHATSAPP', 'CORREO', 'LLAMADA'];
+const ContactMedium = [
+	'WHATSAPP',
+	'RECEPCION',
+	'CORREO',
+	'LLAMADA',
+	'FACEBOOK',
+	'INSTAGRAM',
+];
 
 const ProductStatus = {
 	NEW: 'NUEVO',
@@ -15,7 +23,21 @@ const ProductStatus = {
 const RequestStatus = {
 	PENDING: 'PENDIENTE',
 	TRACING: 'EN CURSO',
+	QUOTED: 'COTIZADO',
 	FINISHED: 'CONCLUIDO',
 };
 
-export { ServiceType, ContactMedium, ProductStatus, RequestStatus };
+const RequestStatusList = {
+	PENDING: { format: 'PENDIENTE', name: 'PENDING' },
+	TRACING: { format: 'EN CURSO', name: 'TRACING' },
+	QUOTED: { format: 'COTIZADO', name: 'QUOTED' },
+	FINISHED: { format: 'CONCLUIDO', name: 'FINISHED' },
+};
+
+export {
+	ServiceType,
+	ContactMedium,
+	ProductStatus,
+	RequestStatus,
+	RequestStatusList,
+};
