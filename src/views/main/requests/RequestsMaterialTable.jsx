@@ -26,6 +26,15 @@ import PermissionsGate from '@components/PermissionsGate';
 import { SCOPES_REQUEST } from '@config/permisissions/permissions';
 import exportExcelTable from '@views/main/requests/exportExcelTable';
 
+const checkStatus = (status, isSale) => {
+	const auxStatus =
+		status === 'FINISHED' && !isSale
+			? 'SIN CONCRETAR'
+			: RequestStatusList[status].format;
+
+	return auxStatus;
+};
+
 const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 	const {
 		countRows,
@@ -50,6 +59,7 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				enableColumnOrdering: false,
 				Cell: ({ cell }) => {
 					const value = cell.getValue();
+					const isSale = cell.row.original.isSale;
 					if (!value) {
 						return '';
 					} else if (value === 'PENDING') {
@@ -59,7 +69,11 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 					} else if (value === 'QUOTED') {
 						return <RequestQuote color={'info'} />;
 					} else {
-						return <AssignmentTurnedIn color={'success'} />;
+						return (
+							<AssignmentTurnedIn
+								sx={{ color: isSale ? '#2e7d32' : '#F8A424' }}
+							/>
+						);
 					}
 				},
 			},
@@ -74,7 +88,7 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
-				accessorFn: (row) => RequestStatusList[row.requestStatus].format,
+				accessorFn: (row) => checkStatus(row.requestStatus, row?.isSale),
 				id: 'requestStatus',
 				header: 'ESTATUS',
 				size: 145,
