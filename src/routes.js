@@ -1,13 +1,12 @@
-import { Business, Person, SettingsPhone } from '@mui/icons-material';
+import { Business, Person, Settings, SettingsPhone } from '@mui/icons-material';
 import { lazy } from 'react';
 
 const Requests = lazy(() => import('./views/main/requests'));
 const RequestDetails = lazy(() =>
 	import('./views/main/requests/RequestDetails')
 );
-const Companies = lazy(() => import('./views/main/companies'));
-const Clients = lazy(() => import('./views/main/clients'));
-const ClientDetails = lazy(() => import('./views/main/clients/ClientDetails'));
+const Maintenance = lazy(() => import('./views/main/maintenance'));
+const Clients = lazy(() => import('./views/main/maintenance/clients'));
 
 const mainRoutes = [
 	{
@@ -15,7 +14,16 @@ const mainRoutes = [
 		path: '/requests',
 		icon: <SettingsPhone />,
 		element: <Requests />,
+		index: true,
 		children: [{ path: ':id', element: <RequestDetails /> }],
+	},
+	{
+		name: 'Mantenimiento',
+		path: '/maintenance',
+		icon: <Settings />,
+		element: <Maintenance />,
+		index: false,
+		children: [{ path: 'clients', element: <Clients /> }],
 	},
 	// {
 	// 	name: 'Compañías',
