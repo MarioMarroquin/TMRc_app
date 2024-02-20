@@ -36,6 +36,7 @@
   "dependencies": {
     "@apollo/client": "^3.7.10",
     "@mui/icons-material": "^5.11.11",
+    "@mui/lab": "^5.0.0-alpha.165",
     "@mui/material": "^5.14.3",
     "@mui/styled-engine-sc": "^5.11.11",
     "@mui/x-data-grid": "^6.0.2",

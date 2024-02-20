@@ -12,6 +12,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { RequestsProvider } from '@providers/requests';
 import { es } from 'date-fns/locale';
+import { LoaderProvider } from '@providers/loader';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -21,15 +22,17 @@ root.render(
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
 			<ApolloProvider client={client}>
-				<LoadingProvider>
-					<SessionProvider>
-						<RequestsProvider>
-							<Router basename='/'>
-								<App />
-							</Router>
-						</RequestsProvider>
-					</SessionProvider>
-				</LoadingProvider>
+				<LoaderProvider>
+					<LoadingProvider>
+						<SessionProvider>
+							<RequestsProvider>
+								<Router basename='/'>
+									<App />
+								</Router>
+							</RequestsProvider>
+						</SessionProvider>
+					</LoadingProvider>
+				</LoaderProvider>
 			</ApolloProvider>
 		</ThemeProvider>
 	</LocalizationProvider>

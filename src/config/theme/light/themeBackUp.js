@@ -9,7 +9,7 @@ import boldfont from '@config/theme/light/boldfont';
 
 const theme = createTheme(
 	{
-		shape: { borderRadius: 12 },
+		shape: { borderRadius: 16 },
 		typography: {
 			fontSize: 14,
 			fontFamily: 'Inter',
@@ -23,9 +23,18 @@ const theme = createTheme(
 		},
 		components: {
 			MuiTextField: {
-				defaultProps: { size: 'small' },
+				defaultProps: {
+					fullWidth: true,
+					margin: 'dense',
+				},
 				styleOverrides: {
 					root: {
+						'& .MuiInputBase-root': {
+							minHeight: '48px',
+						},
+						'& label.Mui-focused': {
+							color: palette.secondary.main,
+						},
 						'& .MuiOutlinedInput-root': {
 							'& fieldset': {
 								borderColor: 'transparent',
@@ -34,10 +43,15 @@ const theme = createTheme(
 								borderColor: 'transparent',
 							},
 							'&.Mui-focused fieldset': {
-								borderColor: palette.primary.main,
+								borderColor: palette.secondary.main,
 							},
 						},
+						borderRadius: pxToRem(12),
+						fieldset: {
+							borderRadius: pxToRem(12),
+						},
 						input: {
+							fontSize: 14,
 							'&::placeholder': {
 								color: '#CDCDCD',
 								opacity: 1,
@@ -49,7 +63,21 @@ const theme = createTheme(
 			MuiOutlinedInput: {
 				styleOverrides: {
 					root: {
+						paddingTop: '0px !important',
+						paddingBottom: '0px !important',
+						paddingLeft: '8px !important',
+						borderRadius: pxToRem(12),
 						backgroundColor: '#F4F4F4',
+						'&:hover': {
+							backgroundColor: palette.secondary.hover,
+						},
+						'&.Mui-disabled': {
+							opacity: 0.4,
+							backgroundColor: '#fcfcfe',
+						},
+						'&.Mui-focused': {
+							backgroundColor: palette.secondary.light,
+						},
 					},
 				},
 			},
@@ -69,9 +97,11 @@ const theme = createTheme(
 				},
 			},
 			MuiButton: {
-				defaultProps: { variant: 'contained', size: 'small' },
+				defaultProps: { variant: 'contained' },
 				styleOverrides: {
 					root: {
+						borderRadius: pxToRem(12),
+						height: pxToRem(48),
 						textTransform: 'none',
 					},
 				},
@@ -100,7 +130,30 @@ const theme = createTheme(
 					},
 				},
 			},
-
+			MuiFormControl: {
+				defaultProps: { fullWidth: true, variant: 'outlined' },
+				styleOverrides: {
+					root: {
+						'& .MuiInputBase-root': {
+							minHeight: '48px',
+						},
+						'& label.Mui-focused': {
+							color: palette.secondary.main,
+						},
+						'& .MuiOutlinedInput-root': {
+							'& fieldset': {
+								borderColor: 'transparent',
+							},
+							'&:hover fieldset': {
+								borderColor: 'transparent',
+							},
+							'&.Mui-focused fieldset': {
+								borderColor: palette.secondary.main,
+							},
+						},
+					},
+				},
+			},
 			MuiInputLabel: {
 				styleOverrides: { root: { fontSize: 12 } },
 			},
