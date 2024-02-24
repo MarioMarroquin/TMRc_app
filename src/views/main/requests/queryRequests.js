@@ -21,8 +21,13 @@ const GET_REQUEST = gql`
 			}
 			managerComments {
 				id
-				createdAt
 				comment
+				createdAt
+				createdBy {
+					id
+					firstName
+					lastName
+				}
 			}
 			assignedUser {
 				id

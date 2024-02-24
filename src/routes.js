@@ -2,9 +2,7 @@ import { Business, Person, Settings, SettingsPhone } from '@mui/icons-material';
 import { lazy } from 'react';
 
 const Requests = lazy(() => import('./views/main/requests'));
-const RequestDetails = lazy(() =>
-	import('./views/main/requests/RequestDetails')
-);
+const LeadDetail = lazy(() => import('@views/main/leads/leadDetail'));
 const Maintenance = lazy(() => import('./views/main/maintenance'));
 const Clients = lazy(() => import('./views/main/maintenance/clients'));
 
@@ -15,7 +13,7 @@ const mainRoutes = [
 		icon: <SettingsPhone />,
 		element: <Requests />,
 		index: true,
-		children: [{ path: ':id', element: <RequestDetails /> }],
+		children: [{ path: ':id', element: <LeadDetail /> }],
 	},
 	{
 		name: 'Mantenimiento',

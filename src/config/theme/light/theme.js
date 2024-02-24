@@ -9,7 +9,7 @@ import boldfont from '@config/theme/light/boldfont';
 
 const theme = createTheme(
 	{
-		shape: { borderRadius: 12 },
+		shape: { borderRadius: 8 },
 		typography: {
 			fontSize: 14,
 			fontFamily: 'Inter',
@@ -58,7 +58,7 @@ const theme = createTheme(
 					PaperComponent: (props) => (
 						<Paper
 							sx={{
-								borderRadius: `0 0 ${pxToRem(12)} ${pxToRem(12)}`,
+								borderRadius: `0 0 ${pxToRem(8)} ${pxToRem(8)}`,
 								boxShadow: `0px 15px 16px rgba(3, 7, 18, 0.20),
 														0px 60px 65px rgba(3, 7, 18, 0.10);
 														`,
@@ -73,6 +73,9 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						textTransform: 'none',
+						fontSize: 14,
+						fontWeight: 600,
+						padding: `4px 12px`,
 					},
 				},
 			},
@@ -86,7 +89,7 @@ const theme = createTheme(
 					MenuProps: {
 						sx: {
 							'& .MuiPaper-root': {
-								borderRadius: `0 0 ${pxToRem(12)} ${pxToRem(12)}`,
+								borderRadius: `0 0 ${pxToRem(8)} ${pxToRem(8)}`,
 								// marginTop: theme.spacing(1),
 								color: 'rgb(55, 65, 81)',
 								boxShadow: `0px 15px 16px rgba(3, 7, 18, 0.20),

@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 
-const Index = (props) => {
+const Leads = (props) => {
 	return <div></div>;
 };
 
-Index.propTypes = {};
+Leads.propTypes = {};
 
-export default Index;
+export default Leads;

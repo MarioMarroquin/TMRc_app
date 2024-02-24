@@ -160,7 +160,7 @@ const Requests = (props) => {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
 
-			// console.log('aux', aux);
+			console.log('Requests: ', aux);
 			// console.log('auxCount', auxCount);
 			setRequests(aux);
 			setCountRows(auxCount);

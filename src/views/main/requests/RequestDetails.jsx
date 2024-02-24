@@ -58,22 +58,6 @@ const RequestDetails = (props) => {
 	const [commentsByManager, setCommentsByManager] = useState([]);
 	const [commentsByOperator, setCommentsByOperator] = useState([]);
 
-	const { data, loading, refetch } = useQuery(GET_REQUEST, {
-		variables: { requestId: Number(id) }, // tiene que ser Number porque params lo hace string
-	});
-
-	const [traceRequest] = useMutation(TRACE_REQUEST);
-	const [quotedRequest] = useMutation(QUOTED_REQUEST);
-	const [finishRequest] = useMutation(FINISH_REQUEST);
-
-	useEffect(() => {
-		if (loading) {
-			setLoading(true);
-		} else {
-			setLoading(false);
-		}
-	}, [loading]);
-
 	useEffect(() => {
 		if (data) {
 			const {
@@ -88,52 +72,8 @@ const RequestDetails = (props) => {
 			setCommentsByOperator(operatorComments);
 			setCommentsByManager(managerComments);
 		}
-		console.log(data);
+		console.log('Details: ', data);
 	}, [data]);
-
-	const changeRequestStatus = (status, sale = false) => {
-		setLoading(true);
-
-		if (status === RequestStatusList.TRACING.name) {
-			traceRequest({ variables: { requestId: Number(id) } })
-				.then((res) => {
-					console.log(res);
-					refetch();
-					setLoading(false);
-				})
-				.catch((err) => {
-					console.log(err);
-					setLoading(false);
-				});
-		} else if (status === RequestStatusList.QUOTED.name) {
-			quotedRequest({ variables: { requestId: Number(id) } })
-				.then((res) => {
-					console.log(res);
-					refetch();
-					setLoading(false);
-				})
-				.catch((err) => {
-					console.log(err);
-					setLoading(false);
-				});
-		} else if (status === RequestStatusList.FINISHED.name) {
-			finishRequest({
-				variables: {
-					requestId: Number(id),
-					sale,
-				},
-			})
-				.then((res) => {
-					console.log(res);
-					refetch();
-					setLoading(false);
-				})
-				.catch((err) => {
-					console.log(err);
-					setLoading(false);
-				});
-		}
-	};
 
 	const DataGridDocsHeaders = [
 		{
@@ -149,27 +89,6 @@ const RequestDetails = (props) => {
 			headerAlign: 'center',
 			align: 'left',
 			flex: 0.6,
-		},
-	];
-
-	const DataGridCommentHeaders = [
-		{
-			field: 'createdAt',
-			headerName: 'Fecha',
-			headerAlign: 'left',
-			align: 'center',
-			valueFormatter: (params) => {
-				return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
-			},
-		},
-		{
-			field: 'comment',
-			headerName: 'Fecha',
-			headerAlign: 'left',
-			align: 'center',
-			valueFormatter: (params) => {
-				return format(new Date(params.value), 'dd/MM/yyyy - HH:mm');
-			},
 		},
 	];
 
@@ -198,17 +117,6 @@ const RequestDetails = (props) => {
 							mb: pxToRem(16),
 						}}
 					>
-						<Button
-							variant={'text'}
-							startIcon={<ArrowBack />}
-							sx={{ height: pxToRem(32) }}
-							onClick={() => {
-								navigate('/requests');
-							}}
-						>
-							Regresar
-						</Button>
-
 						<Typography variant={'primaryLight12'}>
 							# {request?.shortId}
 						</Typography>
@@ -568,21 +476,6 @@ const RequestDetails = (props) => {
 							alignItems: 'center',
 						}}
 					>
-						<Button
-							variant={'contained'}
-							color={'secondary'}
-							onClick={() => {
-								const toastId = toast.loading('Actualizando...');
-								refetch().then((res) => {
-									console.log('Actualizado', res);
-
-									toast.success('Actualizado', { id: toastId });
-								});
-							}}
-						>
-							<Sync />
-						</Button>
-
 						<PermissionsGate
 							scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.edit]}
 						>
