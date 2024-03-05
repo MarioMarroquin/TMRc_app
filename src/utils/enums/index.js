@@ -13,6 +13,7 @@ const ContactMedium = [
 	'LLAMADA',
 	'FACEBOOK',
 	'INSTAGRAM',
+	'MERCADO LIBRE',
 ];
 
 const ProductStatus = {
