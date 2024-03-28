@@ -14,8 +14,8 @@ const LoadingProvider = ({ children }) => {
 
 	return (
 		<LoadingContext.Provider value={value}>
-			<Toaster />
-			<Loader />
+			{/* <Toaster /> */}
+			{/* <Loader /> */}
 			{children}
 		</LoadingContext.Provider>
 	);

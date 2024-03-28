@@ -38,8 +38,8 @@ const MainLayout = () => {
 					overflow: 'auto',
 				}}
 			>
-				<Toolbar sx={{ mt: pxToRem(16) }} />
-				<Container disableGutters maxWidth={'xl'}>
+				<Toolbar />
+				<Container disableGutters maxWidth={'xl'} sx={{ px: 8 }}>
 					<Outlet />
 				</Container>
 			</Box>

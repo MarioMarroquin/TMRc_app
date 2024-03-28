@@ -9,125 +9,111 @@ import {
 	useTheme,
 } from '@mui/material';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useLoading } from '@providers/loading';
 import { authClient } from '@utils/auth';
 import { useSession } from '@providers/session';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-
-const InitialLoginForm = {
-	username: '',
-	password: '',
-	expires: false,
-};
+import cover from '@utils/images/4.png';
+import useLogin from '@views/auth/login/useLogin';
+import { LoadingButton } from '@mui/lab';
 
 const Login = () => {
-	const theme = useTheme();
-	const navigate = useNavigate();
-	const { setIsLogged } = useSession();
-
-	const { setLoading } = useLoading();
-
-	const [showPassword, setShowPassword] = useState(false);
-	const [loginForm, setLoginForm] = useState(InitialLoginForm);
-
-	const toggleVisibility = () => setShowPassword((show) => !show);
-
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setLoginForm({ ...loginForm, [name]: value });
-	};
-
-	const onFinish = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-
-		try {
-			await authClient.post('/login', loginForm).then((res) => {
-				setIsLogged(true);
-				setLoading(false);
-				navigate('/home');
-			});
-		} catch (err) {
-			toast.error('Revisa el correo y/o la contraseña');
-			setLoading(false);
-		}
-	};
-
+	const {
+		credential,
+		credentialInputChange,
+		hidePassword,
+		loading,
+		login,
+		toggleHide,
+	} = useLogin();
 	const onEnter = (e) => {
-		if (loginForm.username && loginForm.password && e.key === 'Enter')
-			onFinish(e);
+		if (credential.username && credential.password && e.key === 'Enter')
+			login(e);
 	};
 
 	return (
-		<Box sx={{ p: 2 }}>
-			<img src={TMRLogo} alt={'TMR Logo'} />
+		<Fragment>
+			<img
+				src={TMRLogo}
+				alt={'TMR Logo'}
+				height={55}
+				style={{ margin: `32px auto 0px 16px` }}
+			/>
+			<Box
+				sx={{
+					display: 'flex',
+					flexDirection: 'column',
+					my: 'auto',
+					width: '400px',
+					maxWidth: '100%',
+					mx: 'auto',
+					bgcolor: '#fff',
+					borderRadius: 1,
+					py: 3,
+					pb: 5,
+					px: 3,
+				}}
+			>
+				<Typography fontSize={24} fontWeight={600}>
+					¡Hola, bienvenido!
+				</Typography>
+				<Typography fontSize={16} fontWeight={500} color={'text.secondary'}>
+					inicia sesión
+				</Typography>
 
-			<Paper sx={{ mt: 5, p: 3 }}>
-				<Box
-					sx={{
-						backgroundColor: theme.palette.secondary.main,
-						borderRadius: 1,
-						marginTop: -5,
-						boxShadow: 10,
-						color: 'white',
-						padding: 4,
-						marginBottom: 3,
-					}}
-				>
-					<Typography align={'center'} variant={'h4'}>
-						Inicio de sesión
+				<Box sx={{ display: 'flex', flexDirection: 'column', mt: '24px' }}>
+					<Typography fontSize={12} fontWeight={500} ml={'4px'}>
+						nombre de usuario
 					</Typography>
-					<Typography align={'center'}>
-						Introduce tus datos para iniciar sesión
-					</Typography>
-				</Box>
-
-				<Box display={'flex'} flexDirection={'column'}>
 					<TextField
 						id={'username'}
 						name={'username'}
-						label={'Usuario'}
-						margin={'normal'}
+						placeholder={'usuario'}
 						autoFocus
 						fullWidth
-						value={loginForm.username}
-						onChange={handleInputChange}
+						value={credential.username}
+						onChange={credentialInputChange}
 						onKeyDown={onEnter}
 					/>
+
+					<Typography fontSize={12} fontWeight={500} ml={'4px'} mt={'16px'}>
+						contraseña
+					</Typography>
 					<TextField
 						id={'password'}
 						name={'password'}
-						label={'Contraseña'}
-						margin={'normal'}
-						type={showPassword ? 'text' : 'password'}
+						placeholder={'contraseña'}
+						type={hidePassword ? 'password' : 'text'}
 						fullWidth
-						value={loginForm.password}
-						onChange={handleInputChange}
+						value={credential.password}
+						onChange={credentialInputChange}
 						onKeyDown={onEnter}
 						InputProps={{
 							endAdornment: (
 								<InputAdornment position='end'>
-									<IconButton onClick={toggleVisibility} edge='end'>
-										{showPassword ? <VisibilityOff /> : <Visibility />}
+									<IconButton onClick={toggleHide} edge='end' color={'primary'}>
+										{hidePassword ? <Visibility /> : <VisibilityOff />}
 									</IconButton>
 								</InputAdornment>
 							),
 						}}
 					/>
 
-					<Button
-						onClick={onFinish}
-						disabled={!(loginForm.username && loginForm.password)}
-						sx={{ mx: 'auto', mt: 2, mb: 2 }}
+					<LoadingButton
+						disabled={!(credential.username && credential.password)}
+						loading={Boolean(loading)}
+						onClick={login}
+						sx={{ mt: '48px' }}
+						variant={'contained'}
 					>
 						Iniciar Sesión
-					</Button>
+					</LoadingButton>
 				</Box>
-			</Paper>
-		</Box>
+			</Box>
+		</Fragment>
 	);
 };
 

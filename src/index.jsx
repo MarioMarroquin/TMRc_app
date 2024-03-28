@@ -10,8 +10,9 @@ import { SessionProvider } from '@providers/session';
 import theme from '@config/theme/light/theme';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { RequestsProvider } from '@providers/requests';
 import { es } from 'date-fns/locale';
+import { LoaderProvider } from '@providers/loader';
+import { UsersProvider } from '@providers/users';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -21,15 +22,17 @@ root.render(
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
 			<ApolloProvider client={client}>
-				<LoadingProvider>
-					<SessionProvider>
-						<RequestsProvider>
-							<Router basename='/'>
-								<App />
-							</Router>
-						</RequestsProvider>
-					</SessionProvider>
-				</LoadingProvider>
+				<LoaderProvider>
+					<LoadingProvider>
+						<SessionProvider>
+							<UsersProvider>
+								<Router basename='/'>
+									<App />
+								</Router>
+							</UsersProvider>
+						</SessionProvider>
+					</LoadingProvider>
+				</LoaderProvider>
 			</ApolloProvider>
 		</ThemeProvider>
 	</LocalizationProvider>

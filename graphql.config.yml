@@ -1,0 +1,4 @@
+schema:
+  - http://localhost:8015/graphql:
+      headers:
+        Authorization: Bearer

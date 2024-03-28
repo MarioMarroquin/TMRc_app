@@ -1,14 +1,20 @@
-import { Backdrop, useTheme } from '@mui/material';
+import { Backdrop, Box, LinearProgress, useTheme } from '@mui/material';
 import { Rings } from 'react-loader-spinner';
 import { useLoading } from '@providers/loading';
+import { useLoaderContext } from '@providers/loader';
 
 const Loader = () => {
-	const { loading } = useLoading();
-	const theme = useTheme();
+	const { loading } = useLoaderContext();
 
+	// Transparent backdrop, prevent clicks
 	return (
-		<Backdrop sx={{ zIndex: 1500 }} open={loading}>
-			<Rings height='150' width='150' color={theme.palette.primary.main} />
+		<Backdrop
+			sx={{ zIndex: 1500, backgroundColor: 'transparent' }}
+			open={Boolean(loading)}
+		>
+			<Box sx={{ width: '100%', height: '100%' }}>
+				<LinearProgress sx={{ width: '100%' }} />
+			</Box>
 		</Backdrop>
 	);
 };

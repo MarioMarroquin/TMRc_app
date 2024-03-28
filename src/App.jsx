@@ -11,12 +11,13 @@ import { Box } from '@mui/material';
 import TMRLogo from '@utils/logo/TMR_logo.svg'; // theme css file
 
 const routeGenerator = (route) => {
-	const { children, path, element } = route;
+	const { children, path, element, index } = route;
 
+	// if children, checks if index of main Outlet, if not renders inside direct parent
 	if (children) {
 		return (
-			<Route key={path} path={path}>
-				<Route index element={element} />
+			<Route key={path} path={path} element={!index ? element : undefined}>
+				{index && <Route index element={element} />}
 				{children.map((child) => routeGenerator(child))}
 			</Route>
 		);

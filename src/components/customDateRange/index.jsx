@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { DateRange } from 'react-date-range';
-import { Box, Button, Grow, Paper, useTheme } from '@mui/material';
+import { Box, Button, Grow, MenuItem, Paper, useTheme } from '@mui/material';
 import { Fragment, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import './index.css';
@@ -8,16 +8,25 @@ import { paperClasses } from '@mui/material/Paper';
 import { es } from 'date-fns/locale';
 import { CalendarIcon } from '@mui/x-date-pickers';
 import { pxToRem } from '@config/theme/functions';
+import CustomMenu from '@components/customMenu';
 
 const CustomDateRange = (props) => {
+	const [anchorMenu, setAnchorMenu] = useState(null);
+	const handleOpenMenu = (event) => {
+		setAnchorMenu(event.currentTarget);
+	};
+
+	const handleCloseMenu = () => {
+		setAnchorMenu(null);
+	};
+
 	const theme = useTheme();
-	const [visible, setVisible] = useState(false);
-	const toggleVisible = () => setVisible((prevState) => !prevState);
 
 	useEffect(() => {
-		if (visible) {
+		if (anchorMenu) {
 			if (props.ranges[0].startDate !== props.ranges[0].endDate) {
-				toggleVisible();
+				handleCloseMenu();
+				props.fetch();
 			}
 		}
 	}, [props.ranges[0]]);
@@ -51,25 +60,14 @@ const CustomDateRange = (props) => {
 				<Button
 					sx={{
 						textTransform: 'none',
-						width: 332,
+						minWidth: 292,
 						height: '100%',
 						bgcolor: '#f9f9f9',
 						border: 'none',
 						borderRadius: pxToRem(12),
-						'&:hover': {
-							backgroundColor: '#f7faff',
-							border: 'none',
-						},
-						'&.Mui-focused': {
-							backgroundColor: '#f9fcff',
-
-							'&:hover': {
-								backgroundColor: '#f7faff',
-							},
-						},
 					}}
-					onClick={toggleVisible}
-					variant={'outlined'}
+					onClick={handleOpenMenu}
+					variant={'text'}
 					startIcon={<CalendarIcon />}
 				>
 					{format(props.ranges[0].startDate, 'dd MMM yy', {
@@ -81,13 +79,12 @@ const CustomDateRange = (props) => {
 					})}
 				</Button>
 
-				<Grow in={visible}>
+				<CustomMenu anchorEl={anchorMenu} open={Boolean(anchorMenu)}>
 					<Box
-						component={Paper}
 						sx={{
-							zIndex: 1000,
-							position: 'absolute',
-							mt: 2,
+							display: 'flex',
+							width: '100%',
+							p: 8,
 						}}
 					>
 						<DateRange
@@ -98,7 +95,7 @@ const CustomDateRange = (props) => {
 							locale={es}
 						/>
 					</Box>
-				</Grow>
+				</CustomMenu>
 			</Box>
 		</Fragment>
 	);

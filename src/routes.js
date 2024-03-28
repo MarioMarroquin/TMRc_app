@@ -1,22 +1,28 @@
-import { Business, Person, SettingsPhone } from '@mui/icons-material';
+import { Business, Person, Settings, SettingsPhone } from '@mui/icons-material';
 import { lazy } from 'react';
 
-const Requests = lazy(() => import('./views/main/requests'));
-const RequestDetails = lazy(() =>
-	import('./views/main/requests/RequestDetails')
-);
-const Companies = lazy(() => import('./views/main/companies'));
-const Clients = lazy(() => import('./views/main/clients'));
-const ClientDetails = lazy(() => import('./views/main/clients/ClientDetails'));
+const Leads = lazy(() => import('./views/main/leads'));
+const LeadDetail = lazy(() => import('./views/main/leads/subviews/leadDetail'));
+const Maintenance = lazy(() => import('./views/main/maintenance'));
+const Clients = lazy(() => import('./views/main/maintenance/clients'));
 
 const mainRoutes = [
 	{
 		name: 'Solicitudes',
 		path: '/requests',
 		icon: <SettingsPhone />,
-		element: <Requests />,
-		children: [{ path: ':id', element: <RequestDetails /> }],
+		element: <Leads />,
+		index: true,
+		children: [{ path: ':id', element: <LeadDetail /> }],
 	},
+	// {
+	// 	name: 'Mantenimiento',
+	// 	path: '/maintenance',
+	// 	icon: <Settings />,
+	// 	element: <Maintenance />,
+	// 	index: false,
+	// 	children: [{ path: 'clients', element: <Clients /> }],
+	// },
 	// {
 	// 	name: 'Compañías',
 	// 	path: '/companies',

@@ -44,20 +44,22 @@ const DrawerContent = () => {
 				{mainRoutes.map(({ icon, name, path }) => {
 					return (
 						<ListItemButton
+							disableRipple
+							disableTouchRipple
 							key={path}
 							selected={location.includes(path)}
 							onClick={() => {
 								navigate(path, { replace: true });
 							}}
 							sx={{
-								py: 2, // 56px in total
+								py: 8, // 56px in total
 								borderTopRightRadius: 12,
 								borderBottomRightRadius: 12,
-								'&:hover': {
-									backgroundColor: `${theme.palette.secondary.main}15`,
-								},
+								// '&:hover': {
+								// 	backgroundColor: `${theme.palette.secondary.main}15`,
+								// },
 								'&.Mui-selected': {
-									color: theme.palette.background.default,
+									color: '#FFF',
 									backgroundColor: theme.palette.primary.main,
 									'&:hover': {
 										backgroundColor: `${theme.palette.primary.main}90`,
@@ -76,7 +78,8 @@ const DrawerContent = () => {
 							<ListItemText
 								primary={name}
 								primaryTypographyProps={{
-									variant: 'primaryBold12',
+									fontSize: 14,
+									fontWeight: 600,
 								}}
 							/>
 						</ListItemButton>

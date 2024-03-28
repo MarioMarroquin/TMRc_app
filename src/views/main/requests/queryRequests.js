@@ -3,80 +3,92 @@ import { gql } from '@apollo/client';
 const GET_REQUEST = gql`
 	query Request($requestId: Int!) {
 		request(requestId: $requestId) {
-			id
-			shortId
-			requestDate
-			serviceType
-			contactMedium
 			advertisingMedium
-			productStatus
-			comments
-			extraComments
-			requestStatus
-			isSale
-			operatorComments {
-				id
-				createdAt
-				comment
-			}
-			managerComments {
-				id
-				createdAt
-				comment
-			}
 			assignedUser {
-				id
-				role
-				username
+				email
 				firstName
+				id
 				lastName
 				phoneNumber
-				email
+				role
+				username
 			}
 			brand {
 				id
 				name
 			}
 			client {
-				id
+				email
 				firstName
+				id
 				lastName
 				phoneNumber
-				email
 			}
+			comments
 			company {
+				email
 				id
 				name
 				phoneNumber
 				website
-				email
 			}
+			contactMedium
+			createdAt
 			createdBy {
-				id
-				role
-				username
+				email
 				firstName
 				lastName
+				id
 				phoneNumber
-				email
+				role
+				username
 			}
 			documents {
-				id
-				title
+				createdAt
+				fileSize
 				fileURL
-				path
-			}
-			updatedBy {
 				id
-				role
-				username
+				path
+				title
+			}
+			extraComments
+			id
+			isSale
+			managerComments {
+				comment
+				createdAt
+				createdBy {
+					firstName
+					id
+					lastName
+				}
+				id
+			}
+			operatorComments {
+				comment
+				createdAt
+				createdBy {
+					firstName
+					id
+					lastName
+				}
+				id
+			}
+			productStatus
+			requestDate
+			requestStatus
+			serviceType
+			shortId
+			updatedAt
+			updatedBy {
+				email
 				firstName
 				lastName
+				id
 				phoneNumber
-				email
+				role
+				username
 			}
-			createdAt
-			updatedAt
 		}
 	}
 `;
