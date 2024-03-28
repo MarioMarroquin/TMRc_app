@@ -18,12 +18,12 @@ const DesktopDrawer = (props) => {
 					// height: `calc(100vh - 32px)`,
 					// top: pxToRem(16),
 					// borderRadius: pxToRem(16),
-					marginRight: pxToRem(16),
+					marginRight: 12,
 					border: 'none',
 					whiteSpace: 'nowrap',
 					boxSizing: 'border-box',
 					backdropFilter: `saturate(200%) blur(1.875rem)`,
-					// backgroundColor: theme.palette.background.paper,
+					backgroundColor: theme.palette.background.default,
 					// backgroundColor: 'unset',
 
 					transition: (theme) =>

@@ -1,5 +1,4 @@
 import React, { Fragment, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import {
 	MaterialReactTable,
 	useMaterialReactTable,
@@ -8,19 +7,12 @@ import { MRT_Localization_ES as es } from 'material-react-table/locales/es';
 import {
 	AssignmentTurnedIn,
 	ContentPasteSearch,
-	PlaylistAddCheckCircle,
 	RequestQuote,
 	WatchLater,
 } from '@mui/icons-material';
 import { Box, Button, Tooltip, Typography } from '@mui/material';
-import {
-	ProductStatus,
-	RequestStatus,
-	RequestStatusList,
-	ServiceType,
-} from '@utils/enums';
+import { ProductStatus, RequestStatusList, ServiceType } from '@utils/enums';
 import { format } from 'date-fns';
-import { useRequests } from '@providers/requests';
 import exportExcelReport from '@views/main/requests/exportExcelReport';
 import PermissionsGate from '@components/PermissionsGate';
 import { SCOPES_REQUEST } from '@config/permisissions/permissions';
@@ -35,19 +27,16 @@ const checkStatus = (status, isSale) => {
 	return auxStatus;
 };
 
-const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
-	const {
-		countRows,
-		paginationModel,
-		setPaginationModel,
-		columnVisibilityModel,
-		setColumnVisibilityModel,
-		columnOrderModel,
-		setColumnOrderModel,
-		columnSizeModel,
-		setColumnSizeModel,
-	} = useRequests();
-
+const LeadsMaterialReactTable = ({
+	data,
+	dataCount,
+	loading,
+	goToRequest,
+	pagination,
+	columnVisibility,
+	columnOrder,
+	columnSize,
+}) => {
 	const columns = useMemo(
 		() => [
 			{
@@ -297,20 +286,20 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 		enableColumnResizing: true,
 		enableFullScreenToggle: false,
 		manualPagination: true,
-		rowCount: countRows,
+		rowCount: dataCount,
 		initialState: { density: 'compact' },
 		state: {
-			columnVisibility: columnVisibilityModel,
-			pagination: paginationModel,
+			columnVisibility: columnVisibility.model,
+			pagination: pagination.model,
 			showLoadingOverlay: loading,
-			columnOrder: columnOrderModel,
-			columnSizing: columnSizeModel,
+			columnOrder: columnOrder.model,
+			columnSizing: columnSize.model,
 		},
 		columnResizeMode: 'onEnd',
-		onPaginationChange: setPaginationModel,
-		onColumnOrderChange: setColumnOrderModel,
-		onColumnSizingChange: setColumnSizeModel,
-		onColumnVisibilityChange: setColumnVisibilityModel,
+		onPaginationChange: pagination.onChange,
+		onColumnOrderChange: columnOrder.onChange,
+		onColumnSizingChange: columnSize.onChange,
+		onColumnVisibilityChange: columnVisibility.onChange,
 		muiTableContainerProps: { sx: { maxHeight: '500px' } },
 		muiPaginationProps: {
 			rowsPerPageOptions: [15, 30, 50, 100, 250, 500, 700],
@@ -324,11 +313,23 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				cursor: 'pointer',
 			},
 		}),
+		muiTopToolbarProps: {
+			sx: {
+				backgroundColor: 'transparent',
+			},
+		},
+		muiBottomToolbarProps: {
+			sx: {
+				backgroundColor: 'transparent',
+				boxShadow: 'none',
+				borderTop: `1px solid rgb(240, 240, 240)`,
+			},
+		},
 		muiTablePaperProps: {
 			sx: {
 				width: '100%',
 				boxShadow: 'none',
-				border: 'none',
+				backgroundColor: 'transparent',
 			},
 		},
 		muiTableHeadCellProps: {
@@ -337,12 +338,14 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 				fontWeight: 'bold',
 				color: 'text.secondary',
 				borderBottom: `1px solid rgb(240, 240, 240)`,
+				backgroundColor: 'white',
 			},
 		},
 		muiTableBodyCellProps: {
 			sx: {
 				borderBottom: 'none',
 				boxShadow: 'none',
+				backgroundColor: 'transparent',
 			},
 		},
 		renderTopToolbarCustomActions: ({ table }) => (
@@ -387,6 +390,6 @@ const RequestsMaterialTable = ({ data, loading, goToRequest }) => {
 	return <MaterialReactTable table={table} />;
 };
 
-RequestsMaterialTable.propTypes = {};
+LeadsMaterialReactTable.propTypes = {};
 
-export default RequestsMaterialTable;
+export default LeadsMaterialReactTable;

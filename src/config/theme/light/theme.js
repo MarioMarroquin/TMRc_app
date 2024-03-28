@@ -9,7 +9,8 @@ import boldfont from '@config/theme/light/boldfont';
 
 const theme = createTheme(
 	{
-		shape: { borderRadius: 8 },
+		shape: { borderRadius: 1 },
+		spacing: 1, // margin and padding, number transformation to px (value * 1)
 		typography: {
 			fontSize: 14,
 			fontFamily: 'Inter',
@@ -23,19 +24,27 @@ const theme = createTheme(
 		},
 		components: {
 			MuiTextField: {
-				defaultProps: { size: 'small' },
+				defaultProps: { fullWidth: true, size: 'small' },
 				styleOverrides: {
 					root: {
+						borderRadius: 8,
 						'& .MuiOutlinedInput-root': {
 							'& fieldset': {
-								borderColor: 'transparent',
+								borderColor: `${palette.primary.main}10`,
+								borderStyle: 'groove',
 							},
 							'&:hover fieldset': {
-								borderColor: 'transparent',
+								borderColor: `${palette.primary.main}30`,
+								borderStyle: 'groove',
 							},
 							'&.Mui-focused fieldset': {
 								borderColor: palette.primary.main,
+								borderStyle: 'groove',
 							},
+						},
+						'& .MuiInputBase-root.Mui-disabled fieldset': {
+							borderColor: `${palette.primary.main}30`,
+							borderStyle: 'dashed',
 						},
 						input: {
 							'&::placeholder': {
@@ -50,6 +59,8 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						backgroundColor: '#F4F4F4',
+						borderRadius: 8,
+						border: 'none',
 					},
 				},
 			},
@@ -69,28 +80,27 @@ const theme = createTheme(
 				},
 			},
 			MuiButton: {
-				defaultProps: { variant: 'contained', size: 'small' },
+				defaultProps: {
+					variant: 'contained',
+					size: 'small',
+					disableElevation: true,
+				},
 				styleOverrides: {
 					root: {
 						textTransform: 'none',
 						fontSize: 14,
 						fontWeight: 600,
 						padding: `4px 12px`,
+						borderRadius: 8,
 					},
 				},
 			},
 			MuiSelect: {
-				styleOverrides: {
-					root: {
-						fontSize: 14,
-					},
-				},
 				defaultProps: {
 					MenuProps: {
 						sx: {
 							'& .MuiPaper-root': {
-								borderRadius: `0 0 ${pxToRem(8)} ${pxToRem(8)}`,
-								// marginTop: theme.spacing(1),
+								borderRadius: 8,
 								color: 'rgb(55, 65, 81)',
 								boxShadow: `0px 15px 16px rgba(3, 7, 18, 0.20),
 														0px 60px 65px rgba(3, 7, 18, 0.10);
@@ -103,32 +113,45 @@ const theme = createTheme(
 					},
 				},
 			},
-
 			MuiInputLabel: {
 				styleOverrides: { root: { fontSize: 12 } },
 			},
-			//
-			// MuiFilledInput: {
-			// 	styleOverrides: {
-			// 		root: {
-			// 			borderRadius: `${pxToRem(12)} ${pxToRem(12)} 0 0}`,
-			// 			backgroundColor: '#f9f9f9',
-			// 			'&:hover': {
-			// 				backgroundColor: '#f7faff',
-			// 			},
-			// 			'&.Mui-disabled': {
-			// 				opacity: 0.4,
-			// 				backgroundColor: '#fcfcfe',
-			// 			},
-			// 			'&.Mui-focused': {
-			// 				backgroundColor: '#f9fcff',
-			// 				'&:hover': {
-			// 					backgroundColor: '#f7faff',
-			// 				},
-			// 			},
-			// 		},
-			// 	},
-			// },
+			MuiDialog: {
+				defaultProps: {
+					slotProps: {
+						backdrop: {
+							sx: {
+								backgroundColor: `${palette.background.default}85`,
+								backdropFilter: 'blur(8px)',
+							},
+						},
+					},
+				},
+				styleOverrides: {
+					paper: { borderRadius: 8 },
+				},
+			},
+			MuiCard: {
+				styleOverrides: { root: { borderRadius: 8 } },
+			},
+			MuiFormControl: {
+				defaultProps: { fullWidth: true, size: 'small' },
+				styleOverrides: {
+					root: {
+						'& .MuiOutlinedInput-root': {
+							'& fieldset': {
+								borderColor: 'transparent',
+							},
+							'&:hover fieldset': {
+								borderColor: 'transparent',
+							},
+							'&.Mui-focused fieldset': {
+								borderColor: palette.primary.main,
+							},
+						},
+					},
+				},
+			},
 		},
 	},
 	esES,

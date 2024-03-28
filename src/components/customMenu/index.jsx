@@ -1,4 +1,5 @@
 import { alpha, Menu, useTheme } from '@mui/material';
+import { pxToRem } from '@config/theme/functions';
 
 const CustomMenu = (props) => {
 	const theme = useTheme();
@@ -7,6 +8,18 @@ const CustomMenu = (props) => {
 		<Menu
 			{...props}
 			elevation={0}
+			slotProps={{
+				root: {
+					slotProps: {
+						backdrop: {
+							sx: {
+								bgcolor: `${theme.palette.background.default}85`,
+								backdropFilter: 'blur(8px)',
+							},
+						},
+					},
+				},
+			}}
 			anchorOrigin={{
 				vertical: 'bottom',
 				horizontal: 'right',
@@ -17,7 +30,7 @@ const CustomMenu = (props) => {
 			}}
 			sx={{
 				'& .MuiPaper-root': {
-					borderRadius: 1,
+					borderRadius: 8,
 					marginTop: theme.spacing(1),
 					minWidth: 180,
 					color: 'rgb(55, 65, 81)',

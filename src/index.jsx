@@ -10,9 +10,9 @@ import { SessionProvider } from '@providers/session';
 import theme from '@config/theme/light/theme';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { RequestsProvider } from '@providers/requests';
 import { es } from 'date-fns/locale';
 import { LoaderProvider } from '@providers/loader';
+import { UsersProvider } from '@providers/users';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -25,11 +25,11 @@ root.render(
 				<LoaderProvider>
 					<LoadingProvider>
 						<SessionProvider>
-							<RequestsProvider>
+							<UsersProvider>
 								<Router basename='/'>
 									<App />
 								</Router>
-							</RequestsProvider>
+							</UsersProvider>
 						</SessionProvider>
 					</LoadingProvider>
 				</LoaderProvider>

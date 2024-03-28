@@ -10,7 +10,7 @@ const Loader = () => {
 	return (
 		<Backdrop
 			sx={{ zIndex: 1500, backgroundColor: 'transparent' }}
-			open={loading}
+			open={Boolean(loading)}
 		>
 			<Box sx={{ width: '100%', height: '100%' }}>
 				<LinearProgress sx={{ width: '100%' }} />

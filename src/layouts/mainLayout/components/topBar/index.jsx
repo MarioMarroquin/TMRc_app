@@ -4,6 +4,7 @@ import {
 	Box,
 	IconButton,
 	MenuItem,
+	Stack,
 	Toolbar,
 	Tooltip,
 	Typography,
@@ -17,11 +18,13 @@ import { useSession } from '@providers/session';
 import CustomMenu from '@components/customMenu';
 import { pxToRem } from '@config/theme/functions';
 import CustomBreadcrumbs from '@components/customBreadcrumbs';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const TopBar = ({ open, toggleDrawer }) => {
 	const theme = useTheme();
 	const [anchorMenu, setAnchorMenu] = useState(null);
-	const { logout, user } = useSession();
+	const { logout, user, liveDate } = useSession();
 	const [transparent, setTransparent] = useState(true);
 
 	const handleOpenMenu = (event) => {
@@ -49,15 +52,13 @@ const TopBar = ({ open, toggleDrawer }) => {
 		<AppBar
 			position={'fixed'} // fixed
 			sx={{
-				top: 16,
-				right: { xs: 16, sm: 24 },
 				zIndex: 1200,
-				borderRadius: pxToRem(16),
-				backdropFilter: `saturate(200%) blur(20px)`,
+				backdropFilter: `blur(12px)`,
 				backgroundColor: transparent
 					? `transparent !important`
 					: `${theme.palette.background.paper}80`,
 				boxShadow: 'none',
+				width: { xs: '100%', sm: `calc(100% - 199px)` },
 				// boxShadow: transparent
 				// 	? 'none'
 				// 	: ` 0px 0px 1px rgba(3, 7, 18, 0.10),
@@ -70,10 +71,7 @@ const TopBar = ({ open, toggleDrawer }) => {
 				// 			0px 25px 60px rgba(3, 7, 18, 0.10);
 				// 			`,
 				// ----------------------------------------------------------------
-				width: {
-					xs: `calc(100% - 32px)`,
-					sm: `calc(100% - ${drawerWidth}px - 48px - 16px)`,
-				},
+
 				transition: (theme) =>
 					theme.transitions.create(['width', 'margin'], {
 						easing: theme.transitions.easing.sharp,
@@ -81,7 +79,10 @@ const TopBar = ({ open, toggleDrawer }) => {
 					}),
 			}}
 		>
-			<Toolbar sx={{ pr: pxToRem(24) }}>
+			<Toolbar
+				disableGutters
+				sx={{ p: { xs: `0 0 0 16px`, sm: `0 8px 0 8px` } }}
+			>
 				<IconButton
 					sx={{ mr: 2, display: { xs: 'flex', sm: 'none' } }}
 					edge={'start'}
@@ -90,25 +91,42 @@ const TopBar = ({ open, toggleDrawer }) => {
 					{open ? <MenuOpen /> : <Menu />}
 				</IconButton>
 
-				<CustomBreadcrumbs />
+				<Stack>
+					<Typography color={'text.primary'} fontSize={12} fontWeight={400}>
+						{format(liveDate, "EEEE',' d 'de' MMM", { locale: es })}
+					</Typography>
+					<Typography
+						color={'text.primary'}
+						fontSize={13}
+						fontWeight={600}
+						mr={8}
+						align={'right'}
+					>
+						{format(liveDate, 'HH:mm', { locale: es })}
+					</Typography>
+				</Stack>
 
 				<Typography
-					color={theme.palette.secondary.main}
-					noWrap
+					color={'text.primary'}
+					fontSize={12}
+					fontWeight={600}
 					ml={'auto'}
-					mr={2}
+					mr={pxToRem(8)}
 				>
-					{user.userName}
+					{`${user.firstName} ${user.lastName}`}
 				</Typography>
 
 				<Box sx={{ flexGrow: 0 }}>
-					<Tooltip title={'Opciones'}>
-						<IconButton onClick={handleOpenMenu}>
-							<Avatar alt='userProfileImg'>
-								<ManageAccounts />
-							</Avatar>
-						</IconButton>
-					</Tooltip>
+					<IconButton onClick={handleOpenMenu} disableFocusRipple>
+						<Avatar
+							alt='profileFirstLetter'
+							sx={{
+								bgcolor: theme.palette.secondary.main,
+								color: '#000',
+								fontWeight: 700,
+							}}
+						>{`${user.username[0]}`}</Avatar>
+					</IconButton>
 					<CustomMenu
 						anchorEl={anchorMenu}
 						open={Boolean(anchorMenu)}

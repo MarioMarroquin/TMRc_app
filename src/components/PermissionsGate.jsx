@@ -32,7 +32,7 @@ const PermissionsGate = ({
 };
 
 PermissionsGate.propTypes = {
-	children: PropTypes.element,
+	children: PropTypes.node,
 	RenderError: PropTypes.element,
 	errorProps: PropTypes.object,
 	scopes: PropTypes.array,
