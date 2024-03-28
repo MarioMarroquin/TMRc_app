@@ -15,14 +15,14 @@ const mainRoutes = [
 		index: true,
 		children: [{ path: ':id', element: <LeadDetail /> }],
 	},
-	{
-		name: 'Mantenimiento',
-		path: '/maintenance',
-		icon: <Settings />,
-		element: <Maintenance />,
-		index: false,
-		children: [{ path: 'clients', element: <Clients /> }],
-	},
+	// {
+	// 	name: 'Mantenimiento',
+	// 	path: '/maintenance',
+	// 	icon: <Settings />,
+	// 	element: <Maintenance />,
+	// 	index: false,
+	// 	children: [{ path: 'clients', element: <Clients /> }],
+	// },
 	// {
 	// 	name: 'Compañías',
 	// 	path: '/companies',
