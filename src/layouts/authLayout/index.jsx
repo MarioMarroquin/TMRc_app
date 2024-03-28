@@ -36,8 +36,8 @@ const AuthLayout = () => {
 					zIndex: 1,
 					display: 'flex',
 					justifyContent: 'flex-end',
-					backdropFilter: 'blur(12px)',
-					backgroundColor: 'rgba(255,255,255,0.2)',
+					backdropFilter: 'blur(8px)',
+					backgroundColor: 'rgba(255,255,255,0.65)',
 				})}
 			>
 				<Box
