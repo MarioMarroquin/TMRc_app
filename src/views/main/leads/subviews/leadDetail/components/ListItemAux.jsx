@@ -1,6 +1,5 @@
 import { ListItem, ListItemText, Typography } from '@mui/material';
 import { pxToRem } from '@config/theme/functions';
-import React from 'react';
 
 const ListItemAux = ({ name, text }) => {
 	if (!text) {
