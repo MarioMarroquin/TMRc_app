@@ -36,6 +36,7 @@ import CommentsList from './components/commentsList';
 import { useSession } from '@providers/session';
 import toast from 'react-hot-toast';
 import Documents from '@views/main/leads/subviews/leadDetail/components/documents';
+import ListItemAux2 from '@views/main/leads/subviews/leadDetail/components/ListItemAux2';
 
 const LeadDetail = (props) => {
 	const {
@@ -270,6 +271,24 @@ const LeadDetail = (props) => {
 								<ListItemAux
 									name={'Observaciones'}
 									text={lead?.extraComments}
+								/>
+							</List>
+						</Box>
+
+						<Box sx={{ mt: 16 }}>
+							<List disablePadding>
+								<ListItemAux2
+									info={'Empresa'}
+									name={lead?.company?.name}
+									phoneNumber={lead?.company?.phoneNumber}
+									email={lead?.company?.email}
+								/>
+
+								<ListItemAux2
+									info={'Cliente'}
+									name={`${lead?.client?.firstName} ${lead?.client?.lastName}`}
+									phoneNumber={lead?.client?.phoneNumber}
+									email={lead?.client?.email}
 								/>
 							</List>
 						</Box>

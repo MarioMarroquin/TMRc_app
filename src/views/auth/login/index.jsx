@@ -50,7 +50,7 @@ const Login = () => {
 					width: '400px',
 					maxWidth: '100%',
 					mx: 'auto',
-					bgcolor: '#fff',
+					// bgcolor: '#fff',
 					borderRadius: 1,
 					py: 3,
 					pb: 5,
