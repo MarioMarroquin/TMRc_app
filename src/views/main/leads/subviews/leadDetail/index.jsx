@@ -11,6 +11,7 @@ import {
 import {
 	ArrowBack,
 	KeyboardArrowDown,
+	NotificationAdd,
 	Sync,
 	UploadFile,
 } from '@mui/icons-material';
@@ -37,6 +38,7 @@ import { useSession } from '@providers/session';
 import toast from 'react-hot-toast';
 import Documents from '@views/main/leads/subviews/leadDetail/components/documents';
 import ListItemAux2 from '@views/main/leads/subviews/leadDetail/components/ListItemAux2';
+import RequestEdit from '@views/main/requests/RequestEdit';
 
 const LeadDetail = (props) => {
 	const {
@@ -82,11 +84,21 @@ const LeadDetail = (props) => {
 					regresar
 				</Button>
 
+				{/* <Button sx={{ ml: 'auto' }} variant={'text'} onClick={() => {}}> */}
+				{/* 	<NotificationAdd /> */}
+				{/* </Button> */}
+
+				<Box sx={{ ml: 'auto' }}>
+					<PermissionsGate scopes={[SCOPES_GENERAL.total]}>
+						<RequestEdit requestData={lead} requestRefetch={refetch} />
+					</PermissionsGate>
+				</Box>
+
 				<PermissionsGate
 					scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.interact]}
 				>
 					<Button
-						sx={{ ml: 'auto' }}
+						sx={{ ml: 16 }}
 						variant={'text'}
 						onClick={() => {
 							openDialogDocumentUpload(lead.id);

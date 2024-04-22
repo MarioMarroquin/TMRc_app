@@ -497,7 +497,14 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 			return;
 		}
 
-		const reqAux = (({ id, ...rest }) => ({ ...rest }))(request);
+		const reqAux = (({
+			id,
+			__typename,
+			documents,
+			operatorComments,
+			managerComments,
+			...rest
+		}) => ({ ...rest }))(request);
 
 		const auxObject = {
 			sellerId: seller.id ?? undefined, // tiene que tener de a fuerza
@@ -521,7 +528,7 @@ const RequestEdit = ({ requestData, requestRefetch }) => {
 			...reqAux,
 		};
 
-		// console.log('LOL', auxObject);
+		console.log('LOL', auxObject);
 
 		updateRequest({ variables: { requestId: request.id, request: auxObject } })
 			.then((res) => {
