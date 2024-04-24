@@ -14,4 +14,6 @@ const firebaseConfig = {
 	measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 
-export { authUrl, apiUrl, googleMapsApiKey, firebaseConfig };
+const logRocketApiKey = process.env.REACT_APP_LOG_ROCKET_API_KEY;
+
+export { authUrl, apiUrl, googleMapsApiKey, firebaseConfig, logRocketApiKey };
