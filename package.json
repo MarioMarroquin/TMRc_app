@@ -42,6 +42,7 @@
     "@mui/x-data-grid": "^6.0.2",
     "@mui/x-data-grid-generator": "^6.18.2",
     "@mui/x-date-pickers": "^6.16.1",
+    "@vercel/analytics": "^1.2.2",
     "@vercel/speed-insights": "^1.0.10",
     "@wojtekmaj/react-timerange-picker": "^4.2.0",
     "apexcharts": "^3.37.2",
