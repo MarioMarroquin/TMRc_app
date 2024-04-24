@@ -44,7 +44,7 @@ const CustomAutocomplete = (props) => (
 				? option
 				: `${option.firstName + ' ' + option.lastName}`
 		}
-		value={props.value.firstName + ' ' + props.value.lastName}
+		value={props.value.name}
 		renderInput={(params) => (
 			<TextField
 				{...params}
@@ -89,7 +89,7 @@ const Leads = (props) => {
 	const { role } = useSession();
 	const navigate = useNavigate();
 	const [sellersList, setSellersList] = useState([]);
-	const { filterMenu, allLeads, assignedUser, date, leads, pending, table } =
+	const { filterMenu, allLeads, assignedUser, date, leads, pending } =
 		useLeads();
 
 	const [searchSellers] = useLazyQuery(GET_SELLERS_ALL);
@@ -215,12 +215,7 @@ const Leads = (props) => {
 				>
 					<LeadsMaterialReactTable
 						data={leads.list}
-						dataCount={leads.count}
 						loading={leads.loading}
-						columnOrder={table.columnOrder}
-						columnSize={table.columnSize}
-						columnVisibility={table.columnVisibility}
-						pagination={table.pagination}
 						goToRequest={goToRequest}
 					/>
 				</CardContent>
