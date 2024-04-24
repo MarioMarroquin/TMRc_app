@@ -8,7 +8,9 @@ import 'react-date-range/dist/styles.css'; // main css file
 import 'react-date-range/dist/theme/default.css';
 import { Suspense } from 'react';
 import { Box } from '@mui/material';
-import TMRLogo from '@utils/logo/TMR_logo.svg'; // theme css file
+import LogRocket from 'logrocket';
+import TMRLogo from '@utils/logo/TMR_logo.svg';
+import { logRocketApiKey } from '@config/environment'; // theme css file
 
 const routeGenerator = (route) => {
 	const { children, path, element, index } = route;
@@ -28,6 +30,7 @@ const routeGenerator = (route) => {
 
 const App = () => {
 	const { isLogged, role } = useSession();
+	LogRocket.init(logRocketApiKey);
 
 	if (!isLogged) {
 		return (
