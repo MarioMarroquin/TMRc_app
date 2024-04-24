@@ -44,4 +44,4 @@ function useLoaderContext() {
 	return useContext(LoaderContext);
 }
 
-export { LoaderContext, LoaderProvider, useLoaderContext };
+export { LoaderProvider, useLoaderContext };

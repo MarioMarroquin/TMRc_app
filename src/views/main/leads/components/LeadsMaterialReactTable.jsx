@@ -17,6 +17,7 @@ import exportExcelReport from '@views/main/requests/exportExcelReport';
 import PermissionsGate from '@components/PermissionsGate';
 import { SCOPES_REQUEST } from '@config/permisissions/permissions';
 import exportExcelTable from '@views/main/requests/exportExcelTable';
+import { useLeadsMRTContext } from '@providers/local/LeadsMRT/provider';
 
 const checkStatus = (status, isSale) => {
 	const auxStatus =
@@ -27,16 +28,19 @@ const checkStatus = (status, isSale) => {
 	return auxStatus;
 };
 
-const LeadsMaterialReactTable = ({
-	data,
-	dataCount,
-	loading,
-	goToRequest,
-	pagination,
-	columnVisibility,
-	columnOrder,
-	columnSize,
-}) => {
+const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
+	const {
+		countRows,
+		paginationModel,
+		setPaginationModel,
+		columnVisibilityModel,
+		setColumnVisibilityModel,
+		columnOrderModel,
+		setColumnOrderModel,
+		columnSizeModel,
+		setColumnSizeModel,
+	} = useLeadsMRTContext();
+
 	const columns = useMemo(
 		() => [
 			{
@@ -286,23 +290,23 @@ const LeadsMaterialReactTable = ({
 		enableColumnResizing: true,
 		enableFullScreenToggle: false,
 		manualPagination: true,
-		rowCount: dataCount,
+		rowCount: countRows,
 		initialState: { density: 'compact' },
 		state: {
-			columnVisibility: columnVisibility.model,
-			pagination: pagination.model,
+			columnVisibility: columnVisibilityModel,
+			pagination: paginationModel,
 			showLoadingOverlay: loading,
-			columnOrder: columnOrder.model,
-			columnSizing: columnSize.model,
+			columnOrder: columnOrderModel,
+			columnSizing: columnSizeModel,
 		},
 		columnResizeMode: 'onEnd',
-		onPaginationChange: pagination.onChange,
-		onColumnOrderChange: columnOrder.onChange,
-		onColumnSizingChange: columnSize.onChange,
-		onColumnVisibilityChange: columnVisibility.onChange,
+		onPaginationChange: setPaginationModel,
+		onColumnOrderChange: setColumnOrderModel,
+		onColumnSizingChange: setColumnSizeModel,
+		onColumnVisibilityChange: setColumnVisibilityModel,
 		muiTableContainerProps: { sx: { maxHeight: '500px' } },
 		muiPaginationProps: {
-			rowsPerPageOptions: [15, 30, 50, 100, 250, 500, 700],
+			rowsPerPageOptions: [1, 15, 30, 50, 100, 250, 500, 700],
 		},
 		enableStickyHeader: true,
 		muiTableBodyRowProps: ({ row }) => ({
