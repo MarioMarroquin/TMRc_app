@@ -15,6 +15,7 @@ import { LoaderProvider } from '@providers/loader';
 import { UsersProvider } from '@providers/users';
 import { LeadsMRTProvider } from '@providers/local/LeadsMRT/provider';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -24,6 +25,7 @@ root.render(
 		<ThemeProvider theme={theme}>
 			<CssBaseline />
 			<SpeedInsights />
+			<Analytics />
 			<ApolloProvider client={client}>
 				<LoaderProvider>
 					<LoadingProvider>
