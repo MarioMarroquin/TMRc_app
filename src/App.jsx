@@ -6,7 +6,7 @@ import MainLayout from '@layouts/mainLayout';
 import { mainRoutes } from './routes';
 import 'react-date-range/dist/styles.css'; // main css file
 import 'react-date-range/dist/theme/default.css';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Box } from '@mui/material';
 import LogRocket from 'logrocket';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
@@ -29,8 +29,12 @@ const routeGenerator = (route) => {
 };
 
 const App = () => {
-	const { isLogged, role } = useSession();
+	const { isLogged, role, user } = useSession();
 	LogRocket.init(logRocketApiKey);
+
+	useEffect(() => {
+		if (isLogged) LogRocket.identify(user?.username);
+	}, [isLogged]);
 
 	if (!isLogged) {
 		return (
