@@ -10,10 +10,11 @@ import {
 	Divider,
 	Grid,
 	InputAdornment,
+	Stack,
 	TextField,
 	Typography,
 } from '@mui/material';
-import { Person, Search, Sync, Tune } from '@mui/icons-material';
+import { Person, PersonSearch, Search, Sync, Tune } from '@mui/icons-material';
 import {
 	ROLES,
 	SCOPES_GENERAL,
@@ -44,16 +45,15 @@ const CustomAutocomplete = (props) => (
 				? option
 				: `${option.firstName + ' ' + option.lastName}`
 		}
-		value={props.value.name}
+		value={props.value.firstName + ' ' + props.value.lastName}
 		renderInput={(params) => (
 			<TextField
 				{...params}
-				placeholder={'Asesor'}
 				InputProps={{
 					...params.InputProps,
 					startAdornment: (
 						<InputAdornment sx={{ mr: 0, ml: pxToRem(8) }} position='start'>
-							<Search />
+							<PersonSearch />
 						</InputAdornment>
 					),
 				}}
@@ -173,12 +173,17 @@ const Leads = (props) => {
 						SCOPES_REQUEST.filterOperator,
 					]}
 				>
-					<CustomAutocomplete
-						options={sellersList}
-						value={assignedUser.selected}
-						onChange={onChangeSeller}
-						// onInputChange={onInputSeller}
-					/>
+					<Stack width={'100%'}>
+						<Typography fontSize={12} fontWeight={500} ml={'4px'}>
+							Asesor
+						</Typography>
+						<CustomAutocomplete
+							options={sellersList}
+							value={assignedUser.selected}
+							onChange={onChangeSeller}
+							// onInputChange={onInputSeller}
+						/>
+					</Stack>
 				</PermissionsGate>
 
 				<Divider
@@ -197,7 +202,6 @@ const Leads = (props) => {
 					}}
 					fetch={leads.fetch}
 				/>
-
 				<Button variant={'text'} sx={{ ml: 16 }} onClick={filterMenu.onOpen}>
 					<Tune />
 				</Button>

@@ -37,8 +37,15 @@ const useLeadDetail = () => {
 	});
 
 	useEffect(() => {
-		console.log('data leads: ', data);
-	}, [data]);
+		if (loading) {
+			console.log('entra');
+			loader.loadingOn();
+		} else {
+			loader.loadingOff();
+		}
+
+		console.log('Lead id: ' + params.id, data);
+	}, [loading]);
 
 	const [traceRequest] = useMutation(TRACE_REQUEST);
 	const [quotedRequest] = useMutation(QUOTED_REQUEST);
