@@ -1,24 +1,18 @@
 import {
 	Box,
-	Button,
 	IconButton,
 	InputAdornment,
-	Paper,
+	Link,
 	TextField,
 	Typography,
-	useTheme,
 } from '@mui/material';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useLoading } from '@providers/loading';
-import { authClient } from '@utils/auth';
-import { useSession } from '@providers/session';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-import cover from '@utils/images/4.png';
 import useLogin from '@views/auth/login/useLogin';
 import { LoadingButton } from '@mui/lab';
+
+const TypographyWhite = (props) => <Typography color={'#FFFFFF'} {...props} />;
 
 const Login = () => {
 	const {
@@ -36,82 +30,108 @@ const Login = () => {
 
 	return (
 		<Fragment>
-			<img
-				src={TMRLogo}
-				alt={'TMR Logo'}
-				height={55}
-				style={{ margin: `32px auto 0px 16px` }}
-			/>
 			<Box
 				sx={{
 					display: 'flex',
 					flexDirection: 'column',
-					my: 'auto',
-					width: '400px',
+					width: '380px',
 					maxWidth: '100%',
 					mx: 'auto',
-					// bgcolor: '#fff',
-					borderRadius: 1,
-					py: 3,
-					pb: 5,
-					px: 3,
+					backdropFilter: 'blur(8px)',
+					borderRadius: 8,
+					px: 32,
+					my: 'auto',
+					border: '2px solid #FFFFFF30',
+					boxShadow: `0px 0px 2.3px -8px rgba(0, 0, 0, 0.207),
+											0px 0px 5.4px -8px rgba(0, 0, 0, 0.299),
+											0px 0px 9.7px -8px rgba(0, 0, 0, 0.368),
+											0px 0px 16.1px -8px rgba(0, 0, 0, 0.432),
+											0px 0px 26.5px -8px rgba(0, 0, 0, 0.501),
+											0px 0px 46.2px -8px rgba(0, 0, 0, 0.593),
+											0px 0px 100px -8px rgba(0, 0, 0, 0.8);
+											`,
 				}}
 			>
-				<Typography fontSize={24} fontWeight={600}>
+				<TypographyWhite
+					fontSize={26}
+					fontWeight={700}
+					mt={32}
+					align={'center'}
+				>
 					¡Hola, bienvenido!
-				</Typography>
-				<Typography fontSize={16} fontWeight={500} color={'text.secondary'}>
+				</TypographyWhite>
+				<TypographyWhite fontSize={16} fontWeight={500} align={'center'}>
 					inicia sesión
-				</Typography>
+				</TypographyWhite>
 
-				<Box sx={{ display: 'flex', flexDirection: 'column', mt: '24px' }}>
-					<Typography fontSize={12} fontWeight={500} ml={'4px'}>
-						nombre de usuario
-					</Typography>
-					<TextField
-						id={'username'}
-						name={'username'}
-						placeholder={'usuario'}
-						autoFocus
-						fullWidth
-						value={credential.username}
-						onChange={credentialInputChange}
-						onKeyDown={onEnter}
-					/>
+				<TypographyWhite fontSize={12} fontWeight={500} mt={32} ml={4}>
+					nombre de usuario
+				</TypographyWhite>
+				<TextField
+					id={'username'}
+					name={'username'}
+					placeholder={'usuario'}
+					autoFocus
+					fullWidth
+					value={credential.username}
+					onChange={credentialInputChange}
+					onKeyDown={onEnter}
+					margin={'dense'}
+				/>
 
-					<Typography fontSize={12} fontWeight={500} ml={'4px'} mt={'16px'}>
-						contraseña
-					</Typography>
-					<TextField
-						id={'password'}
-						name={'password'}
-						placeholder={'contraseña'}
-						type={hidePassword ? 'password' : 'text'}
-						fullWidth
-						value={credential.password}
-						onChange={credentialInputChange}
-						onKeyDown={onEnter}
-						InputProps={{
-							endAdornment: (
-								<InputAdornment position='end'>
-									<IconButton onClick={toggleHide} edge='end' color={'primary'}>
-										{hidePassword ? <Visibility /> : <VisibilityOff />}
-									</IconButton>
-								</InputAdornment>
-							),
-						}}
-					/>
+				<TypographyWhite fontSize={12} fontWeight={500} ml={4} mt={16}>
+					contraseña
+				</TypographyWhite>
+				<TextField
+					margin={'dense'}
+					id={'password'}
+					name={'password'}
+					placeholder={'contraseña'}
+					type={hidePassword ? 'password' : 'text'}
+					fullWidth
+					value={credential.password}
+					onChange={credentialInputChange}
+					onKeyDown={onEnter}
+					InputProps={{
+						endAdornment: (
+							<InputAdornment position='end'>
+								<IconButton onClick={toggleHide} edge='end' color={'primary'}>
+									{hidePassword ? <Visibility /> : <VisibilityOff />}
+								</IconButton>
+							</InputAdornment>
+						),
+					}}
+				/>
 
-					<LoadingButton
-						disabled={!(credential.username && credential.password)}
-						loading={Boolean(loading)}
-						onClick={login}
-						sx={{ mt: '48px' }}
-						variant={'contained'}
+				<LoadingButton
+					disabled={!(credential.username && credential.password)}
+					loading={Boolean(loading)}
+					onClick={login}
+					sx={{
+						mt: 48,
+						mb: 32,
+						'&.Mui-disabled': {
+							backgroundColor: '#FFFFFF30',
+						},
+					}}
+					variant={'contained'}
+					color={'secondary'}
+				>
+					Iniciar Sesión
+				</LoadingButton>
+
+				<TypographyWhite fontSize={11} fontWeight={400} align='center' mb={8}>
+					<Link
+						color='inherit'
+						href='https://www.tmr.com.mx'
+						target='_blank'
+						sx={{ textDecoration: 'none' }}
 					>
-						Iniciar Sesión
-					</LoadingButton>
-				</Box>
+						{'© '} TMR dev ❤️ {new Date().getFullYear()}
+						<br />
+						<img src={TMRLogo} alt={'TMR Logo'} height={12} />
+					</Link>
+				</TypographyWhite>
 			</Box>
 		</Fragment>
 	);

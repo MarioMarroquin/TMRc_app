@@ -39,6 +39,7 @@ import toast from 'react-hot-toast';
 import Documents from '@views/main/leads/subviews/leadDetail/components/documents';
 import ListItemAux2 from '@views/main/leads/subviews/leadDetail/components/ListItemAux2';
 import RequestEdit from '@views/main/requests/RequestEdit';
+import DialogLeadEdit from '@views/main/leads/DialogLeadEdit/DialogLeadEdit';
 
 const LeadDetail = (props) => {
 	const {
@@ -89,8 +90,10 @@ const LeadDetail = (props) => {
 				{/* </Button> */}
 
 				<Box sx={{ ml: 'auto' }}>
-					<PermissionsGate scopes={[SCOPES_GENERAL.total]}>
-						<RequestEdit requestData={lead} requestRefetch={refetch} />
+					<PermissionsGate
+						scopes={[SCOPES_GENERAL.total, SCOPES_REQUEST_DETAILS.edit]}
+					>
+						<DialogLeadEdit requestData={lead} requestRefetch={refetch} />
 					</PermissionsGate>
 				</Box>
 

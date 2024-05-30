@@ -162,7 +162,7 @@ const Leads = (props) => {
 			<Box
 				sx={{
 					display: 'flex',
-					flexDirection: 'row',
+					flexDirection: { xs: 'column', md: 'row' },
 					justifyContent: 'flex-end',
 				}}
 			>
@@ -173,7 +173,7 @@ const Leads = (props) => {
 						SCOPES_REQUEST.filterOperator,
 					]}
 				>
-					<Stack width={'100%'}>
+					<Stack width={'100%'} sx={{ mb: { xs: 8, sm: 0 } }}>
 						<Typography fontSize={12} fontWeight={500} ml={'4px'}>
 							Asesor
 						</Typography>
@@ -190,21 +190,37 @@ const Leads = (props) => {
 					orientation='vertical'
 					variant='middle'
 					flexItem
-					sx={{ mx: 16, borderColor: 'transparent' }}
+					sx={{
+						mx: 16,
+						borderColor: 'red',
+						height: '100%',
+						display: { xs: 'none', sm: 'flex' },
+					}}
 				/>
 
-				<CustomDateRange
-					ranges={date.dateRange}
-					onChange={(item) => {
-						item.selection.endDate.setHours(23, 59, 59);
-						item.selection.startDate.setHours(0, 0, 0);
-						date.setDateRange([item.selection]);
-					}}
-					fetch={leads.fetch}
-				/>
-				<Button variant={'text'} sx={{ ml: 16 }} onClick={filterMenu.onOpen}>
-					<Tune />
-				</Button>
+				<Stack direction={'row'}>
+					<Stack width={'100%'}>
+						<Typography fontSize={12} fontWeight={500} ml={'4px'}>
+							Rango de fecha
+						</Typography>
+						<CustomDateRange
+							ranges={date.dateRange}
+							onChange={(item) => {
+								item.selection.endDate.setHours(23, 59, 59);
+								item.selection.startDate.setHours(0, 0, 0);
+								date.setDateRange([item.selection]);
+							}}
+							fetch={leads.fetch}
+						/>
+					</Stack>
+					<Button
+						variant={'text'}
+						sx={{ mt: 'auto', ml: 16 }}
+						onClick={filterMenu.onOpen}
+					>
+						<Tune />
+					</Button>
+				</Stack>
 			</Box>
 
 			<Card sx={{ mt: 16 }}>
