@@ -55,16 +55,14 @@ const CustomDateRange = (props) => {
 												0px 60px 65px rgba(3, 7, 18, 0.10);
 												`,
 					},
+					height: '100%',
 				}}
 			>
 				<Button
 					sx={{
-						textTransform: 'none',
 						minWidth: 292,
 						height: '100%',
 						bgcolor: '#f9f9f9',
-						border: 'none',
-						borderRadius: pxToRem(12),
 					}}
 					onClick={handleOpenMenu}
 					variant={'text'}
