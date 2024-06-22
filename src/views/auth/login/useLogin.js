@@ -34,7 +34,7 @@ const useLogin = () => {
 		try {
 			await authClient.post('/login', credential).then((res) => {
 				session.setIsLogged(true);
-				navigate('/home');
+				navigate('/requests');
 				loadingOff();
 			});
 		} catch (err) {
