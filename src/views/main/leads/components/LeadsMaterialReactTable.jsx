@@ -222,6 +222,17 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 				},
 			},
 			{
+				accessorFn: (row) => row.client?.email,
+				id: 'clientEmail',
+				header: 'CLIENTE EMAIL',
+				size: 190,
+				minSize: 190,
+				maxSize: 190,
+				muiTableBodyCellProps: {
+					align: 'left',
+				},
+			},
+			{
 				accessorKey: 'extraComments',
 				header: 'OBSERVACIONES',
 				size: 200,
@@ -306,7 +317,7 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 		onColumnVisibilityChange: setColumnVisibilityModel,
 		muiTableContainerProps: { sx: { maxHeight: '500px' } },
 		muiPaginationProps: {
-			rowsPerPageOptions: [1, 15, 30, 50, 100, 250, 500, 700],
+			rowsPerPageOptions: [1, 15, 30, 50, 100, 250, 500, 700, 2000],
 		},
 		enableStickyHeader: true,
 		muiTableBodyRowProps: ({ row }) => ({
