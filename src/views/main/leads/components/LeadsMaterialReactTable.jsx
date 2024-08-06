@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo } from 'react';
+import React, { Fragment, useEffect, useMemo, useRef } from 'react';
 import {
 	MaterialReactTable,
 	useMaterialReactTable,
@@ -293,9 +293,20 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 		[]
 	);
 
+	const rowVirtualizerInstanceRef = useRef(null);
+
+	useEffect(() => {
+		try {
+			rowVirtualizerInstanceRef.current?.scrollToIndex?.(0);
+		} catch (error) {
+			console.error(error);
+		}
+	}, []);
+
 	const table = useMaterialReactTable({
 		columns,
 		data,
+
 		enableDensityToggle: false,
 		enableColumnOrdering: true,
 		enableColumnResizing: true,
