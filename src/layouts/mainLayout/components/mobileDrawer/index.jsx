@@ -19,11 +19,11 @@ const MobileDrawer = ({ open, toggleDrawer }) => {
 			onClose={toggleDrawer}
 			sx={{
 				'& .MuiDrawer-paper': {
-					borderRadius: 1,
+					borderRadius: '0 8px 8px 0',
 					boxSizing: 'border-box',
 					width: drawerWidth,
 					height: `calc(100vh - 48px)`,
-					margin: 3, // 8 px unit
+					marginY: 24, // 8 px unit
 					zIndex: 1500,
 				},
 			}}

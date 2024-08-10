@@ -1,6 +1,14 @@
 import PropTypes from 'prop-types';
-import { DateRange } from 'react-date-range';
-import { Box, Button, Grow, MenuItem, Paper, useTheme } from '@mui/material';
+import { DateRange, DateRangePicker } from 'react-date-range';
+import {
+	Box,
+	Button,
+	Grow,
+	MenuItem,
+	Paper,
+	useMediaQuery,
+	useTheme,
+} from '@mui/material';
 import { Fragment, useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import './index.css';
@@ -9,6 +17,7 @@ import { es } from 'date-fns/locale';
 import { CalendarIcon } from '@mui/x-date-pickers';
 import { pxToRem } from '@config/theme/functions';
 import CustomMenu from '@components/customMenu';
+import toast from 'react-hot-toast';
 
 const CustomDateRange = (props) => {
 	const [anchorMenu, setAnchorMenu] = useState(null);
@@ -30,6 +39,8 @@ const CustomDateRange = (props) => {
 			}
 		}
 	}, [props.ranges[0]]);
+
+	const isXS = useMediaQuery(theme.breakpoints.down('sm'));
 
 	if (props.extended) {
 		return (
@@ -77,19 +88,33 @@ const CustomDateRange = (props) => {
 					})}
 				</Button>
 
-				<CustomMenu anchorEl={anchorMenu} open={Boolean(anchorMenu)}>
+				<CustomMenu
+					anchorEl={anchorMenu}
+					open={Boolean(anchorMenu)}
+					onClose={() => toast('Elige un rango de fechas')}
+				>
 					<Box
 						sx={{
 							display: 'flex',
-							width: '100%',
+							width: { xs: '100%', sm: 800 },
 							p: 8,
 						}}
 					>
-						<DateRange
+						{/* <DateRange */}
+						{/*	{...props} */}
+						{/*	editableDateInputs={true} */}
+						{/*	showDateDisplay={false} */}
+						{/*	rangeColors={[theme.palette.secondary.main]} */}
+						{/*	locale={es} */}
+						{/* /> */}
+
+						<DateRangePicker
 							{...props}
-							editableDateInputs={true}
-							showDateDisplay={false}
+							showSelectionPreview={true}
+							moveRangeOnFirstSelection={false}
 							rangeColors={[theme.palette.secondary.main]}
+							months={2}
+							direction={isXS ? 'vertical' : 'horizontal'}
 							locale={es}
 						/>
 					</Box>

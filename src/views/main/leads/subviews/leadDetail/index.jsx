@@ -5,13 +5,13 @@ import {
 	Grid,
 	List,
 	MenuItem,
+	Skeleton,
 	Stack,
 	Typography,
 } from '@mui/material';
 import {
 	ArrowBack,
 	KeyboardArrowDown,
-	NotificationAdd,
 	Sync,
 	UploadFile,
 } from '@mui/icons-material';
@@ -38,8 +38,49 @@ import { useSession } from '@providers/session';
 import toast from 'react-hot-toast';
 import Documents from '@views/main/leads/subviews/leadDetail/components/documents';
 import ListItemAux2 from '@views/main/leads/subviews/leadDetail/components/ListItemAux2';
-import RequestEdit from '@views/main/requests/RequestEdit';
+// import RequestEdit from '@views/main/requests/RequestEdit';
 import DialogLeadEdit from '@views/main/leads/DialogLeadEdit/DialogLeadEdit';
+
+const LoadingSkeletonLead = () => (
+	<Grid container direction={'row'}>
+		<Grid item xs={12} md={7}>
+			<Box sx={{ p: 16 }}>
+				<Skeleton
+					variant='rounded'
+					width={'100%'}
+					height={60}
+					sx={{ mb: 24 }}
+				/>
+				{[5, 4, 3, 2, 1].map((item, index) => (
+					<Skeleton
+						key={index}
+						variant='rectangular'
+						width={`${item * 20}%`}
+						height={18}
+						sx={{ mb: 12 }}
+					/>
+				))}
+				<Skeleton
+					variant='rounded'
+					width={'25%'}
+					height={160}
+					sx={{ mt: 64 }}
+				/>
+			</Box>
+		</Grid>
+		<Grid item xs={12} md={5}>
+			<Box sx={{ p: 16 }}>
+				<Skeleton variant='circular' width={50} height={50} sx={{ mb: 12 }} />
+				<Skeleton
+					variant='rounded'
+					width={'100%'}
+					height={210}
+					sx={{ mb: 24 }}
+				/>
+			</Box>
+		</Grid>
+	</Grid>
+);
 
 const LeadDetail = (props) => {
 	const {
@@ -54,6 +95,7 @@ const LeadDetail = (props) => {
 		userId,
 		openDialogDocumentUpload,
 		goToRequests,
+		loading,
 		...hookLeadDetail
 	} = useLeadDetail();
 	const { role, user } = useSession();
@@ -203,158 +245,167 @@ const LeadDetail = (props) => {
 				</CustomMenu>
 			</Box>
 
-			<Grid container direction={'row'}>
-				<Grid item xs={12} md={7}>
-					<Box sx={{ p: 16 }}>
-						<Box
-							sx={{
-								width: '100%',
-								display: 'flex',
-								flexDirection: 'row',
-								borderRadius: 8,
-								borderLeft: `8px solid #000`,
-								p: 8,
-							}}
-						>
-							<Stack justifyContent={'space-between'}>
-								<Typography fontSize={12} fontWeight={400}>
-									# &nbsp; {lead?.shortId}
-								</Typography>
-								<Stack direction={'row'} alignItems={'center'} mt={pxToRem(4)}>
-									<LeadStatusDot
-										status={lead?.requestStatus}
-										isSale={lead?.isSale}
-									/>
-									<Typography fontSize={14} fontWeight={600} ml={pxToRem(6)}>
-										{lead?.requestStatus
-											? RequestStatus[lead?.requestStatus]
-											: 'N/D'}
-									</Typography>
-								</Stack>
-							</Stack>
-
-							{userId !== lead?.assignedUser.id && ( // check if same user
-								<Stack ml={'auto'}>
+			{loading ? (
+				<LoadingSkeletonLead />
+			) : (
+				<Grid container direction={'row'}>
+					<Grid item xs={12} md={7}>
+						<Box sx={{ p: 16 }}>
+							<Box
+								sx={{
+									width: '100%',
+									display: 'flex',
+									flexDirection: 'row',
+									borderRadius: 8,
+									borderLeft: `8px solid #000`,
+									p: 8,
+								}}
+							>
+								<Stack justifyContent={'space-between'}>
 									<Typography fontSize={12} fontWeight={400}>
-										Asignado:
+										# &nbsp; {lead?.shortId}
 									</Typography>
-									<Typography
-										color={'text.secondary'}
-										fontSize={14}
-										fontWeight={500}
-										ml={'auto'}
+									<Stack
+										direction={'row'}
+										alignItems={'center'}
+										mt={pxToRem(4)}
 									>
-										{lead?.assignedUser.firstName} {lead?.assignedUser.lastName}
-									</Typography>
+										<LeadStatusDot
+											status={lead?.requestStatus}
+											isSale={lead?.isSale}
+										/>
+										<Typography fontSize={14} fontWeight={600} ml={pxToRem(6)}>
+											{lead?.requestStatus
+												? RequestStatus[lead?.requestStatus]
+												: 'N/D'}
+										</Typography>
+									</Stack>
 								</Stack>
+
+								{userId !== lead?.assignedUser.id && ( // check if same user
+									<Stack ml={'auto'}>
+										<Typography fontSize={12} fontWeight={400}>
+											Asignado:
+										</Typography>
+										<Typography
+											color={'text.secondary'}
+											fontSize={14}
+											fontWeight={500}
+											ml={'auto'}
+										>
+											{lead?.assignedUser.firstName}{' '}
+											{lead?.assignedUser.lastName}
+										</Typography>
+									</Stack>
+								)}
+							</Box>
+
+							<Box sx={{ mt: 16 }}>
+								<List disablePadding>
+									<ListItemAux
+										name={'Fecha'}
+										text={format(
+											new Date(lead?.requestDate ?? new Date()),
+											'dd/MM/yyyy - HH:mm'
+										)}
+									/>
+
+									<ListItemAux
+										name={'Medio de Contacto'}
+										text={lead?.contactMedium}
+									/>
+
+									<ListItemAux
+										name={'Medio de Publicidad'}
+										text={lead?.advertisingMedium}
+									/>
+
+									<ListItemAux
+										name={'Tipo de Servicio'}
+										text={ServiceType[lead?.serviceType]}
+									/>
+
+									<ListItemAux name={'Marca'} text={lead?.brand.name} />
+
+									<ListItemAux
+										name={'Estatus de Producto'}
+										text={ProductStatus[lead?.productStatus]}
+									/>
+
+									<ListItemAux name={'Comentarios'} text={lead?.comments} />
+									<ListItemAux
+										name={'Observaciones'}
+										text={lead?.extraComments}
+									/>
+								</List>
+							</Box>
+
+							<Box sx={{ mt: 16 }}>
+								<List disablePadding>
+									<ListItemAux2
+										info={'Empresa'}
+										name={lead?.company?.name}
+										phoneNumber={lead?.company?.phoneNumber}
+										email={lead?.company?.email}
+									/>
+
+									<ListItemAux2
+										info={'Cliente'}
+										name={`${lead?.client?.firstName} ${lead?.client?.lastName}`}
+										phoneNumber={lead?.client?.phoneNumber}
+										email={lead?.client?.email}
+									/>
+								</List>
+							</Box>
+
+							<Typography fontSize={16} fontWeight={700} mt={16}>
+								Documentos
+							</Typography>
+							<Documents
+								documents={documents}
+								onClose={hookLeadDetail.closeDialogDocumentUpload}
+								open={hookLeadDetail.dialogDocumentUploadState.visible}
+								leadId={hookLeadDetail.dialogDocumentUploadState.leadId}
+								refetch={refetch}
+							/>
+						</Box>
+					</Grid>
+
+					<Grid item xs={12} md={5}>
+						<Box sx={{ p: 16 }}>
+							{renderCommentsList() && (
+								<Fragment>
+									<Typography fontSize={16} fontWeight={700}>
+										{ROLES.salesOperator === role
+											? 'Mi seguimiento'
+											: 'Seguimiento de vendedor'}
+									</Typography>
+									<CommentsList
+										assignedUser={lead?.assignedUser}
+										comments={commentsByOperator}
+										leadId={lead?.id}
+										refetchRequest={refetch}
+										SCOPE={SCOPES_REQUEST_DETAILS.commentOperator}
+									/>
+								</Fragment>
 							)}
+
+							<Typography fontSize={16} fontWeight={700} mt={pxToRem(16)}>
+								{ROLES.salesOperator === role
+									? 'Comentarios de gerente'
+									: 'Mi seguimiento'}
+							</Typography>
+							<CommentsList
+								assignedUser={lead?.assignedUser}
+								comments={commentsByManager}
+								leadId={lead?.id}
+								refetchRequest={refetch}
+								SCOPE={SCOPES_REQUEST_DETAILS.commentManager}
+							/>
 						</Box>
-
-						<Box sx={{ mt: 16 }}>
-							<List disablePadding>
-								<ListItemAux
-									name={'Fecha'}
-									text={format(
-										new Date(lead?.requestDate ?? new Date()),
-										'dd/MM/yyyy - HH:mm'
-									)}
-								/>
-
-								<ListItemAux
-									name={'Medio de Contacto'}
-									text={lead?.contactMedium}
-								/>
-
-								<ListItemAux
-									name={'Medio de Publicidad'}
-									text={lead?.advertisingMedium}
-								/>
-
-								<ListItemAux
-									name={'Tipo de Servicio'}
-									text={ServiceType[lead?.serviceType]}
-								/>
-
-								<ListItemAux name={'Marca'} text={lead?.brand.name} />
-
-								<ListItemAux
-									name={'Estatus de Producto'}
-									text={ProductStatus[lead?.productStatus]}
-								/>
-
-								<ListItemAux name={'Comentarios'} text={lead?.comments} />
-								<ListItemAux
-									name={'Observaciones'}
-									text={lead?.extraComments}
-								/>
-							</List>
-						</Box>
-
-						<Box sx={{ mt: 16 }}>
-							<List disablePadding>
-								<ListItemAux2
-									info={'Empresa'}
-									name={lead?.company?.name}
-									phoneNumber={lead?.company?.phoneNumber}
-									email={lead?.company?.email}
-								/>
-
-								<ListItemAux2
-									info={'Cliente'}
-									name={`${lead?.client?.firstName} ${lead?.client?.lastName}`}
-									phoneNumber={lead?.client?.phoneNumber}
-									email={lead?.client?.email}
-								/>
-							</List>
-						</Box>
-
-						<Typography fontSize={16} fontWeight={700} mt={16}>
-							Documentos
-						</Typography>
-						<Documents
-							documents={documents}
-							onClose={hookLeadDetail.closeDialogDocumentUpload}
-							open={hookLeadDetail.dialogDocumentUploadState.visible}
-							leadId={hookLeadDetail.dialogDocumentUploadState.leadId}
-							refetch={refetch}
-						/>
-					</Box>
+					</Grid>
 				</Grid>
-
-				<Grid item xs={12} md={5}>
-					<Box sx={{ p: 16 }}>
-						{renderCommentsList() && (
-							<Fragment>
-								<Typography fontSize={16} fontWeight={700}>
-									{ROLES.salesOperator === role
-										? 'Mi seguimiento'
-										: 'Seguimiento de vendedor'}
-								</Typography>
-								<CommentsList
-									assignedUser={lead?.assignedUser}
-									comments={commentsByOperator}
-									leadId={lead?.id}
-									refetchRequest={refetch}
-									SCOPE={SCOPES_REQUEST_DETAILS.commentOperator}
-								/>
-							</Fragment>
-						)}
-
-						<Typography fontSize={16} fontWeight={700} mt={pxToRem(16)}>
-							{ROLES.salesOperator === role
-								? 'Comentarios de gerente'
-								: 'Mi seguimiento'}
-						</Typography>
-						<CommentsList
-							assignedUser={lead?.assignedUser}
-							comments={commentsByManager}
-							leadId={lead?.id}
-							refetchRequest={refetch}
-							SCOPE={SCOPES_REQUEST_DETAILS.commentManager}
-						/>
-					</Box>
-				</Grid>
-			</Grid>
+			)}
 		</Fragment>
 	);
 };

@@ -152,7 +152,7 @@ const useLeadDetail = () => {
 		documents: data?.request.documents ?? [],
 		handleLeadStatus,
 		lead: data?.request,
-		loading: loader.loading,
+		loading: loading,
 		openDialogDocumentUpload,
 		refetch,
 		renderCommentsList,
