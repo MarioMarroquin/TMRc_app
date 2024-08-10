@@ -31,6 +31,10 @@ import LeadsMaterialReactTable from '@views/main/leads/components/LeadsMaterialR
 import CustomDateRange from '@components/customDateRange';
 import DrawerLeadsMenu from '@views/main/leads/DrawerLeadsMenu';
 import useLeads from '@views/main/leads/useLeads';
+import {
+	defaultInputRanges,
+	defaultStaticRanges,
+} from '@utils/functions/defaultRanges';
 
 const CustomAutocomplete = (props) => (
 	<Autocomplete
@@ -211,6 +215,9 @@ const Leads = (props) => {
 								date.setDateRange([item.selection]);
 							}}
 							fetch={leads.fetch}
+							renderStaticRangeLabel={() => <Typography>lol</Typography>}
+							staticRanges={defaultStaticRanges}
+							inputRanges={defaultInputRanges}
 						/>
 					</Stack>
 					<Button
@@ -223,23 +230,13 @@ const Leads = (props) => {
 				</Stack>
 			</Box>
 
-			<Card sx={{ mt: 16 }}>
-				<CardContent
-					sx={{
-						pt: 8,
-						px: 0,
-						'&:last-child': {
-							pb: 0,
-						},
-					}}
-				>
-					<LeadsMaterialReactTable
-						data={leads.list}
-						loading={leads.loading}
-						goToRequest={goToRequest}
-					/>
-				</CardContent>
-			</Card>
+			<Box sx={{ mt: 16, bgcolor: 'white', borderRadius: 8 }}>
+				<LeadsMaterialReactTable
+					data={leads.list}
+					loading={leads.loading}
+					goToRequest={goToRequest}
+				/>
+			</Box>
 
 			<DrawerLeadsMenu
 				allLeads={allLeads}

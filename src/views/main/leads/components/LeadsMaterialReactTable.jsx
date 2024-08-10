@@ -330,7 +330,9 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 		onColumnOrderChange: setColumnOrderModel,
 		onColumnSizingChange: setColumnSizeModel,
 		onColumnVisibilityChange: setColumnVisibilityModel,
-		muiTableContainerProps: { sx: { maxHeight: '500px' } },
+		muiTableContainerProps: {
+			sx: { height: { xs: 'calc(100vh - 400px)', md: 'calc(100vh - 330px)' } },
+		},
 		muiPaginationProps: {
 			rowsPerPageOptions: [1, 15, 30, 50, 100, 250, 500, 700, 2000],
 		},
