@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useRef } from 'react';
+import React, { Fragment, useMemo, useRef } from 'react';
 import {
 	MaterialReactTable,
 	useMaterialReactTable,
@@ -10,7 +10,7 @@ import {
 	RequestQuote,
 	WatchLater,
 } from '@mui/icons-material';
-import { Box, Button, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import { ProductStatus, RequestStatusList, ServiceType } from '@utils/enums';
 import { format } from 'date-fns';
 import exportExcelReport from '@views/main/requests/exportExcelReport';
@@ -20,13 +20,20 @@ import exportExcelTable from '@views/main/requests/exportExcelTable';
 import { useLeadsMRTContext } from '@providers/local/LeadsMRT/provider';
 
 const checkStatus = (status, isSale) => {
-	const auxStatus =
-		status === 'FINISHED' && !isSale
-			? 'SIN CONCRETAR'
-			: RequestStatusList[status].format;
-
-	return auxStatus;
+	return status === 'FINISHED' && !isSale ? 'SIN CONCRETAR' : status;
 };
+
+const CellStackRender = ({ children }) => (
+	<Stack
+		width={'100%'}
+		direction={'row'}
+		justifyContent={'flex-start'}
+		alignItems={'center'}
+		spacing={8}
+	>
+		{children}
+	</Stack>
+);
 
 const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 	const {
@@ -44,30 +51,54 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 	const columns = useMemo(
 		() => [
 			{
-				accessorFn: (row) => row.requestStatus,
-				id: 'requestStatusIcon',
-				header: '',
-				size: 65,
-				enableResizing: false,
-				enableColumnOrdering: false,
+				accessorFn: (row) => checkStatus(row.requestStatus, row?.isSale),
+				id: 'requestStatus',
+				header: 'ESTATUS',
+				size: 170,
+				minSize: 140,
+				maxSize: 180,
 				Cell: ({ cell }) => {
 					const value = cell.getValue();
 					const isSale = cell.row.original.isSale;
+
 					if (!value) {
 						return '';
 					} else if (value === 'PENDING') {
-						return <WatchLater color={'error'} />;
+						return (
+							<CellStackRender>
+								<WatchLater color={'error'} />
+								<Typography>{RequestStatusList[value].format}</Typography>
+							</CellStackRender>
+						);
 					} else if (value === 'TRACING') {
-						return <ContentPasteSearch color={'warning'} />;
+						return (
+							<CellStackRender>
+								<ContentPasteSearch color={'warning'} />
+								<Typography>{RequestStatusList[value].format}</Typography>
+							</CellStackRender>
+						);
 					} else if (value === 'QUOTED') {
-						return <RequestQuote color={'info'} />;
+						return (
+							<CellStackRender>
+								<RequestQuote color={'info'} />
+								<Typography>{RequestStatusList[value].format}</Typography>
+							</CellStackRender>
+						);
 					} else {
 						return (
-							<AssignmentTurnedIn
-								sx={{ color: isSale ? '#2e7d32' : '#F8A424' }}
-							/>
+							<CellStackRender>
+								<AssignmentTurnedIn
+									sx={{ color: isSale ? '#2e7d32' : '#F8A424' }}
+								/>
+								<Typography>
+									{isSale ? RequestStatusList[value].format : value}
+								</Typography>
+							</CellStackRender>
 						);
 					}
+				},
+				muiTableBodyCellProps: {
+					align: 'center',
 				},
 			},
 			{
@@ -78,26 +109,6 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 				maxSize: 140,
 				muiTableBodyCellProps: {
 					align: 'right',
-				},
-			},
-			{
-				accessorFn: (row) => checkStatus(row.requestStatus, row?.isSale),
-				id: 'requestStatus',
-				header: 'ESTATUS',
-				size: 145,
-				minSize: 140,
-				maxSize: 155,
-				Cell: ({ cell }) => {
-					const value = cell.getValue();
-
-					if (!value) {
-						return '';
-					} else {
-						return <Typography>{value}</Typography>;
-					}
-				},
-				muiTableBodyCellProps: {
-					align: 'center',
 				},
 			},
 			{
@@ -203,9 +214,9 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 					`${row.client?.firstName ?? ''} ${row.client?.lastName ?? ''}`,
 				id: 'clientName',
 				header: 'CLIENTE',
-				size: 160,
+				size: 180,
 				minSize: 135,
-				maxSize: 185,
+				maxSize: 200,
 				muiTableBodyCellProps: {
 					align: 'left',
 				},
@@ -295,14 +306,6 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 
 	const rowVirtualizerInstanceRef = useRef(null);
 
-	useEffect(() => {
-		try {
-			rowVirtualizerInstanceRef.current?.scrollToIndex?.(0);
-		} catch (error) {
-			console.error(error);
-		}
-	}, []);
-
 	const table = useMaterialReactTable({
 		columns,
 		data,
@@ -310,7 +313,6 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 		rowVirtualizerOptions: { overscan: 5 }, //optionally customize the row virtualizer
 		columnVirtualizerOptions: { overscan: 2 }, //optionally customize the column virtualizer
 		enableRowVirtualization: true,
-		enableRowNumbers: true,
 		enableDensityToggle: false,
 		enableColumnOrdering: true,
 		enableColumnResizing: true,

@@ -32,8 +32,8 @@ import CustomDateRange from '@components/customDateRange';
 import DrawerLeadsMenu from '@views/main/leads/DrawerLeadsMenu';
 import useLeads from '@views/main/leads/useLeads';
 import {
-	defaultInputRanges,
-	defaultStaticRanges,
+	spanishInputRanges,
+	spanishStaticRanges,
 } from '@utils/functions/defaultRanges';
 
 const CustomAutocomplete = (props) => (
@@ -151,8 +151,6 @@ const Leads = (props) => {
 					onClick={() => {
 						const toastId = toast.loading('Actualizando...');
 						leads.fetch().then((res) => {
-							console.log('Actualizado', res);
-
 							toast.success('Actualizado', { id: toastId });
 						});
 					}}
@@ -216,8 +214,8 @@ const Leads = (props) => {
 							}}
 							fetch={leads.fetch}
 							renderStaticRangeLabel={() => <Typography>lol</Typography>}
-							staticRanges={defaultStaticRanges}
-							inputRanges={defaultInputRanges}
+							staticRanges={spanishStaticRanges}
+							inputRanges={spanishInputRanges}
 						/>
 					</Stack>
 					<Button

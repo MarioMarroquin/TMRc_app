@@ -38,13 +38,10 @@ const useLeadDetail = () => {
 
 	useEffect(() => {
 		if (loading) {
-			console.log('entra');
 			loader.loadingOn();
 		} else {
 			loader.loadingOff();
 		}
-
-		console.log('Lead id: ' + params.id, data);
 	}, [loading]);
 
 	const [traceRequest] = useMutation(TRACE_REQUEST);

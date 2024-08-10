@@ -555,8 +555,6 @@ const DialogLeadEdit = ({ requestData, requestRefetch }) => {
 
 	useEffect(() => {
 		if (requestData) {
-			console.log('data12', requestData);
-
 			const {
 				createdAt,
 				createdBy,

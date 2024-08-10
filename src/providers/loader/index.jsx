@@ -19,7 +19,6 @@ const LoaderProvider = ({ children }) => {
 	};
 
 	const loadingOff = () => {
-		console.log('prevState: ', loading);
 		setLoading((prevState) => {
 			if (prevState !== 0) return prevState - 1;
 		});

@@ -45,8 +45,8 @@ const useLeads = () => {
 			const aux = data.requests.results;
 			const auxCount = data.requests.info.count;
 
-			console.log('Requests: ', aux);
-			console.log('auxCount', auxCount);
+			// console.log('Requests: ', aux);
+			// console.log('auxCount', auxCount);
 			setCountRows(auxCount);
 		}
 	}, [data]);

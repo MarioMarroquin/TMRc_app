@@ -7,8 +7,6 @@ const api = {
 			variables: { requestId: Number(id) },
 		});
 
-		console.log('si entra');
-
 		return await useIt()
 			.then((res) => res)
 			.catch((err) => err);

@@ -546,8 +546,6 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 				finalRequest.company.phoneNumber = null;
 		}
 
-		console.log('LLamada final', finalRequest);
-
 		createRequest({ variables: { request: finalRequest } })
 			.then((res) => {
 				if (!res.errors) {

@@ -37,11 +37,11 @@ const staticRangeHandler = {
 	},
 };
 
-export function createStaticRanges(ranges) {
+function createStaticRanges(ranges) {
 	return ranges.map((range) => ({ ...staticRangeHandler, ...range }));
 }
 
-export const defaultStaticRanges = createStaticRanges([
+const spanishStaticRanges = createStaticRanges([
 	{
 		label: 'Hoy',
 		range: () => ({
@@ -87,7 +87,7 @@ export const defaultStaticRanges = createStaticRanges([
 	},
 ]);
 
-export const defaultInputRanges = [
+const spanishInputRanges = [
 	{
 		label: 'días para hoy',
 		range(value) {
@@ -125,3 +125,4 @@ export const defaultInputRanges = [
 		},
 	},
 ];
+export { spanishInputRanges, spanishStaticRanges };
