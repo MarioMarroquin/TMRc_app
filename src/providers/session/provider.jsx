@@ -38,7 +38,6 @@ const SessionProvider = ({ children }) => {
 	const logout = async () => {
 		logoutWindow();
 		await authClient.post('/logout');
-		localStorage.clear();
 		localStorage.setItem('logout', Date.now()); // Force logout on every tab
 	};
 
@@ -94,7 +93,6 @@ const SessionProvider = ({ children }) => {
 			const aux = dataUser.userByToken;
 			setUser(aux);
 			setLoading(false);
-			console.log('auxxxxx', aux);
 		}
 	}, [dataUser]);
 

@@ -23,6 +23,7 @@ const Login = () => {
 		login,
 		toggleHide,
 	} = useLogin();
+
 	const onEnter = (e) => {
 		if (credential.username && credential.password && e.key === 'Enter')
 			login(e);
@@ -61,11 +62,11 @@ const Login = () => {
 					¡Hola, bienvenido!
 				</TypographyWhite>
 				<TypographyWhite fontSize={16} fontWeight={500} align={'center'}>
-					inicia sesión
+					Inicia sesión
 				</TypographyWhite>
 
 				<TypographyWhite fontSize={12} fontWeight={500} mt={32} ml={4}>
-					nombre de usuario
+					Nombre de usuario
 				</TypographyWhite>
 				<TextField
 					id={'username'}
@@ -80,13 +81,13 @@ const Login = () => {
 				/>
 
 				<TypographyWhite fontSize={12} fontWeight={500} ml={4} mt={16}>
-					contraseña
+					Contraseña
 				</TypographyWhite>
 				<TextField
 					margin={'dense'}
 					id={'password'}
 					name={'password'}
-					placeholder={'contraseña'}
+					placeholder={'●●●●●'}
 					type={hidePassword ? 'password' : 'text'}
 					fullWidth
 					value={credential.password}
