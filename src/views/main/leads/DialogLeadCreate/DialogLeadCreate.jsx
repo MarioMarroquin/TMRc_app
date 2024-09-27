@@ -36,6 +36,7 @@ import {
 } from '@views/main/requests/queryRequests';
 import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
 import titleCaseClean from '@utils/formatters/titleCaseClean';
+import { isBefore } from 'date-fns';
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
@@ -491,6 +492,14 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 
 		if (!seller.id && role !== ROLES.salesOperator) {
 			toast.error('Elige un vendedor');
+			return true;
+		}
+
+		if (
+			role === ROLES.salesOperator &&
+			isBefore(request.requestDate, new Date())
+		) {
+			toast.error('La fecha no puede ser anterior al día de hoy');
 			return true;
 		}
 
