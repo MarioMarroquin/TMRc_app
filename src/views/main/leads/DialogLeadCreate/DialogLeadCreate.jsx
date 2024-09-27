@@ -508,7 +508,6 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 
 	const onFinish = (e) => {
 		e.preventDefault();
-
 		setLoading(true);
 
 		if (check()) {
