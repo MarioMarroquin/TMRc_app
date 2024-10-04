@@ -36,7 +36,7 @@ import {
 } from '@views/main/requests/queryRequests';
 import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
 import titleCaseClean from '@utils/formatters/titleCaseClean';
-import { isBefore } from 'date-fns';
+import { isBefore, startOfToday } from 'date-fns';
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
@@ -497,7 +497,7 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 
 		if (
 			role === ROLES.salesOperator &&
-			isBefore(request.requestDate, new Date())
+			isBefore(request.requestDate, startOfToday())
 		) {
 			toast.error('La fecha no puede ser anterior al día de hoy');
 			return true;
@@ -666,6 +666,7 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									Marca
 								</Typography>
 								<Autocomplete
+									getOptionKey={(option) => option.id}
 									freeSolo
 									forcePopupIcon={true}
 									options={searchedBrands}
@@ -773,6 +774,7 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									Compañías
 								</Typography>
 								<Autocomplete
+									getOptionKey={(option) => option.id}
 									freeSolo
 									forcePopupIcon={true}
 									options={searchedCompanies}
