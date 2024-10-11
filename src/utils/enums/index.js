@@ -11,6 +11,7 @@ const ContactMedium = [
 	'RECEPCION',
 	'CORREO',
 	'LLAMADA',
+	'PRESENCIAL',
 	'FACEBOOK',
 	'INSTAGRAM',
 	'MERCADO LIBRE',
