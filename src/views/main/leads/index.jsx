@@ -27,7 +27,7 @@ import { useLazyQuery } from '@apollo/client';
 import { GET_SELLERS_ALL } from '@views/main/requests/queryRequests';
 import toast from 'react-hot-toast';
 import DialogLeadCreate from '@views/main/leads/DialogLeadCreate/DialogLeadCreate';
-import LeadsMaterialReactTable from '@views/main/leads/components/LeadsMaterialReactTable';
+import LeadsMaterialReactTable from '@views/main/leads/LeadsMaterialReactTable';
 import CustomDateRange from '@components/customDateRange';
 import DrawerLeadsMenu from '@views/main/leads/DrawerLeadsMenu';
 import useLeads from '@views/main/leads/useLeads';

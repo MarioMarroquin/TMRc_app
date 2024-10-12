@@ -30,7 +30,7 @@ import {
 	SCOPES_GENERAL,
 	SCOPES_REQUEST_DETAILS,
 } from '@config/permisissions/permissions';
-import LeadStatusDot from '@views/main/leads/components/LeadStatusDot';
+import LeadStatusDot from '@views/main/leads/LeadStatusDot';
 import { format } from 'date-fns';
 import ListItemAux from '@views/main/leads/subviews/leadDetail/components/ListItemAux';
 import CommentsList from './components/commentsList';

@@ -13,18 +13,22 @@ import TMRLogo from '@utils/logo/TMR_logo.svg';
 import { logRocketApiKey } from '@config/environment'; // theme css file
 
 const routeGenerator = (route) => {
-	const { children, path, element, index } = route;
+	const { children, path, element, index, nested, routes } = route;
 
-	// if children, checks if index of main Outlet, if not renders inside direct parent
-	if (children) {
-		return (
-			<Route key={path} path={path} element={!index ? element : undefined}>
-				{index && <Route index element={element} />}
-				{children.map((child) => routeGenerator(child))}
-			</Route>
-		);
+	if (nested) {
+		return routes.map((route) => routeGenerator(route));
 	} else {
-		return <Route key={path} path={path} element={element} />;
+		// if children, checks if index of main Outlet, if not renders inside direct parent
+		if (children) {
+			return (
+				<Route key={path} path={path} element={!index ? element : undefined}>
+					{index && <Route index element={element} />}
+					{children.map((route) => routeGenerator(route))}
+				</Route>
+			);
+		} else {
+			return <Route key={path} path={path} element={element} />;
+		}
 	}
 };
 
