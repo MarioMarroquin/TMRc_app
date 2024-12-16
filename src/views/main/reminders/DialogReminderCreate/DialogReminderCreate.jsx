@@ -24,7 +24,7 @@ const DialogReminderCreate = (props) => {
 
 	return (
 		<Fragment>
-			<Button startIcon={<NotificationAdd />}>
+			<Button startIcon={<NotificationAdd />} disabled={true}>
 				{useMediaQuery(theme.breakpoints.down('sm'))
 					? 'Recordatorio'
 					: 'Agregar recordatorio'}
