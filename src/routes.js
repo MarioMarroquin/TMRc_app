@@ -24,6 +24,7 @@ const mainRoutes = [
 		index: true,
 		name: 'Solicitudes',
 		path: '/leads',
+		active: true,
 	},
 	{
 		// children: [{ path: ':id', element: <LeadDetail /> }],
@@ -32,6 +33,7 @@ const mainRoutes = [
 		index: true,
 		name: 'Recordatorios',
 		path: '/reminders',
+		active: false,
 	},
 	{
 		routes: [
@@ -42,12 +44,14 @@ const mainRoutes = [
 				index: true,
 				name: 'Usuarios',
 				path: '/management/users',
+				active: false,
 			},
 		],
 		mainIcon: <SettingsPhone />,
 		mainPath: '/management',
 		mainName: 'Administración',
 		nested: true,
+		active: false,
 	},
 	// {
 	// 	name: 'Mantenimiento',

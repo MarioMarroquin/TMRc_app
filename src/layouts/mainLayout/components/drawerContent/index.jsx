@@ -70,6 +70,7 @@ const DrawerContent = () => {
 						mainPath,
 						routes,
 						mainIcon,
+						active,
 					}) => {
 						if (nested) {
 							return (
@@ -82,6 +83,7 @@ const DrawerContent = () => {
 										onClick={() => {
 											handleListNest(mainName, mainPath);
 										}}
+										disabled={!active}
 										sx={{
 											color: '#1313134F',
 											m: 4,
@@ -175,6 +177,7 @@ const DrawerContent = () => {
 									onClick={() => {
 										navigate(path, { replace: true });
 									}}
+									disabled={!active}
 									sx={{
 										color: '#1313134F',
 										m: 4,
