@@ -1,5 +1,10 @@
+import { useEffect, useState } from 'react';
+import { useLazyQuery } from '@apollo/client';
+import useDebounce from '@hooks/use-debounce';
+import { GET_COMPANIES } from '@views/main/requests/queryRequests';
+
 const BlankCompany = {
-	id: undefined,
+	id: null,
 	name: '',
 	phoneNumber: '',
 	email: '',
@@ -7,10 +12,9 @@ const BlankCompany = {
 
 const useLeadCompany = () => {
 	// COMPANY
-	const [searchedCompanies, setSearchedCompanies] = useState([]);
-	const [company, setCompany] = useState(InitialCompany);
-	const [searchCompanies, { loading: loadingCompanies }] =
-		useLazyQuery(GET_COMPANIES);
+	const [foundCompanies, setFoundCompanies] = useState([]);
+	const [company, setCompany] = useState(BlankCompany);
+	const [searchCompanies, { loading }] = useLazyQuery(GET_COMPANIES);
 	const debouncedCompany = useDebounce(company.name, 700);
 
 	// fetch data from server COMPANIES
@@ -18,14 +22,14 @@ const useLeadCompany = () => {
 		searchCompanies({ variables: { text: company.name } }).then((res) => {
 			if (!res.error) {
 				const aux = res.data.searchCompanies.results;
-				setSearchedCompanies(aux);
+				setFoundCompanies(aux);
 			} else {
 				console.log(res.error);
 			}
 		});
 	}, [debouncedCompany]);
 
-	const handleInputOnChangeCompany = (event, value) => {
+	const handleSelectedCompany = (event, value) => {
 		if (!value) {
 			setCompany({
 				...company,
@@ -47,7 +51,7 @@ const useLeadCompany = () => {
 		// console.log('value', value);
 	};
 
-	const handleInputChangeCompany = (event, value) => {
+	const handleInputCompany = (event, value) => {
 		const actualId = company.id;
 		const lastName = company.name;
 
@@ -74,7 +78,7 @@ const useLeadCompany = () => {
 		}
 	};
 
-	const handlePhoneChangeCompany = (e) => {
+	const handleInputNumber = (e) => {
 		const phoneNumber = e.target.value;
 
 		if (phoneNumber === '') {
@@ -86,12 +90,25 @@ const useLeadCompany = () => {
 		}
 	};
 
-	const handleEmailChangeCompany = (e) => {
+	const handleInputEmail = (e) => {
 		const email = e.target.value;
 
 		setCompany({ ...company, email });
 	};
 
-	return {};
+	const clean = () => {
+		setCompany(BlankCompany);
+	};
+
+	return {
+		foundCompanies,
+		company,
+		loading,
+		handleSelectedCompany,
+		handleInputCompany,
+		handleInputNumber,
+		handleInputEmail,
+		clean,
+	};
 };
 export default useLeadCompany;

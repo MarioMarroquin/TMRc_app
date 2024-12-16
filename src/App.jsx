@@ -11,6 +11,8 @@ import { Box } from '@mui/material';
 import LogRocket from 'logrocket';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
 import { logRocketApiKey } from '@config/environment'; // theme css file
+import 'ag-grid-community/styles/ag-grid.css'; // Mandatory CSS required by the Data Grid
+import 'ag-grid-community/styles/ag-theme-quartz.css'; // Optional Theme applied to the Data Grid
 
 const routeGenerator = (route) => {
 	const { children, path, element, index, nested, routes } = route;
@@ -72,7 +74,7 @@ const App = () => {
 			<Routes>
 				<Route element={<MainLayout />}>
 					{mainRoutes.map((route) => routeGenerator(route))}
-					<Route path='*' element={<Navigate replace to={'requests'} />} />
+					<Route path='*' element={<Navigate replace to={'leads'} />} />
 				</Route>
 			</Routes>
 		</Suspense>

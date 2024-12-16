@@ -30,7 +30,7 @@ const CustomMenu = (props) => {
 			}}
 			sx={{
 				'& .MuiPaper-root': {
-					borderRadius: 8,
+					borderRadius: 12,
 					marginTop: theme.spacing(1),
 					minWidth: 180,
 					color: 'rgb(55, 65, 81)',

@@ -9,23 +9,24 @@ const BlankBrand = {
 };
 
 const useLeadBrand = () => {
-	const [searchedBrands, setSearchedBrands] = useState([]);
+	const [foundBrands, setFoundBrands] = useState([]);
 	const [brand, setBrand] = useState(BlankBrand);
-	const [searchBrands, { loading: loadingBrands }] = useLazyQuery(GET_BRANDS);
+	const [searchBrands, { loading }] = useLazyQuery(GET_BRANDS);
 	const debouncedBrand = useDebounce(brand.name, 700);
 
 	useEffect(() => {
 		searchBrands({ variables: { text: brand.name } }).then((res) => {
 			if (!res.error) {
 				const aux = res.data.searchBrands.results;
-				setSearchedBrands(aux);
+				setFoundBrands(aux);
 			} else {
 				console.log(res.error);
 			}
 		});
 	}, [debouncedBrand]);
 
-	const handleInputOnChangeBrand = (event, value) => {
+	// const handleInputOnChangeBrand = (event, value) => {
+	const handleSelectedBrand = (event, value) => {
 		if (!value) {
 			setBrand({
 				...brand,
@@ -41,7 +42,8 @@ const useLeadBrand = () => {
 		}
 	};
 
-	const handleInputChangeBrand = (event, value) => {
+	// const handleInputChangeBrand = (event, value) => {
+	const handleInputBrand = (event, value) => {
 		const actualId = brand.id;
 		const lastName = brand.name;
 
@@ -68,7 +70,18 @@ const useLeadBrand = () => {
 		}
 	};
 
-	return {};
+	const clean = () => {
+		setBrand(BlankBrand);
+	};
+
+	return {
+		foundBrands,
+		brand,
+		loading,
+		handleSelectedBrand,
+		handleInputBrand,
+		clean,
+	};
 };
 
 export default useLeadBrand;

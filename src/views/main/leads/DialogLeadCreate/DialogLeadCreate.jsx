@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import {
 	Autocomplete,
 	Box,
@@ -21,207 +21,30 @@ import {
 } from '@mui/material';
 import { ContactMedium, ServiceType } from '@utils/enums';
 import { Add, Person } from '@mui/icons-material';
-import { useLazyQuery, useMutation } from '@apollo/client';
-import useDebounce from '@hooks/use-debounce';
-import { useLoading } from '@providers/loading';
-import toast from 'react-hot-toast';
 import { DateTimeField } from '@mui/x-date-pickers';
 import { ROLES } from '@config/permisissions/permissions';
-import { useSession } from '@providers/session';
-import {
-	GET_BRANDS,
-	GET_CLIENTS,
-	GET_COMPANIES,
-	GET_SELLERS,
-} from '@views/main/requests/queryRequests';
-import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
-import titleCaseClean from '@utils/formatters/titleCaseClean';
-import { isBefore, startOfToday } from 'date-fns';
-import useLeadSeller from '@views/main/leads/DialogLeadCreate/useLeadSeller';
+import useLeadCreate from '@views/main/leads/DialogLeadCreate/useLeadCreate';
 
 const DialogLeadCreate = ({ refetchRequests }) => {
 	const theme = useTheme();
-	const [request, setRequest] = useState(InitialRequest);
 	const [isVisible, setIsVisible] = useState(false);
 	const toggleDialog = () => setIsVisible((prev) => !prev);
-	const [createRequest] = useMutation(CREATE_REQUEST);
+	const {
+		useSeller,
+		useBrand,
+		useCompany,
+		useClient,
+		lead,
+		setLead,
+		handleInputLead,
+		cleanStates,
+		userRole,
+		onFinish,
+	} = useLeadCreate(refetchRequests, toggleDialog, isVisible);
 
-	const cleanStates = () => {
-		setRequest(InitialRequest);
-		setClient(InitialClient);
-		setBrand(InitialBrand);
-		setCompany(InitialCompany);
-		setSeller(InitialSeller);
-		setSearchedCompanies([]);
-		setSearchedClients([]);
-		setSearchedBrands([]);
-		setSearchedSellers([]);
-	};
-
-	const check = () => {
-		if (!request.serviceType) {
-			toast.error('Elige el tipo de servicio');
-			return true;
-		}
-
-		if (!brand.name) {
-			toast.error('Elige la marca');
-			return true;
-		}
-
-		if (brand.id || brand.name) {
-			if (!request.productStatus) {
-				toast.error('Elige el estado de producto');
-				return true;
-			}
-		}
-
-		if (!client.id) {
-			if (
-				(client.firstName && !client.lastName) ||
-				(!client.firstName && client.lastName)
-			) {
-				toast.error('Completa el nombre del cliente.');
-				return true;
-			}
-
-			if (client.firstName && client.lastName) {
-				if (!client.phoneNumber && !client.email) {
-					toast.error('Agrega una forma de contacto');
-					return true;
-				}
-
-				if (client.phoneNumber)
-					if (client.phoneNumber.length < 10) {
-						toast.error('Número incompleto');
-						return true;
-					}
-
-				if (client.email)
-					if (!EMAIL.test(client.email)) {
-						toast.error('Revisa el email');
-						return true;
-					}
-			}
-		}
-
-		if (!company.id) {
-			if (company.name) {
-				// if (!company.phoneNumber && !company.email) {
-				// 	toast.error('Agrega una forma de contacto');
-				// 	return true;
-				// }
-
-				if (company.phoneNumber)
-					if (company.phoneNumber.length < 10) {
-						toast.error('Número incompleto');
-						return true;
-					}
-
-				// if (company.email)
-				// 	if (!EMAIL.test(company.email)) {
-				// 		toast.error('Revisa el email');
-				// 		return true;
-				// 	}
-			}
-		}
-
-		if (!seller.id && role !== ROLES.salesOperator) {
-			toast.error('Elige un vendedor');
-			return true;
-		}
-
-		if (
-			role === ROLES.salesOperator &&
-			isBefore(request.requestDate, startOfToday())
-		) {
-			toast.error('La fecha no puede ser anterior al día de hoy');
-			return true;
-		}
-
-		return false;
-	};
-
-	const onFinish = (e) => {
-		e.preventDefault();
-		setLoading(true);
-
-		if (check()) {
-			setLoading(false);
-			return;
-		}
-
-		const finalRequest = {
-			...request,
-			sellerId: seller.id, // tiene que tener de a fuerza
-			brandId: brand.id ?? null,
-			brand: brand.name
-				? (({ id, ...rest }) => ({
-						...rest,
-				  }))(brand)
-				: null,
-			clientId: client.id ?? null,
-			client:
-				client.firstName && client.lastName
-					? (({ id, name, ...rest }) => ({
-							...rest,
-					  }))(client)
-					: null,
-			companyId: company.id ?? null,
-			company: company.name
-				? (({ id, ...rest }) => ({ ...rest }))(company)
-				: null,
-		};
-
-		// console.log('comp', company);
-		// console.log('akliii', finalRequest);
-
-		if (!finalRequest.clientId && finalRequest.client) {
-			if (!finalRequest.client.email.length) finalRequest.client.email = null;
-
-			if (!finalRequest.client.phoneNumber.length)
-				finalRequest.client.phoneNumber = null;
-		}
-
-		if (!finalRequest.companyId && finalRequest.company) {
-			if (!finalRequest.company.email.length) finalRequest.company.email = null;
-
-			if (!finalRequest.company.phoneNumber.length)
-				finalRequest.company.phoneNumber = null;
-		}
-
-		createRequest({ variables: { request: finalRequest } })
-			.then((res) => {
-				if (!res.errors) {
-					toast.success('Solicitud creada');
-					refetchRequests();
-					toggleDialog();
-				} else {
-					console.log('Errores', res.errors);
-					toast.error('Error al crear');
-				}
-				cleanStates();
-				setLoading(false);
-			})
-			.catch((err) => {
-				console.log('Error', err);
-				toast.error('Ocurrio un error');
-				setLoading(false);
-			});
-	};
-
-	useEffect(() => {
-		InitialRequest.requestDate = new Date();
-
-		if (isVisible) {
-			const aux = { ...InitialRequest };
-			setRequest(aux);
-		}
-	}, [isVisible]);
-
-	const isAv = () => {
-		return Boolean(client.firstName);
-	};
+	// const isAv = () => {
+	// 	return Boolean(client.firstName);
+	// };
 
 	return (
 		<Fragment>
@@ -247,39 +70,32 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									Asesor
 								</Typography>
 								<Autocomplete
-									disabled={role === ROLES.salesOperator}
-									freeSolo
-									forcePopupIcon={true}
-									options={searchedSellers}
+									value={
+										useSeller.selectedSeller.id === null
+											? null
+											: (
+													useSeller.selectedSeller.firstName +
+													' ' +
+													useSeller.selectedSeller.lastName
+											  ).trim()
+									}
+									onChange={useSeller.handleSelectedSeller}
+									inputValue={useSeller.input}
+									onInputChange={(event, newInputValue) =>
+										useSeller.setInput(newInputValue)
+									}
+									options={useSeller.sellersList}
+									renderInput={(params) => <TextField {...params} />}
+									disabled={userRole === ROLES.salesOperator}
 									getOptionLabel={(option) =>
 										typeof option === 'string'
 											? option
 											: `${option.firstName + ' ' + option.lastName}`
 									}
-									autoComplete
-									includeInputInList
-									value={seller.name}
-									renderInput={(params) => <TextField {...params} />}
-									loading={loadingSellers}
-									onInputChange={handleInputChangeSeller}
-									onChange={handleInputOnChangeSeller}
-									renderOption={(props, option) => (
-										<li {...props} key={option.id}>
-											<Grid container alignItems='center'>
-												<Grid item>
-													<Box
-														component={Person}
-														sx={{ color: 'text.secondary', mr: 2 }}
-													/>
-												</Grid>
-												<Grid item xs>
-													<Typography variant='body2' color='text.secondary'>
-														{option?.firstName + ' ' + option?.lastName}
-													</Typography>
-												</Grid>
-											</Grid>
-										</li>
-									)}
+									isOptionEqualToValue={(option, value) => {
+										return option.id === useSeller.selectedSeller.id;
+									}}
+									loading={useSeller.loading}
 								/>
 							</Grid>
 
@@ -289,10 +105,10 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								</Typography>
 								<DateTimeField
 									sx={{ m: 0 }}
-									value={request.requestDate}
+									value={lead.requestDate}
 									format={'dd MMM yy - HH:mm'}
 									onChange={(newValue) =>
-										setRequest({ ...request, requestDate: newValue })
+										setLead({ ...lead, requestDate: newValue })
 									}
 								/>
 							</Grid>
@@ -305,18 +121,18 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									getOptionKey={(option) => option.id}
 									freeSolo
 									forcePopupIcon={true}
-									options={searchedBrands}
+									options={useBrand.foundBrands}
 									getOptionLabel={(option) =>
 										typeof option === 'string' ? option : option.name
 									}
 									autoComplete
 									includeInputInList
 									ListboxProps={{ style: { padding: 0 } }}
-									value={brand.name}
+									value={useBrand.brand.name}
 									renderInput={(params) => <TextField {...params} />}
-									loading={loadingBrands}
-									onInputChange={handleInputChangeBrand}
-									onChange={handleInputOnChangeBrand}
+									loading={useBrand.loading}
+									onInputChange={useBrand.handleInputBrand}
+									onChange={useBrand.handleSelectedBrand}
 								/>
 							</Grid>
 
@@ -328,8 +144,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									<Select
 										id={'serviceType'}
 										name={'serviceType'}
-										value={request.serviceType}
-										onChange={handleInputChange}
+										value={lead.serviceType}
+										onChange={handleInputLead}
 									>
 										{Object.entries(ServiceType).map((item) => (
 											<MenuItem key={item[0]} value={item[0]}>
@@ -348,8 +164,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									<Select
 										id={'productStatus'}
 										name={'productStatus'}
-										value={request.productStatus}
-										onChange={handleInputChange}
+										value={lead.productStatus}
+										onChange={handleInputLead}
 									>
 										<MenuItem value={'NEW'}>Nuevo</MenuItem>
 										<MenuItem value={'USED'}>Usado</MenuItem>
@@ -365,8 +181,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									<Select
 										id={'contactMedium'}
 										name={'contactMedium'}
-										value={request.contactMedium}
-										onChange={handleInputChange}
+										value={lead.contactMedium}
+										onChange={handleInputLead}
 									>
 										{ContactMedium.map((item) => (
 											<MenuItem key={item} value={item}>
@@ -384,8 +200,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								<TextField
 									id={'advertisingMedium'}
 									name={'advertisingMedium'}
-									value={request.advertisingMedium}
-									onChange={handleInputChange}
+									value={lead.advertisingMedium}
+									onChange={handleInputLead}
 								/>
 							</Grid>
 
@@ -398,8 +214,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									maxRows={4}
 									id={'comments'}
 									name={'comments'}
-									value={request.comments}
-									onChange={handleInputChange}
+									value={lead.comments}
+									onChange={handleInputLead}
 								/>
 							</Grid>
 						</Grid>
@@ -413,18 +229,18 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									getOptionKey={(option) => option.id}
 									freeSolo
 									forcePopupIcon={true}
-									options={searchedCompanies}
+									options={useCompany.foundCompanies}
 									getOptionLabel={(option) =>
 										typeof option === 'string' ? option : option.name
 									}
 									autoComplete
 									includeInputInList
 									ListboxProps={{ style: { padding: 0 } }}
-									value={company.name}
+									value={useCompany.company.name}
 									renderInput={(params) => <TextField {...params} />}
-									loading={loadingCompanies}
-									onInputChange={handleInputChangeCompany}
-									onChange={handleInputOnChangeCompany}
+									loading={useCompany.loading}
+									onInputChange={useCompany.handleInputCompany}
+									onChange={useCompany.handleSelectedCompany}
 								/>
 							</Grid>
 
@@ -435,9 +251,9 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								<TextField
 									id={'email'}
 									name={'email'}
-									value={company.email}
-									onChange={handleEmailChangeCompany}
-									disabled={company.id || !company.name}
+									value={useCompany.company.email}
+									onChange={useCompany.handleInputEmail}
+									disabled={useCompany.company.id || !useCompany.company.name}
 								/>
 							</Grid>
 
@@ -448,17 +264,17 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								<Autocomplete
 									freeSolo
 									forcePopupIcon={true}
-									options={searchedClients}
+									options={useClient.foundClients}
 									getOptionLabel={(option) =>
 										typeof option === 'string' ? option : option.firstName
 									}
 									autoComplete
 									includeInputInList
-									value={client.firstName}
+									value={useClient.client.firstName}
 									renderInput={(params) => <TextField {...params} />}
-									loading={loading}
-									onInputChange={handleInputChangeClient}
-									onChange={handleInputOnChangeClient}
+									loading={useClient.loading}
+									onInputChange={useClient.handleInputClientName}
+									onChange={useClient.handleSelectedClient}
 									renderOption={(props, option) => (
 										<li {...props} key={option.id}>
 											<Grid container alignItems='center'>
@@ -485,8 +301,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								<TextField
 									id={'lastName'}
 									name={'lastName'}
-									value={client.lastName}
-									onChange={handleNameChangeClient}
+									value={useClient.client.lastName}
+									onChange={useClient.handleInputClientLastName}
 								/>
 							</Grid>
 							<Grid item xs={12} sx={{ p: 4 }}>
@@ -497,9 +313,12 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 									sx={{ borderColor: 'green' }}
 									id={'email'}
 									name={'email'}
-									value={client.email}
-									onChange={handleEmailChangeClient}
-									disabled={client.id || !(client.firstName && client.lastName)}
+									value={useClient.client.email}
+									onChange={useClient.handleInputEmail}
+									disabled={
+										useClient.client.id ||
+										!(useClient.client.firstName && useClient.client.lastName)
+									}
 								/>
 							</Grid>
 							<Grid item xs={12} sm={6} sx={{ p: 4 }}>
@@ -509,9 +328,12 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								<TextField
 									id={'phoneNumber'}
 									name={'phoneNumber'}
-									value={client.phoneNumber}
-									onChange={handlePhoneChangeClient}
-									disabled={client.id || !(client.firstName && client.lastName)}
+									value={useClient.client.phoneNumber}
+									onChange={useClient.handleInputNumber}
+									disabled={
+										useClient.client.id ||
+										!(useClient.client.firstName && useClient.client.lastName)
+									}
 									inputProps={{ inputMode: 'numeric' }}
 									InputProps={{
 										startAdornment: (
@@ -528,9 +350,9 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								<TextField
 									id={'phoneNumber'}
 									name={'phoneNumber'}
-									value={company.phoneNumber}
-									onChange={handlePhoneChangeCompany}
-									disabled={company.id || !company.name}
+									value={useCompany.company.phoneNumber}
+									onChange={useCompany.handleInputNumber}
+									disabled={useCompany.company.id || !useCompany.company.name}
 									inputProps={{ inputMode: 'numeric' }}
 									InputProps={{
 										startAdornment: (
@@ -549,8 +371,8 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 								maxRows={3}
 								id={'extraComments'}
 								name={'extraComments'}
-								value={request.extraComments}
-								onChange={handleInputChange}
+								value={lead.extraComments}
+								onChange={handleInputLead}
 							/>
 						</Grid>
 					</Grid>

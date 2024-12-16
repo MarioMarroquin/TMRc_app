@@ -1,7 +1,7 @@
 import { useSession } from '@providers/session';
 import { useLoaderContext } from '@providers/loader';
 import { useEffect, useState } from 'react';
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import {
 	GET_BRANDS,
 	GET_CLIENTS,
@@ -12,8 +12,13 @@ import useDebounce from '@hooks/use-debounce';
 import titleCaseClean from '@utils/formatters/titleCaseClean';
 import toast from 'react-hot-toast';
 import { ROLES } from '@config/permisissions/permissions';
+import useLeadSeller from '@views/main/leads/DialogLeadCreate/useLeadSeller';
+import useLeadBrand from '@views/main/leads/DialogLeadCreate/useLeadBrand';
+import useLeadCompany from '@views/main/leads/DialogLeadCreate/useLeadCompany';
+import useLeadClient from '@views/main/leads/DialogLeadCreate/useLeadClient';
+import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
 
-const BlankLead = {
+const BlankData = {
 	requestDate: new Date(),
 	serviceType: '',
 	contactMedium: '',
@@ -27,86 +32,96 @@ const BlankLead = {
 
 const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
-const useLeadCreate = () => {
+const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 	const {
 		user: { role },
 	} = useSession();
-	const { loading, loadingOn } = useLoaderContext();
-	const [lead, setLead] = useState(BlankLead);
 
-	const handleInputChange = (e) => {
+	const useSeller = useLeadSeller();
+	const useBrand = useLeadBrand();
+	const useCompany = useLeadCompany();
+	const useClient = useLeadClient();
+
+	const [lead, setLead] = useState(BlankData);
+
+	const [createRequest] = useMutation(CREATE_REQUEST);
+
+	const { loading, loadingOn, loadingOff } = useLoaderContext();
+
+	const handleInputLead = (e) => {
 		const { name, value } = e.target;
-		setRequest({ ...request, [name]: value });
+		setLead({ ...lead, [name]: value });
 	};
 
 	const cleanStates = () => {
-		setRequest(InitialRequest);
-		setClient(InitialClient);
-		setBrand(InitialBrand);
-		setCompany(InitialCompany);
-		setSeller(InitialSeller);
-		setSearchedCompanies([]);
-		setSearchedClients([]);
-		setSearchedBrands([]);
-		setSearchedSellers([]);
+		useSeller.clean();
+		useBrand.clean();
+		useCompany.clean();
+		useClient.clean();
+		setLead(BlankData);
+
+		// setSearchedCompanies([]);
+		// setSearchedClients([]);
+		// setSearchedBrands([]);
+		// setSearchedSellers([]);
 	};
 
 	const check = () => {
-		if (!request.serviceType) {
+		if (!lead.serviceType) {
 			toast.error('Elige el tipo de servicio');
 			return true;
 		}
 
-		if (!brand.name) {
+		if (!useBrand.brand.name) {
 			toast.error('Elige la marca');
 			return true;
 		}
 
-		if (brand.id || brand.name) {
-			if (!request.productStatus) {
+		if (useBrand.brand.id || useBrand.brand.name) {
+			if (!lead.productStatus) {
 				toast.error('Elige el estado de producto');
 				return true;
 			}
 		}
 
-		if (!client.id) {
+		if (!useClient.client.id) {
 			if (
-				(client.firstName && !client.lastName) ||
-				(!client.firstName && client.lastName)
+				(useClient.client.firstName && !useClient.client.lastName) ||
+				(!useClient.client.firstName && useClient.client.lastName)
 			) {
 				toast.error('Completa el nombre del cliente.');
 				return true;
 			}
 
-			if (client.firstName && client.lastName) {
-				if (!client.phoneNumber && !client.email) {
+			if (useClient.client.firstName && useClient.client.lastName) {
+				if (!useClient.client.phoneNumber && !useClient.client.email) {
 					toast.error('Agrega una forma de contacto');
 					return true;
 				}
 
-				if (client.phoneNumber)
-					if (client.phoneNumber.length < 10) {
+				if (useClient.client.phoneNumber)
+					if (useClient.client.phoneNumber.length < 10) {
 						toast.error('Número incompleto');
 						return true;
 					}
 
-				if (client.email)
-					if (!EMAIL.test(client.email)) {
+				if (useClient.client.email)
+					if (!EMAIL.test(useClient.client.email)) {
 						toast.error('Revisa el email');
 						return true;
 					}
 			}
 		}
 
-		if (!company.id) {
-			if (company.name) {
+		if (!useCompany.company.id) {
+			if (useCompany.company.name) {
 				// if (!company.phoneNumber && !company.email) {
 				// 	toast.error('Agrega una forma de contacto');
 				// 	return true;
 				// }
 
-				if (company.phoneNumber)
-					if (company.phoneNumber.length < 10) {
+				if (useCompany.company.phoneNumber)
+					if (useCompany.company.phoneNumber.length < 10) {
 						toast.error('Número incompleto');
 						return true;
 					}
@@ -119,7 +134,7 @@ const useLeadCreate = () => {
 			}
 		}
 
-		if (!seller.id && role !== ROLES.salesOperator) {
+		if (!useSeller.selectedSeller.id && role !== ROLES.salesOperator) {
 			toast.error('Elige un vendedor');
 			return true;
 		}
@@ -130,32 +145,32 @@ const useLeadCreate = () => {
 	const onFinish = (e) => {
 		e.preventDefault();
 
-		setLoading(true);
+		loadingOn();
 
 		if (check()) {
-			setLoading(false);
+			loadingOff();
 			return;
 		}
 
 		const finalRequest = {
-			...request,
-			sellerId: seller.id, // tiene que tener de a fuerza
-			brandId: brand.id ?? null,
-			brand: brand.name
+			...lead,
+			sellerId: useSeller.selectedSeller.id, // tiene que tener de a fuerza
+			brandId: useBrand.brand.id ?? null,
+			brand: useBrand.brand.name
 				? (({ id, ...rest }) => ({
 						...rest,
-				  }))(brand)
+				  }))(useBrand.brand)
 				: null,
-			clientId: client.id ?? null,
+			clientId: useClient.client.id ?? null,
 			client:
-				client.firstName && client.lastName
+				useClient.client.firstName && useClient.client.lastName
 					? (({ id, name, ...rest }) => ({
 							...rest,
-					  }))(client)
+					  }))(useClient.client)
 					: null,
-			companyId: company.id ?? null,
-			company: company.name
-				? (({ id, ...rest }) => ({ ...rest }))(company)
+			companyId: useCompany.company.id ?? null,
+			company: useCompany.company.name
+				? (({ id, ...rest }) => ({ ...rest }))(useCompany.company)
 				: null,
 		};
 
@@ -187,27 +202,36 @@ const useLeadCreate = () => {
 					toast.error('Error al crear');
 				}
 				cleanStates();
-				setLoading(false);
+				loadingOff();
 			})
 			.catch((err) => {
 				console.log('Error', err);
 				toast.error('Ocurrio un error');
-				setLoading(false);
+				loadingOff();
 			});
 	};
 
 	useEffect(() => {
-		InitialRequest.requestDate = new Date();
+		BlankData.requestDate = new Date();
 
 		if (isVisible) {
-			const aux = { ...InitialRequest };
-			setRequest(aux);
+			const aux = { ...BlankData };
+			setLead(aux);
 		}
 	}, [isVisible]);
 
-	const isAv = () => {
-		return Boolean(client.firstName);
+	return {
+		useSeller,
+		useBrand,
+		useCompany,
+		useClient,
+		lead,
+		setLead,
+		handleInputLead,
+		cleanStates,
+		userRole: role,
+		onFinish,
 	};
-
-	return {};
 };
+
+export default useLeadCreate;

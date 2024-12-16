@@ -1,26 +1,43 @@
-import { Business, Person, Settings, SettingsPhone } from '@mui/icons-material';
+import {
+	AllInbox,
+	Business,
+	Event,
+	Person,
+	Settings,
+	SettingsPhone,
+} from '@mui/icons-material';
 import { lazy } from 'react';
 import { Typography } from '@mui/material';
+import Reminders from '@views/main/reminders';
 
 const Leads = lazy(() => import('./views/main/leads'));
 const LeadDetail = lazy(() => import('./views/main/leads/subviews/leadDetail'));
 const Maintenance = lazy(() => import('./views/main/maintenance'));
+const Users = lazy(() => import('./views/main/maintenance/users'));
 const Clients = lazy(() => import('./views/main/maintenance/clients'));
 
 const mainRoutes = [
 	{
 		children: [{ path: ':id', element: <LeadDetail /> }],
 		element: <Leads />,
-		icon: <SettingsPhone />,
+		icon: <AllInbox />,
 		index: true,
 		name: 'Solicitudes',
-		path: '/requests',
+		path: '/leads',
+	},
+	{
+		// children: [{ path: ':id', element: <LeadDetail /> }],
+		element: <Reminders />,
+		icon: <Event />,
+		index: true,
+		name: 'Recordatorios',
+		path: '/reminders',
 	},
 	{
 		routes: [
 			{
 				// children: [{ path: ':id', element: <LeadDetail /> }],
-				element: <Typography>asd</Typography>,
+				element: <Users />,
 				icon: <Person />,
 				index: true,
 				name: 'Usuarios',

@@ -5,6 +5,7 @@ import { es } from 'date-fns/locale';
 import { paperClasses } from '@mui/material/Paper';
 import { format } from 'date-fns';
 import { pxToRem } from '@config/theme/functions';
+import './index.css';
 
 const CustomDate = (props) => {
 	const theme = useTheme();
@@ -16,6 +17,14 @@ const CustomDate = (props) => {
 			toggleVisible();
 		}
 	}, [props.date]);
+
+	if (props.extended) {
+		return (
+			<Fragment>
+				<Calendar {...props} locale={es} color={theme.palette.secondary.main} />
+			</Fragment>
+		);
+	}
 
 	return (
 		<Fragment>

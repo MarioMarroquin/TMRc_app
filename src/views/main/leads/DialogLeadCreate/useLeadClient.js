@@ -17,10 +17,9 @@ const BlankClient = {
 
 const useLeadClient = () => {
 	// CLIENTES
-	const [searchedClients, setSearchedClients] = useState([]);
+	const [foundClients, setFoundClients] = useState([]);
 	const [client, setClient] = useState(BlankClient);
-	const [searchClients, { loading: clientsLoading }] =
-		useLazyQuery(GET_CLIENTS);
+	const [searchClients, { loading }] = useLazyQuery(GET_CLIENTS);
 	const debouncedClient = useDebounce(client.firstName, 700);
 
 	// fetch data from server CLIENTS
@@ -28,14 +27,14 @@ const useLeadClient = () => {
 		searchClients({ variables: { text: client.firstName } }).then((res) => {
 			if (!res.error) {
 				const aux = res.data.searchClients.results;
-				setSearchedClients(aux);
+				setFoundClients(aux);
 			} else {
 				console.log(res.error);
 			}
 		});
 	}, [debouncedClient]);
 
-	const handleInputOnChangeClient = (event, value) => {
+	const handleSelectedClient = (event, value) => {
 		if (!value) {
 			setClient({
 				...client,
@@ -57,7 +56,7 @@ const useLeadClient = () => {
 		}
 	};
 
-	const handleInputChangeClient = (event, value) => {
+	const handleInputClientName = (event, value) => {
 		const actualId = client.id;
 		const lastName = client.name;
 
@@ -87,7 +86,7 @@ const useLeadClient = () => {
 		}
 	};
 
-	const handlePhoneChangeClient = (e) => {
+	const handleInputNumber = (e) => {
 		const phoneNumber = e.target.value;
 
 		if (phoneNumber === '') {
@@ -99,13 +98,13 @@ const useLeadClient = () => {
 		}
 	};
 
-	const handleEmailChangeClient = (e) => {
+	const handleInputEmail = (e) => {
 		const email = e.target.value;
 
 		setClient({ ...client, email });
 	};
 
-	const handleNameChangeClient = (e) => {
+	const handleInputClientLastName = (e) => {
 		const lastName = e.target.value;
 		const existId = client.id;
 		const aux = titleCaseClean(lastName);
@@ -116,7 +115,21 @@ const useLeadClient = () => {
 			: setClient({ ...client, lastName: aux });
 	};
 
-	return {};
+	const clean = () => {
+		setClient(BlankClient);
+	};
+
+	return {
+		foundClients,
+		client,
+		loading,
+		handleInputClientName,
+		handleInputClientLastName,
+		handleSelectedClient,
+		handleInputNumber,
+		handleInputEmail,
+		clean,
+	};
 };
 
 export default useLeadClient;

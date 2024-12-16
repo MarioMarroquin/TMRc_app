@@ -311,7 +311,6 @@ const LeadsMaterialReactTable = ({ data, loading, goToRequest }) => {
 		data,
 		rowVirtualizerInstanceRef,
 		rowVirtualizerOptions: { overscan: 5 }, //optionally customize the row virtualizer
-		columnVirtualizerOptions: { overscan: 2 }, //optionally customize the column virtualizer
 		enableRowVirtualization: true,
 		enableDensityToggle: false,
 		enableColumnOrdering: true,
