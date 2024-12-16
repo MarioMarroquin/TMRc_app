@@ -8,6 +8,8 @@ const GET_USER_BY_TOKEN = gql`
 			username
 			firstName
 			lastName
+			phoneNumber
+			email
 			createdAt
 		}
 	}

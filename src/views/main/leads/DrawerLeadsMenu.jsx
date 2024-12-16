@@ -8,18 +8,28 @@ import {
 	IconButton,
 	Stack,
 	Switch,
+	Tooltip,
 	Typography,
 	useTheme,
 } from '@mui/material';
 import { Clear } from '@mui/icons-material';
-import { Fragment } from 'react';
+import React, { Fragment } from 'react';
 import PermissionsGate from '@components/PermissionsGate';
 import {
 	SCOPES_GENERAL,
 	SCOPES_REQUEST,
 } from '@config/permisissions/permissions';
+import exportExcelReport from '@views/main/requests/exportExcelReport';
+import exportExcelTable from '@views/main/requests/exportExcelTable';
 
-const DrawerLeadsMenu = ({ allLeads, pendingLeads, open, onClose }) => {
+const DrawerLeadsMenu = ({
+	allLeads,
+	pendingLeads,
+	open,
+	onClose,
+	exportToExcel,
+	exportToExcelDefault,
+}) => {
 	const theme = useTheme();
 
 	return (
@@ -49,13 +59,19 @@ const DrawerLeadsMenu = ({ allLeads, pendingLeads, open, onClose }) => {
 		>
 			<Box>
 				<Stack direction={'row'} mt={8} mx={16} mb={8} alignItems={'center'}>
-					<Typography fontSize={14} fontWeight={700}>
-						Filtro global
+					<Typography fontSize={16} fontWeight={700}>
+						Opciones
 					</Typography>
 					<IconButton sx={{ ml: 'auto' }} onClick={onClose}>
 						<Clear />
 					</IconButton>
 				</Stack>
+
+				<Typography fontSize={14} fontWeight={600} mx={12}>
+					Filtros
+				</Typography>
+
+				<Divider sx={{ mx: 12, my: 4 }} />
 
 				<Typography
 					color={'text.secondary'}
@@ -98,6 +114,76 @@ const DrawerLeadsMenu = ({ allLeads, pendingLeads, open, onClose }) => {
 						</Typography>
 					</Stack>
 				</PermissionsGate>
+
+				<Typography fontSize={14} fontWeight={600} mx={12} mt={32}>
+					Exportar
+				</Typography>
+
+				<Divider sx={{ mx: 12, my: 4 }} />
+
+				<Typography
+					color={'text.secondary'}
+					fontSize={11}
+					fontWeight={500}
+					mx={12}
+					mb={8}
+				>
+					Exporta los datos de la tabla a un archivo de Excel.
+				</Typography>
+
+				<Stack spacing={8} mx={24} mt={16}>
+					<Button
+						onClick={() => {
+							exportToExcel('All');
+						}}
+					>
+						Exportar todo
+					</Button>
+
+					{/* <PermissionsGate scopes={[SCOPES_REQUEST.export]}> */}
+					<Button
+						onClick={() => {
+							exportToExcel('AfterFilter');
+						}}
+					>
+						Exportar con filtro
+					</Button>
+					{/* </PermissionsGate> */}
+					<Button
+						onClick={() => {
+							exportToExcel('AfterFilterAndSort');
+						}}
+					>
+						Exportar con filtro y orden
+					</Button>
+				</Stack>
+
+				<Typography fontSize={14} fontWeight={600} mx={12} mt={32}>
+					Exportar con formato
+				</Typography>
+
+				<Divider sx={{ mx: 12, my: 4 }} />
+
+				<Typography
+					color={'text.secondary'}
+					fontSize={11}
+					fontWeight={500}
+					mx={12}
+					mb={8}
+				>
+					Exporta los datos de la tabla a un archivo de Excel con un formato
+					predeterminado.
+				</Typography>
+
+				<Stack spacing={8} mx={24} mt={16}>
+					<Button
+						onClick={() => {
+							exportToExcelDefault();
+						}}
+					>
+						Exportar
+					</Button>
+				</Stack>
 			</Box>
 		</Drawer>
 	);

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { pxToRem } from '@config/theme/functions';
 import {
@@ -14,7 +14,14 @@ import {
 	TextField,
 	Typography,
 } from '@mui/material';
-import { Person, PersonSearch, Search, Sync, Tune } from '@mui/icons-material';
+import {
+	DisplaySettings,
+	Person,
+	PersonSearch,
+	Search,
+	Sync,
+	Tune,
+} from '@mui/icons-material';
 import {
 	ROLES,
 	SCOPES_GENERAL,
@@ -27,7 +34,7 @@ import { useLazyQuery } from '@apollo/client';
 import { GET_SELLERS_ALL } from '@views/main/requests/queryRequests';
 import toast from 'react-hot-toast';
 import DialogLeadCreate from '@views/main/leads/DialogLeadCreate/DialogLeadCreate';
-import LeadsMaterialReactTable from '@views/main/leads/components/LeadsMaterialReactTable';
+import LeadsMaterialReactTable from '@views/main/leads/LeadsMaterialReactTable';
 import CustomDateRange from '@components/customDateRange';
 import DrawerLeadsMenu from '@views/main/leads/DrawerLeadsMenu';
 import useLeads from '@views/main/leads/useLeads';
@@ -35,6 +42,7 @@ import {
 	spanishInputRanges,
 	spanishStaticRanges,
 } from '@utils/functions/defaultRanges';
+import LeadsGrid from '@views/main/leads/LeadsGrid';
 
 const CustomAutocomplete = (props) => (
 	<Autocomplete
@@ -93,8 +101,19 @@ const Leads = (props) => {
 	const { role } = useSession();
 	const navigate = useNavigate();
 	const [sellersList, setSellersList] = useState([]);
-	const { filterMenu, allLeads, assignedUser, date, leads, pending } =
-		useLeads();
+	const {
+		filterMenu,
+		allLeads,
+		assignedUser,
+		date,
+		leads,
+		pending,
+		exportToExcel,
+		exportToExcelDefault,
+	} = useLeads();
+
+	// Create a gridRef
+	const gridRef = useRef();
 
 	const [searchSellers] = useLazyQuery(GET_SELLERS_ALL);
 
@@ -121,6 +140,16 @@ const Leads = (props) => {
 		navigate(`${id}`); // needs to be string for route params
 	};
 
+	const exportToExcelHelper = (exportType) => {
+		exportToExcel(gridRef, exportType);
+	};
+
+	const exportToExcelDefaultHelper = (exportType) => {
+		exportToExcelDefault(gridRef);
+	};
+
+	const navigateToRequest = (row) => navigate(`${row.data.id}`); // needs to be string for route params
+
 	// useInterval(refetch, 1000 * 60 * 1, {
 	// 	skip: false,
 	// 	leading: true,
@@ -141,67 +170,13 @@ const Leads = (props) => {
 				sx={{
 					display: 'flex',
 					flexDirection: 'row',
-					justifyContent: 'flex-end',
+					justifyContent: 'space-between',
 					mt: 8,
 					mb: 16,
 				}}
 			>
-				<Button
-					color={'secondary'}
-					onClick={() => {
-						const toastId = toast.loading('Actualizando...');
-						leads.fetch().then((res) => {
-							toast.success('Actualizado', { id: toastId });
-						});
-					}}
-				>
-					<Sync />
-				</Button>
-
-				<DialogLeadCreate refetchRequests={leads.fetch} />
-			</Box>
-
-			<Box
-				sx={{
-					display: 'flex',
-					flexDirection: { xs: 'column', md: 'row' },
-					justifyContent: 'flex-end',
-				}}
-			>
-				<PermissionsGate
-					scopes={[
-						SCOPES_GENERAL.total,
-						SCOPES_REQUEST.total,
-						SCOPES_REQUEST.filterOperator,
-					]}
-				>
-					<Stack width={'100%'} sx={{ mb: { xs: 8, sm: 0 } }}>
-						<Typography fontSize={12} fontWeight={500} ml={'4px'}>
-							Asesor
-						</Typography>
-						<CustomAutocomplete
-							options={sellersList}
-							value={assignedUser.selected}
-							onChange={onChangeSeller}
-							// onInputChange={onInputSeller}
-						/>
-					</Stack>
-				</PermissionsGate>
-
-				<Divider
-					orientation='vertical'
-					variant='middle'
-					flexItem
-					sx={{
-						mx: 16,
-						borderColor: 'red',
-						height: '100%',
-						display: { xs: 'none', sm: 'flex' },
-					}}
-				/>
-
-				<Stack direction={'row'}>
-					<Stack width={'100%'}>
+				<Box sx={{ display: 'flex', flexDirection: 'row' }}>
+					<Stack>
 						<Typography fontSize={12} fontWeight={500} ml={'4px'}>
 							Rango de fecha
 						</Typography>
@@ -213,26 +188,47 @@ const Leads = (props) => {
 								date.setDateRange([item.selection]);
 							}}
 							fetch={leads.fetch}
-							renderStaticRangeLabel={() => <Typography>lol</Typography>}
 							staticRanges={spanishStaticRanges}
 							inputRanges={spanishInputRanges}
 						/>
 					</Stack>
+
 					<Button
-						variant={'text'}
 						sx={{ mt: 'auto', ml: 16 }}
 						onClick={filterMenu.onOpen}
+						startIcon={<DisplaySettings />}
 					>
-						<Tune />
+						Opciones
 					</Button>
-				</Stack>
+				</Box>
+
+				<Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'row' }}>
+					<Button
+						color={'secondary'}
+						onClick={() => {
+							const toastId = toast.loading('Actualizando...');
+							leads.fetch().then((res) => {
+								toast.success('Actualizado', { id: toastId });
+							});
+						}}
+					>
+						<Sync />
+					</Button>
+
+					<DialogLeadCreate refetchRequests={leads.fetch} />
+				</Box>
 			</Box>
 
 			<Box sx={{ mt: 16, bgcolor: 'white', borderRadius: 8 }}>
-				<LeadsMaterialReactTable
-					data={leads.list}
-					loading={leads.loading}
-					goToRequest={goToRequest}
+				{/* <LeadsMaterialReactTable */}
+				{/* 	data={leads.list} */}
+				{/* 	loading={leads.loading} */}
+				{/* 	goToRequest={goToRequest} */}
+				{/* /> */}
+				<LeadsGrid
+					rows={leads.list}
+					doubleClickAction={navigateToRequest}
+					gridRef={gridRef}
 				/>
 			</Box>
 
@@ -241,6 +237,8 @@ const Leads = (props) => {
 				pendingLeads={pending}
 				onClose={filterMenu.onClose}
 				open={filterMenu.visible}
+				exportToExcel={exportToExcelHelper}
+				exportToExcelDefault={exportToExcelDefaultHelper}
 			/>
 		</Fragment>
 	);

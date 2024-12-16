@@ -95,25 +95,11 @@ const GET_REQUEST = gql`
 
 const GET_REQUESTS = gql`
 	query Requests(
-		$params: QueryParams!
 		$dateRange: DateRange!
-		$assignedUserId: Int
 		$showAll: Boolean!
 		$pending: Boolean!
 	) {
-		requests(
-			dateRange: $dateRange
-			pending: $pending
-			params: $params
-			showAll: $showAll
-			assignedUserId: $assignedUserId
-		) {
-			info {
-				count
-				pages
-				prev
-				next
-			}
+		requests(dateRange: $dateRange, pending: $pending, showAll: $showAll) {
 			results {
 				id
 				shortId

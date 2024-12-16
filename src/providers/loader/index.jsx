@@ -8,7 +8,6 @@ const LoaderContext = createContext({
 	loading: 0,
 	loadingOn: () => {},
 	loadingOff: () => {},
-	setLoading: null,
 });
 
 const LoaderProvider = ({ children }) => {

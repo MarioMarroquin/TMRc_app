@@ -27,7 +27,7 @@ const theme = createTheme(
 				defaultProps: { fullWidth: true, size: 'small' },
 				styleOverrides: {
 					root: {
-						borderRadius: 8,
+						borderRadius: 12,
 						'& .MuiOutlinedInput-root': {
 							'& fieldset': {
 								borderColor: `${palette.primary.main}10`,
@@ -59,7 +59,7 @@ const theme = createTheme(
 				styleOverrides: {
 					root: {
 						backgroundColor: '#F4F4F4',
-						borderRadius: 8,
+						borderRadius: 12,
 						border: 'none',
 					},
 				},
@@ -69,7 +69,7 @@ const theme = createTheme(
 					PaperComponent: (props) => (
 						<Paper
 							sx={{
-								borderRadius: `0 0 ${pxToRem(8)} ${pxToRem(8)}`,
+								borderRadius: `0 0 ${pxToRem(12)} ${pxToRem(12)}`,
 								boxShadow: `0px 15px 16px rgba(3, 7, 18, 0.20),
 														0px 60px 65px rgba(3, 7, 18, 0.10);
 														`,
@@ -91,7 +91,7 @@ const theme = createTheme(
 						fontSize: 14,
 						fontWeight: 600,
 						padding: `4px 12px`,
-						borderRadius: 8,
+						borderRadius: 12,
 					},
 				},
 			},
@@ -100,7 +100,7 @@ const theme = createTheme(
 					MenuProps: {
 						sx: {
 							'& .MuiPaper-root': {
-								borderRadius: 8,
+								borderRadius: 12,
 								color: 'rgb(55, 65, 81)',
 								boxShadow: `0px 15px 16px rgba(3, 7, 18, 0.20),
 														0px 60px 65px rgba(3, 7, 18, 0.10);
@@ -128,11 +128,11 @@ const theme = createTheme(
 					},
 				},
 				styleOverrides: {
-					paper: { borderRadius: 8 },
+					paper: { borderRadius: 12 },
 				},
 			},
 			MuiCard: {
-				styleOverrides: { root: { borderRadius: 8 } },
+				styleOverrides: { root: { borderRadius: 12 } },
 			},
 			MuiFormControl: {
 				defaultProps: { fullWidth: true, size: 'small' },

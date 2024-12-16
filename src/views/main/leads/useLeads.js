@@ -4,6 +4,8 @@ import { useMutation, useQuery } from '@apollo/client';
 import { GET_REQUESTS } from '@views/main/requests/queryRequests';
 import { useEffect, useState } from 'react';
 import { useLeadsMRTContext } from '@providers/local/LeadsMRT/provider';
+import exportExcelReport from '@views/main/requests/exportExcelReport';
+import exportExcelTable from '@views/main/requests/exportExcelTable';
 
 const useLeads = () => {
 	const loader = useLoaderContext();
@@ -27,29 +29,54 @@ const useLeads = () => {
 	const { data, error, loading, refetch } = useQuery(GET_REQUESTS, {
 		variables: {
 			showAll,
-			assignedUserId: selectedSeller.id,
 			dateRange: {
 				end: dateRange[0].endDate,
 				start: dateRange[0].startDate,
-			},
-			params: {
-				page: paginationModel.pageIndex,
-				pageSize: paginationModel.pageSize,
 			},
 			pending: showPending,
 		},
 	});
 
-	useEffect(() => {
-		if (data) {
-			const aux = data.requests.results;
-			const auxCount = data.requests.info.count;
+	const exportToExcel = async (gridRef, exportType) => {
+		const leadNodesToExport = [];
 
-			// console.log('Requests: ', aux);
-			// console.log('auxCount', auxCount);
-			setCountRows(auxCount);
+		const columnDefs = gridRef.current.api.getColumnDefs();
+
+		switch (exportType) {
+			case 'All':
+				await gridRef.current.api.forEachNode((node) => {
+					leadNodesToExport.push(node);
+				});
+				break;
+			case 'AfterFilter':
+				await gridRef.current.api.forEachNodeAfterFilter((node) => {
+					leadNodesToExport.push(node);
+				});
+
+				break;
+			case 'AfterFilterAndSort':
+				await gridRef.current.api.forEachNodeAfterFilterAndSort((node) => {
+					leadNodesToExport.push(node);
+				});
+				break;
 		}
-	}, [data]);
+
+		// exportExcelReport(leadsToExport);
+		exportExcelTable(columnDefs, leadNodesToExport, gridRef);
+
+		// let l = gridRef.current.api.getModel();
+		// console.log(l);l
+	};
+
+	const exportToExcelDefault = async (gridRef) => {
+		const leadsToExport = [];
+
+		await gridRef.current.api.forEachNode((node) => {
+			leadsToExport.push(node.data);
+		});
+
+		exportExcelReport(leadsToExport);
+	};
 
 	return {
 		allLeads: { showAll, setShowAll },
@@ -61,12 +88,13 @@ const useLeads = () => {
 			onOpen: openFilterMenu,
 		},
 		leads: {
-			count: data?.requests.info.count ?? 0,
 			list: data?.requests.results ?? [],
 			fetch: refetch,
 			loading,
 		},
 		pending: { showPending, setShowPending },
+		exportToExcel,
+		exportToExcelDefault,
 	};
 };
 export default useLeads;
