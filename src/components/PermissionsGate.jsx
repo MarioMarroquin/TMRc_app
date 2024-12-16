@@ -18,7 +18,9 @@ const PermissionsGate = ({
 	errorProps = null,
 	scopes = [],
 }) => {
-	const { role } = useSession();
+	const {
+		user: { role },
+	} = useSession();
 	const permissions = PERMISSIONS[role];
 
 	const permissionGranted = hasPermission({ permissions, scopes });

@@ -45,13 +45,13 @@ const CustomDateRange = (props) => {
 	if (props.extended) {
 		return (
 			<Fragment>
-				<DateRange
-					{...props}
-					editableDateInputs={true}
-					showDateDisplay={false}
-					rangeColors={[theme.palette.secondary.main]}
-					locale={es}
-				/>
+				{/* <DateRange */}
+				{/* 	{...props} */}
+				{/* 	editableDateInputs={true} */}
+				{/* 	showDateDisplay={false} */}
+				{/* 	rangeColors={[theme.palette.secondary.main]} */}
+				{/* 	locale={es} */}
+				{/* /> */}
 			</Fragment>
 		);
 	}

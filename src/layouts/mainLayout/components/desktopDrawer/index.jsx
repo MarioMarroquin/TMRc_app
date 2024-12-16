@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import { Drawer, useTheme } from '@mui/material';
 import { drawerWidth } from '@layouts/mainLayout';
 import DrawerContent from '@layouts/mainLayout/components/drawerContent';
-import { pxToRem } from '@config/theme/functions';
 
 const DesktopDrawer = (props) => {
 	const theme = useTheme();
@@ -22,7 +21,7 @@ const DesktopDrawer = (props) => {
 					border: 'none',
 					whiteSpace: 'nowrap',
 					boxSizing: 'border-box',
-					backdropFilter: `saturate(200%) blur(1.875rem)`,
+					// backgroundColor: '#00000050',
 					backgroundColor: theme.palette.background.default,
 					// backgroundColor: 'unset',
 

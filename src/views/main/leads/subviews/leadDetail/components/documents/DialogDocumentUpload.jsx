@@ -42,7 +42,6 @@ const DialogDocumentUpload = ({
 					<TextField
 						autoFocus
 						sx={{ mt: 10 }}
-						w
 						id={'title'}
 						name={'title'}
 						placeholder={'Título de archivo'}

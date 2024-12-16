@@ -1,20 +1,17 @@
 import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
 
-const exportExcelTable = (rowModel) => {
+const exportExcelTable = (columnDefs, leadNodesToExport, apiRef) => {
 	const wb = new ExcelJS.Workbook();
 	const sh = wb.addWorksheet('Reporte');
 
-	const rowModelColumns = rowModel[0]
-		.getVisibleCells() // obtain columns using one row
-		.filter((obj) => obj.column.id !== 'mrt-row-spacer') // remove display columns
-		.map((obj) => {
-			return {
-				header: obj.column.columnDef.header,
-				key: obj.column.id,
-				width: obj.column.columnDef.size / 8,
-			};
-		});
+	const rowModelColumns = columnDefs.map((column) => {
+		return {
+			header: column.headerName,
+			key: column.colId,
+			width: column.width / 8,
+		};
+	});
 
 	const extraColumns = [
 		{
@@ -36,8 +33,8 @@ const exportExcelTable = (rowModel) => {
 
 	sh.columns = [...rowModelColumns, ...extraColumns];
 
-	const rowModelRows = rowModel.map((row) => {
-		const operatorCommentsValue = row.original.operatorComments
+	const rowModelRows = leadNodesToExport.map((node) => {
+		const operatorCommentsValue = node.data.operatorComments
 			.map((item) => {
 				return `${format(new Date(item.createdAt), 'dd/MM/yyyy - HH:mm')} -> ${
 					item.comment
@@ -45,7 +42,7 @@ const exportExcelTable = (rowModel) => {
 			})
 			.join('\r\n');
 
-		const managerCommentsValue = row.original.managerComments
+		const managerCommentsValue = node.data.managerComments
 			.map((item) => {
 				return `${format(new Date(item.createdAt), 'dd/MM/yyyy - HH:mm')} -> ${
 					item.comment
@@ -53,7 +50,7 @@ const exportExcelTable = (rowModel) => {
 			})
 			.join('\r\n');
 
-		const documentsValue = row.original.documents.length;
+		const documentsValue = node.data.documents.length;
 
 		const keyValuesAux = [
 			{ key: 'operatorComments', value: operatorCommentsValue },
@@ -62,12 +59,12 @@ const exportExcelTable = (rowModel) => {
 		];
 
 		return [
-			...row
-				.getVisibleCells()
-				.filter((column) => column.column.id !== 'mrt-row-spacer') // remove display columns
-				.map((column) => {
-					return { key: column.column.id, value: column.getValue() };
-				}),
+			...columnDefs.map((column) => {
+				return {
+					key: column.colId,
+					value: apiRef.current.api.getValue(column.colId, node),
+				};
+			}),
 			...keyValuesAux, // aqui va keyValuesAux
 		];
 	});

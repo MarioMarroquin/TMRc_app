@@ -11,7 +11,22 @@ import { Avatar, Box, Typography } from '@mui/material';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
 import useLiveTime from '@hooks/use-liveTime';
 
-const SessionContext = createContext({});
+const SessionContext = createContext({
+	isLogged: false,
+	setIsLogged: () => {},
+	logout: () => {},
+	reloadSession: () => {},
+	user: {
+		id: '',
+		userName: '',
+		role: '',
+		firstName: '',
+		lastName: '',
+		phoneNumber: '',
+		email: '',
+	},
+	liveDate: new Date(),
+});
 
 const SessionProvider = ({ children }) => {
 	const [token, setToken] = useState(accessToken.get());
@@ -104,7 +119,6 @@ const SessionProvider = ({ children }) => {
 				logout,
 				reloadSession,
 				user,
-				role: user?.role ?? '',
 				liveDate,
 			}}
 		>

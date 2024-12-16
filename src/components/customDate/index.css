@@ -1,0 +1,79 @@
+.rdrCalendarWrapper {
+    background: transparent !important;
+    width: 100% !important;
+}
+
+.rdrMonthAndYearWrapper {
+    padding-top: 0px !important;
+    height: 30px
+}
+
+.rdrMonth {
+    width: 100% !important;
+    padding: 0 0.833em !important;
+}
+
+.rdrDayToday .rdrDayNumber span {
+    font-weight: 800 !important;
+}
+
+.rdrDayToday .rdrDayNumber span:after {
+    background-color: #000000 !important;
+}
+
+.rdrMonthAndYearPickers select:hover {
+    background-color: #fabb1815 !important;
+}
+
+.rdrNextPrevButton {
+    background-color: #000000 !important;
+}
+
+.rdrPprevButton i {
+    border-color: transparent rgb(255 255 255) transparent transparent !important;
+}
+
+.rdrNextButton i {
+    border-color: transparent transparent transparent rgb(255 255 255) !important;
+}
+
+.rdrMonthAndYearPickers select {
+    color: #191B20 !important;
+}
+
+.rdrWeekDay {
+    font-weight: 500;
+    line-height: 3em;
+    color: rgb(191 180 150);
+}
+
+.rdrDay {
+    background: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 0;
+    padding: 0;
+    line-height: 3.000em;
+    height: 2.6em;
+    text-align: center;
+    color: #1d2429;
+}
+
+.rdrDay:not(.rdrDayPassive) .rdrInRange ~ .rdrDayNumber span,
+.rdrDay:not(.rdrDayPassive) .rdrStartEdge ~ .rdrDayNumber span,
+.rdrDay:not(.rdrDayPassive) .rdrEndEdge ~ .rdrDayNumber span,
+.rdrDay:not(.rdrDayPassive) .rdrSelected ~ .rdrDayNumber span {
+    font-weight: 400;
+    color: black !important;
+}
+
+.rdrDayToday:not(.rdrDayPassive) .rdrInRange ~ .rdrDayNumber span:after,
+.rdrDayToday:not(.rdrDayPassive) .rdrStartEdge ~ .rdrDayNumber span:after,
+.rdrDayToday:not(.rdrDayPassive) .rdrEndEdge ~ .rdrDayNumber span:after,
+.rdrDayToday:not(.rdrDayPassive) .rdrSelected ~ .rdrDayNumber span:after {
+    background: black !important;
+    font-weight: 800;
+}
+

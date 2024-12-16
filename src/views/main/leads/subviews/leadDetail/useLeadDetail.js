@@ -89,7 +89,7 @@ const useLeadDetail = () => {
 				},
 			})
 				.then((res) => {
-					toast.error('Solicitud terminada.');
+					toast.success('Solicitud terminada.');
 					resolve(res);
 				})
 				.catch((e) => {

@@ -12,6 +12,7 @@ import {
 import {
 	ArrowBack,
 	KeyboardArrowDown,
+	NotificationAdd,
 	Sync,
 	UploadFile,
 } from '@mui/icons-material';
@@ -30,7 +31,7 @@ import {
 	SCOPES_GENERAL,
 	SCOPES_REQUEST_DETAILS,
 } from '@config/permisissions/permissions';
-import LeadStatusDot from '@views/main/leads/components/LeadStatusDot';
+import LeadStatusDot from '@views/main/leads/LeadStatusDot';
 import { format } from 'date-fns';
 import ListItemAux from '@views/main/leads/subviews/leadDetail/components/ListItemAux';
 import CommentsList from './components/commentsList';
@@ -40,6 +41,7 @@ import Documents from '@views/main/leads/subviews/leadDetail/components/document
 import ListItemAux2 from '@views/main/leads/subviews/leadDetail/components/ListItemAux2';
 // import RequestEdit from '@views/main/requests/RequestEdit';
 import DialogLeadEdit from '@views/main/leads/DialogLeadEdit/DialogLeadEdit';
+import DialogReminderCreate from '@views/main/reminders/DialogReminderCreate/DialogReminderCreate';
 
 const LoadingSkeletonLead = () => (
 	<Grid container direction={'row'}>
@@ -127,9 +129,7 @@ const LeadDetail = (props) => {
 					regresar
 				</Button>
 
-				{/* <Button sx={{ ml: 'auto' }} variant={'text'} onClick={() => {}}> */}
-				{/* 	<NotificationAdd /> */}
-				{/* </Button> */}
+				<DialogReminderCreate />
 
 				<Box sx={{ ml: 'auto' }}>
 					<PermissionsGate
