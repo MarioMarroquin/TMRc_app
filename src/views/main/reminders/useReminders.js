@@ -16,6 +16,10 @@ export const useReminders = () => {
 	useEffect(() => {
 		const currentData = reminderData[selectedView] || [];
 		setListData(currentData);
+
+		// Formatea columnas para Kanban al cambiar la vista
+		const kanbanColumns = formatReminderDataForKanban(reminderData);
+		setColumns(kanbanColumns);
 	}, [selectedView]);
 
 	const ListoClick = (subItem, fecha) => {
@@ -76,7 +80,7 @@ export const useReminders = () => {
 		];
 		const today = new Date();
 
-		const colummns = {
+		const columnsFormatted = {
 			VENCIDO: [],
 			HOY: [],
 			'POR VENCER': [],
@@ -95,7 +99,7 @@ export const useReminders = () => {
 			}
 
 			grupo.LIST.forEach((item) => {
-				colummns[status].push({
+				columnsFormatted[status].push({
 					id: item.FOLIO,
 					title: item.SERVICIO,
 					description: grupo.FECHA,
@@ -103,7 +107,34 @@ export const useReminders = () => {
 			});
 		});
 
-		return colummns;
+		return columnsFormatted;
+	};
+
+	const onDragEnd = (result) => {
+		const { source, destination } = result;
+
+		// Si no se suelta en un destino válido
+		if (!destination) return;
+
+		// Si se suelta en la misma posición
+		if (
+			source.droppableId === destination.droppableId &&
+			source.index === destination.index
+		) {
+			return;
+		}
+
+		const sourceColumn = columns[source.droppableId];
+		const destColumn = columns[destination.droppableId];
+		const [movedItem] = sourceColumn.splice(source.index, 1);
+
+		destColumn.splice(destination.index, 0, movedItem);
+
+		setColumns({
+			...columns,
+			[source.droppableId]: sourceColumn,
+			[destination.droppableId]: destColumn,
+		});
 	};
 
 	return {
@@ -123,5 +154,6 @@ export const useReminders = () => {
 		setColumns,
 		formatReminderDataForKanban,
 		getToday,
+		onDragEnd,
 	};
 };
