@@ -49,9 +49,16 @@ const Reminders = () => {
 
 	// 👇 Esto es lo que se pasa al componente ListReminder
 	const filteredListData = Array.isArray(listData)
-		? listData.filter((group) => group.LIST && group.LIST.length > 0)
+		? listData
+				.filter((group) => group.LIST && group.LIST.length > 0)
+				.sort((a, b) => {
+					// Transforma la fecha de 'yyyy/MM/dd' a objeto Date
+					const dateA = new Date(a.FECHA);
+					const dateB = new Date(b.FECHA);
+					return dateA - dateB; // Más reciente primero
+				})
 		: [];
-	console.log('filteredListData:', filteredListData);
+
 	return (
 		<Container sx={{ paddingTop: '5px' }}>
 			<Grid

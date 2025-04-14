@@ -77,7 +77,12 @@ export const useReminders = () => {
 		const allReminders = [
 			...(reminderData.pasado || []),
 			...(reminderData.hoy || []),
-		];
+		].sort((a, b) => {
+			const dateA = new Date(a.FECHA);
+			const dateB = new Date(b.FECHA);
+			return dateA - dateB;
+		});
+
 		const today = new Date();
 
 		const columnsFormatted = {
@@ -98,18 +103,20 @@ export const useReminders = () => {
 				status = 'POR VENCER';
 			}
 
+			const [year, month, day] = grupo.FECHA.split('/');
+			const formattedDate = `${day}/${month}/${year}`;
+
 			grupo.LIST.forEach((item) => {
 				columnsFormatted[status].push({
 					id: item.FOLIO,
 					title: item.SERVICIO,
-					description: grupo.FECHA,
+					description: formattedDate,
 				});
 			});
 		});
 
 		return columnsFormatted;
 	};
-
 	const onDragEnd = (result) => {
 		const { source, destination } = result;
 
