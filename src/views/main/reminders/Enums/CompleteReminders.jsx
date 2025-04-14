@@ -1,8 +1,15 @@
 import React from 'react';
-import { Box, Paper, Typography, Grid } from '@mui/material';
+import { Box, Typography } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+
+const formatFecha = (fecha) => {
+	if (!fecha) return 'N/A';
+	const [year, month, day] = fecha.split('/');
+	return `${day}/${month}/${year}`;
+};
 
 const CompleteList = ({ CompleteList }) => {
-	if (CompleteList.length === 0) {
+	if (!CompleteList || CompleteList.length === 0) {
 		return (
 			<Box
 				display='flex'
@@ -17,23 +24,41 @@ const CompleteList = ({ CompleteList }) => {
 		);
 	}
 
+	// Configuración de columnas
+	const columns = [
+		{ field: 'id', headerName: 'ID', width: 100 },
+		{ field: 'FOLIO', headerName: 'Folio', width: 130 },
+		{ field: 'SERVICIO', headerName: 'Servicio', width: 180 },
+		{ field: 'EMPRESA', headerName: 'Empresa', width: 180 },
+		{ field: 'CLIENTE', headerName: 'Cliente', width: 180 },
+		{
+			field: 'FECHA',
+			headerName: 'Completado',
+			width: 150,
+			valueFormatter: (params) => formatFecha(params.value),
+		},
+	];
+
+	// Genera IDs únicos si no existen
+	const rows = CompleteList.map((item, index) => ({
+		...item,
+		id: item.id || index,
+	}));
+
 	return (
-		<Grid container spacing={2}>
-			{CompleteList.map((item, index) => (
-				<Grid item xs={12} key={index}>
-					<Paper sx={{ p: 2 }}>
-						<Typography variant='subtitle2' fontWeight='bold'>
-							Fecha completado: {item.FECHA}
-						</Typography>
-						<Typography variant='body1'>ID: {item.id}</Typography>
-						<Typography variant='body1'>Folio: {item.FOLIO}</Typography>
-						<Typography variant='body1'>Servicio: {item.SERVICIO}</Typography>
-						<Typography variant='body1'>Empresa: {item.EMPRESA}</Typography>
-						<Typography variant='body1'>Cliente: {item.CLIENTE}</Typography>
-					</Paper>
-				</Grid>
-			))}
-		</Grid>
+		<Box sx={{ height: 600, width: '100%' }}>
+			<DataGrid
+				rows={rows}
+				columns={columns}
+				pageSize={7}
+				rowsPerPageOptions={[7]}
+				sx={{
+					borderRadius: 2,
+					boxShadow: 3,
+					bgcolor: '#fafafa',
+				}}
+			/>
+		</Box>
 	);
 };
 

@@ -47,7 +47,6 @@ const ListReminder = ({
 		</Box>
 	);
 
-	console.log('listData en ListReminder:', listData);
 	return (
 		<>
 			<Grid container spacing={20} sx={{ flexDirection: 'column-reverse' }}>
