@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
-import React, { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import {
+	Alert,
+	Stack,
 	Box,
 	Button,
 	Dialog,
@@ -17,20 +19,34 @@ import { NotificationAdd } from '@mui/icons-material';
 import CustomDate from '@components/customDate';
 import useReminderCreate from '@views/main/reminders/DialogReminderCreate/useReminderCreate';
 import { LoadingButton } from '@mui/lab';
+import toast from 'react-hot-toast';
 
 const DialogReminderCreate = (props) => {
 	const theme = useTheme();
 	const useReminder = useReminderCreate();
 
+	// const navigate = useNavigate();
+	// const manejarRegreso = () => {
+	// navigate(-1); // Esto regresa a la página anterior en el historial del navegador
+	// };
 	return (
 		<Fragment>
-			<Button startIcon={<NotificationAdd />} disabled={true}>
+			<Button
+				startIcon={<NotificationAdd />}
+				disabled={false}
+				onClick={useReminder.openDialog}
+			>
 				{useMediaQuery(theme.breakpoints.down('sm'))
 					? 'Recordatorio'
 					: 'Agregar recordatorio'}
 			</Button>
 
-			<Dialog open={false} maxWidth={'md'} fullWidth>
+			<Dialog
+				open={useReminder.dialogReminderCreateState.visible}
+				onClose={useReminder.closeDialog}
+				maxWidth={'md'}
+				fullWidth
+			>
 				<DialogTitle>Agregar a recordatorio</DialogTitle>
 				<DialogContent>
 					<DialogContentText fontSize={12} fontWeight={500}>
@@ -68,10 +84,12 @@ const DialogReminderCreate = (props) => {
 				</DialogContent>
 
 				<DialogActions>
-					<LoadingButton>regresar</LoadingButton>
+					<LoadingButton onClick={useReminder.closeDialog}>
+						regresar
+					</LoadingButton>
 					<LoadingButton
 						loading={false}
-						onClick={() => {}}
+						onClick={useReminder.manejarClick}
 						variant={'contained'}
 					>
 						Subir

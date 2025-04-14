@@ -12,6 +12,9 @@ const BlankData = {
 const useReminderCreate = () => {
 	const [createLeadReminder] = useMutation(CREATE_LEAD_REMINDER);
 	const [reminder, setReminder] = useState(BlankData);
+	const [dialogReminderCreateState, setDialogReminderCreateState] = useState({
+		visible: false,
+	});
 
 	const createReminder = async (onClose, leadId, refetch) => {
 		createLeadReminder({
@@ -35,7 +38,36 @@ const useReminderCreate = () => {
 		console.log('date', e);
 	};
 
-	return { createReminder, reminder, handleInputMessage, handleDateChange };
+	const openDialog = () => {
+		setDialogReminderCreateState({ visible: true });
+	};
+
+	const closeDialog = () => {
+		setDialogReminderCreateState({ visible: false });
+	};
+
+	const VarReminder = () => {
+		closeDialog();
+	};
+	const SuccessAlert = () => {
+		toast.success('Se cargo exitosamente en la seccion de recordatorio');
+	};
+
+	const manejarClick = () => {
+		VarReminder();
+		SuccessAlert();
+	};
+
+	return {
+		createReminder,
+		reminder,
+		handleInputMessage,
+		handleDateChange,
+		dialogReminderCreateState,
+		openDialog,
+		closeDialog,
+		manejarClick,
+	};
 };
 
 export default useReminderCreate;

@@ -33,7 +33,7 @@ const mainRoutes = [
 		index: true,
 		name: 'Recordatorios',
 		path: '/reminders',
-		active: false,
+		active: true,
 	},
 	{
 		routes: [
@@ -51,7 +51,7 @@ const mainRoutes = [
 		mainPath: '/management',
 		mainName: 'Administración',
 		nested: true,
-		active: false,
+		active: true,
 	},
 	// {
 	// 	name: 'Mantenimiento',

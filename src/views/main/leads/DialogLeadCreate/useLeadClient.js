@@ -24,14 +24,14 @@ const useLeadClient = () => {
 
 	// fetch data from server CLIENTS
 	useEffect(() => {
-		searchClients({ variables: { text: client.firstName } }).then((res) => {
-			if (!res.error) {
-				const aux = res.data.searchClients.results;
-				setFoundClients(aux);
-			} else {
-				console.log(res.error);
-			}
-		});
+		// searchClients({ variables: { text: client.firstName } }).then((res) => {
+		// 	if (!res.error) {
+		// 		const aux = res.data.searchClients.results;
+		// 		setFoundClients(aux);
+		// 	} else {
+		// 		console.log(res.error);
+		// 	}
+		// });
 	}, [debouncedClient]);
 
 	const handleSelectedClient = (event, value) => {
