@@ -1,110 +1,57 @@
 import PropTypes from 'prop-types';
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	Box,
 	Button,
-	List,
-	ListItem,
-	ListItemText,
-	ListSubheader,
-	Stack,
-	Edit,
-	Delete,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	Grid,
-	Typography,
 	Container,
-	Switch,
 	FormControl,
 	FormControlLabel,
+	Grid,
 	Radio,
 	RadioGroup,
-	Paper,
+	Stack,
+	Switch,
+	Typography,
 } from '@mui/material';
-import toast from 'react-hot-toast';
-import { Sync } from '@mui/icons-material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
-import useReminderCreate from '@views/main/reminders/DialogReminderCreate/useReminderCreate';
-import {
-	useEliminarFila,
-	useConfirmDelete,
-} from '@views/main/reminders/ButtonsDisplay/Buttons.js';
-import DialogReminderEdit from '@views/main/reminders/DialogReminderEdit/DialogReminderEdit.jsx';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import ListIcon from '@mui/icons-material/List';
-import WindowIcon from '@mui/icons-material/Window';
-import ListReminder from '@views/main/reminders/Enums/list.jsx';
-import Kanban from '@views/main/reminders/Enums/Kanban.jsx';
-import NotificationAddIcon from '@mui/icons-material/NotificationAdd';
 import PlaylistAddCheckCircleIcon from '@mui/icons-material/PlaylistAddCheckCircle';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
-import CompletedReminders from './Enums/CompletedReminders';
+
+import ListReminder from '@views/main/reminders/Enums/list.jsx';
+import Kanban from '@views/main/reminders/Enums/Kanban.jsx';
+import CompleteList from './Enums/CompleteReminders.jsx';
 import { reminderData } from './ReminderData.js';
 import ButtonAddReminder from '@views/main/reminders/Enums/ButtonAddReminder.jsx';
+import { useReminders } from '@views/main/reminders/useReminders.js';
 
-const clasificarRemindersPorFecha = (dataOriginal) => {
-	const hoy = new Date();
-	hoy.setHours(0, 0, 0, 0);
+const Reminders = () => {
+	const {
+		listData,
+		setListData,
+		completedList,
+		setCompletedList,
+		ListoClick,
+		handleDeleteClick,
+		handleConfirmDelete,
+		handleCancelDelete,
+		openDialog,
+		selectedItem,
+		selectedView,
+		setSelectedView,
+	} = useReminders();
 
-	const columnas = {
-		vencidas: [],
-		hoy: [],
-		'por Vencer': [],
-	};
-
-	Object.entries(dataOriginal).forEach(([seccion, bloques]) => {
-		bloques.forEach((bloque) => {
-			const fechaStr = bloque.FECHA;
-			const [año, mes, dia] = fechaStr.split('/');
-
-			const fechaItem = new Date(año, parseInt(mes) - 1, dia);
-			fechaItem.setHours(0, 0, 0, 0);
-
-			bloque.LIST.forEach((item) => {
-				const itemConFecha = {
-					...item,
-					fecha: `${dia}/${mes}/${año}`,
-				};
-
-				if (fechaItem < hoy) {
-					columnas.vencidas.push(itemConFecha);
-				} else if (fechaItem.getTime() === hoy.getTime()) {
-					columnas.hoy.push(itemConFecha);
-				} else {
-					columnas['por Vencer'].push(itemConFecha);
-				}
-			});
-		});
-	});
-
-	return columnas;
-};
-
-const Reminders = (props) => {
-	const [selectedIndex, setSelectedIndex] = useState(null);
-	const useReminder = useReminderCreate();
-	const [open, setOpen] = useState(false);
-	const [editingItem, setEditingItem] = useState(null);
-	const [openDialogg, setOpenDialogg] = useState(false);
 	const [showList, setShowList] = useState(
 		!!JSON.parse(localStorage.getItem('showList'))
 	);
-
-	const [CompletedList, setCompletedList] = useState([]);
-	const [selectedView, setSelectedView] = useState('hoy');
 
 	useEffect(() => {
 		localStorage.setItem('showList', JSON.stringify(showList));
 	}, [showList]);
 
-	const handleClick = (index) => {
-		setSelectedIndex(index);
-	};
-
+	// 👇 Esto es lo que se pasa al componente ListReminder
+	const filteredListData = Array.isArray(listData)
+		? listData.filter((group) => group.LIST && group.LIST.length > 0)
+		: [];
+	console.log('filteredListData:', filteredListData);
 	return (
 		<Container sx={{ paddingTop: '5px' }}>
 			<Grid
@@ -113,10 +60,8 @@ const Reminders = (props) => {
 				justifyContent='space-between'
 				sx={{ mb: 2 }}
 			>
-				{/* Botón a la izquierda */}
 				<Grid item>{showList && <ButtonAddReminder />}</Grid>
 
-				{/* RadioGroup al centro */}
 				<Grid item>
 					{showList && (
 						<FormControl component='fieldset'>
@@ -143,7 +88,6 @@ const Reminders = (props) => {
 					)}
 				</Grid>
 
-				{/* Switch a la derecha */}
 				<Grid item>
 					<Stack direction='row' alignItems='center' spacing={1}>
 						<Typography variant='button' fontWeight='bold'>
@@ -157,7 +101,6 @@ const Reminders = (props) => {
 								if (!checked && selectedView === 'Listo') {
 									setSelectedView('hoy');
 								}
-
 								setShowList(checked);
 							}}
 						/>
@@ -168,16 +111,24 @@ const Reminders = (props) => {
 					</Stack>
 				</Grid>
 			</Grid>
+
 			{selectedView === 'Listo' ? (
-				<CompletedReminders CompletedList={CompletedList} />
+				<CompleteList CompleteList={completedList} />
 			) : showList ? (
 				<ListReminder
-					data={reminderData[selectedView]}
-					CompletedList={CompletedList}
+					listData={filteredListData}
+					setListData={setListData}
+					completedList={completedList}
 					setCompletedList={setCompletedList}
+					ListoClick={ListoClick}
+					handleDeleteClick={handleDeleteClick}
+					handleConfirmDelete={handleConfirmDelete}
+					handleCancelDelete={handleCancelDelete}
+					openDialog={openDialog}
+					selectedItem={selectedItem}
 				/>
 			) : (
-				<Kanban reminderData={clasificarRemindersPorFecha(reminderData)} />
+				<Kanban reminderData={reminderData} selectedView={selectedView} />
 			)}
 		</Container>
 	);

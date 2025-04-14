@@ -29,6 +29,7 @@ const ButtonAddReminder = () => {
 		console.log('Mensaje:', mensaje);
 		console.log('Fecha:', fecha);
 		toast.success('📬 Recordatorio enviado');
+		setConfirmOpen(false);
 		setOpen(false);
 	};
 
@@ -99,9 +100,7 @@ const ButtonAddReminder = () => {
 					</Button>
 					<Button
 						onClick={() => {
-							toast.success('📬 Recordatorio enviado');
-							setConfirmOpen(false);
-							setOpen(false);
+							handleSave();
 						}}
 						variant='contained'
 						color='primary'
