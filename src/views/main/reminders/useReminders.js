@@ -15,6 +15,7 @@ export const useReminders = () => {
 	const [columns, setColumns] = useState({});
 	const [openEditDialog, setOpenEditDialog] = useState(false);
 	const [itemToEdit, setItemToEdit] = useState(null);
+
 	useEffect(() => {
 		const currentData = reminderData[selectedView] || [];
 		setListData(currentData);
@@ -178,6 +179,10 @@ export const useReminders = () => {
 		toast.success('📝 Recordatorio actualizado');
 	};
 
+	const handleDeleteAll = () => {
+		setCompletedList([]); // Vaciar la lista de "Listo"
+	};
+
 	return {
 		listData,
 		setListData,
@@ -202,5 +207,6 @@ export const useReminders = () => {
 		openEditDialog,
 		itemToEdit,
 		setItemToEdit,
+		handleDeleteAll,
 	};
 };

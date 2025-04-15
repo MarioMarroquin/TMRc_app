@@ -46,7 +46,7 @@ const CompleteList = ({ CompleteList }) => {
 	}));
 
 	return (
-		<Box sx={{ height: 600, width: '100%' }}>
+		<Box sx={{ height: 570, width: '100%' }}>
 			<DataGrid
 				rows={rows}
 				columns={columns}

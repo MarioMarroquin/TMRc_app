@@ -14,6 +14,7 @@ import {
 	DialogTitle,
 	DialogContent,
 	DialogActions,
+	TextField,
 } from '@mui/material';
 import PlaylistAddCheckCircleIcon from '@mui/icons-material/PlaylistAddCheckCircle';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
@@ -45,15 +46,35 @@ const Reminders = () => {
 		openEditDialog,
 		itemToEdit,
 		setItemToEdit,
+		handleDeleteAll,
 	} = useReminders();
 
 	const [showList, setShowList] = useState(
-		!!JSON.parse(localStorage.getItem('showList'))
+		!!JSON.parse(localStorage.getItem('showList')) || false
 	);
 
 	useEffect(() => {
 		localStorage.setItem('showList', JSON.stringify(showList));
 	}, [showList]);
+
+	useEffect(() => {
+		const storedListData = JSON.parse(localStorage.getItem('listData'));
+		const storedCompletedList = JSON.parse(
+			localStorage.getItem('completedList')
+		);
+
+		if (storedListData) {
+			setListData(storedListData);
+		}
+		if (storedCompletedList) {
+			setCompletedList(storedCompletedList);
+		}
+	}, []);
+
+	useEffect(() => {
+		localStorage.setItem('listData', JSON.stringify(listData));
+		localStorage.setItem('completedList', JSON.stringify(completedList));
+	}, [listData, completedList]);
 
 	const filteredListData = Array.isArray(listData)
 		? listData
@@ -122,7 +143,22 @@ const Reminders = () => {
 			</Grid>
 
 			{selectedView === 'Listo' ? (
-				<CompleteList CompleteList={completedList} />
+				<div>
+					<CompleteList CompleteList={completedList} />
+					<Button
+						variant='contained'
+						color='error'
+						onClick={handleDeleteAll}
+						size='small'
+						sx={{
+							mt: 2,
+							padding: '4px 12px', // Ajusta el padding (espaciado interno)
+							fontSize: '0.75rem', // Ajusta el tamaño de la fuente
+						}}
+					>
+						Eliminar Todos
+					</Button>
+				</div>
 			) : showList ? (
 				<ListReminder
 					listData={filteredListData}
@@ -147,77 +183,133 @@ const Reminders = () => {
 				maxWidth='sm'
 				fullWidth
 			>
-				<DialogTitle>Editar Recordatorio</DialogTitle>
+				<DialogTitle sx={{ mb: 3 }}>Editar Recordatorio</DialogTitle>
+
 				<DialogContent>
-					<Grid container spacing={2} sx={{ mt: 1 }}>
+					<Grid container spacing={3}>
 						<Grid item xs={12} sm={6}>
-							<Typography variant='body2' fontWeight='bold'>
+							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Folio
 							</Typography>
-							<input
-								type='text'
+							<TextField
+								placeholder='Folio'
+								variant='outlined'
+								fullWidth
 								value={itemToEdit?.FOLIO || ''}
 								onChange={(e) =>
 									setItemToEdit({ ...itemToEdit, FOLIO: e.target.value })
 								}
-								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+								sx={{
+									'& .MuiOutlinedInput-root': {
+										borderRadius: '10px',
+										paddingRight: '5px',
+									},
+									'& .MuiInputBase-input': {
+										padding: '10px 14px',
+									},
+								}}
 							/>
 						</Grid>
+
 						<Grid item xs={12} sm={6}>
-							<Typography variant='body2' fontWeight='bold'>
+							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Servicio
 							</Typography>
-							<input
-								type='text'
+							<TextField
+								placeholder='Servicio'
+								variant='outlined'
+								fullWidth
 								value={itemToEdit?.SERVICIO || ''}
 								onChange={(e) =>
 									setItemToEdit({ ...itemToEdit, SERVICIO: e.target.value })
 								}
-								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+								sx={{
+									'& .MuiOutlinedInput-root': {
+										borderRadius: '10px',
+										paddingRight: '5px',
+									},
+									'& .MuiInputBase-input': {
+										padding: '10px 14px',
+									},
+								}}
 							/>
 						</Grid>
+
 						<Grid item xs={12} sm={6}>
-							<Typography variant='body2' fontWeight='bold'>
+							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Empresa
 							</Typography>
-							<input
-								type='text'
+							<TextField
+								placeholder='Empresa'
+								variant='outlined'
+								fullWidth
 								value={itemToEdit?.EMPRESA || ''}
 								onChange={(e) =>
 									setItemToEdit({ ...itemToEdit, EMPRESA: e.target.value })
 								}
-								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+								sx={{
+									'& .MuiOutlinedInput-root': {
+										borderRadius: '10px',
+										paddingRight: '5px',
+									},
+									'& .MuiInputBase-input': {
+										padding: '10px 14px',
+									},
+								}}
 							/>
 						</Grid>
+
 						<Grid item xs={12} sm={6}>
-							<Typography variant='body2' fontWeight='bold'>
+							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Cliente
 							</Typography>
-							<input
-								type='text'
+							<TextField
+								placeholder='Cliente'
+								variant='outlined'
+								fullWidth
 								value={itemToEdit?.CLIENTE || ''}
 								onChange={(e) =>
 									setItemToEdit({ ...itemToEdit, CLIENTE: e.target.value })
 								}
-								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+								sx={{
+									'& .MuiOutlinedInput-root': {
+										borderRadius: '10px',
+										paddingRight: '5px',
+									},
+									'& .MuiInputBase-input': {
+										padding: '10px 14px',
+									},
+								}}
 							/>
 						</Grid>
+
 						<Grid item xs={12}>
-							<Typography variant='body2' fontWeight='bold'>
+							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Contacto
 							</Typography>
-							<input
-								type='text'
+							<TextField
+								placeholder='Contacto'
+								variant='outlined'
+								fullWidth
 								value={itemToEdit?.CONTACT || ''}
 								onChange={(e) =>
 									setItemToEdit({ ...itemToEdit, CONTACT: e.target.value })
 								}
-								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+								sx={{
+									'& .MuiOutlinedInput-root': {
+										borderRadius: '10px',
+										paddingRight: '5px',
+									},
+									'& .MuiInputBase-input': {
+										padding: '10px 14px',
+									},
+								}}
 							/>
 						</Grid>
 					</Grid>
 				</DialogContent>
-				<DialogActions>
+
+				<DialogActions sx={{ mt: 2 }}>
 					<Button onClick={handleCancelEdit}>Cancelar</Button>
 					<Button variant='contained' onClick={handleSaveEdit} color='primary'>
 						Guardar
