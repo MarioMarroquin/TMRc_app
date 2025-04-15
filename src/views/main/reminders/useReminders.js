@@ -241,8 +241,15 @@ export const useReminders = () => {
 	};
 
 	const handleDeleteAll = () => {
-		localStorage.removeItem('completedList');
-		setCompletedList([]); // Vaciar la lista de "Listo"
+		const updatedDeletedItems = [
+			...deletedItems,
+			...completedList.map((item) => item.id),
+		];
+
+		setDeletedItems(updatedDeletedItems);
+		localStorage.setItem('deletedItems', JSON.stringify(updatedDeletedItems));
+
+		setCompletedList([]); // Vacía la lista visual de completados
 	};
 
 	return {
