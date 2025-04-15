@@ -6,10 +6,26 @@ import { reminderData } from '@views/main/reminders/ReminderData.js';
 import { parse, isBefore, isAfter, isToday } from 'date-fns';
 
 export const useReminders = () => {
-	const [completedList, setCompletedList] = useState([]);
+	const [completedList, setCompletedList] = useState(() => {
+		const saved = localStorage.getItem('completedList');
+		return saved ? JSON.parse(saved) : [];
+	});
+
+	useEffect(() => {
+		localStorage.setItem('completedList', JSON.stringify(completedList));
+	}, [completedList]);
+
 	const [openDialog, setOpenDialog] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
-	const [selectedView, setSelectedView] = useState('hoy');
+
+	const [selectedView, setSelectedView] = useState(() => {
+		const saved = localStorage.getItem('selectedView');
+		return saved;
+	});
+	useEffect(() => {
+		localStorage.setItem('selectedView', selectedView);
+	}, [selectedView]);
+
 	const currentData = reminderData[selectedView] || [];
 	const [listData, setListData] = useState(currentData);
 	const [columns, setColumns] = useState({});
@@ -18,12 +34,22 @@ export const useReminders = () => {
 
 	useEffect(() => {
 		const currentData = reminderData[selectedView] || [];
-		setListData(currentData);
 
-		// Formatea columnas para Kanban al cambiar la vista
+		// Excluir los que ya están en completedList
+		const filteredData = currentData
+			.map((group) => {
+				const filteredList = group.LIST.filter(
+					(item) => !completedList.some((done) => done.id === item.id)
+				);
+				return { ...group, LIST: filteredList };
+			})
+			.filter((group) => group.LIST.length > 0);
+
+		setListData(filteredData);
+
 		const kanbanColumns = formatReminderDataForKanban(reminderData);
 		setColumns(kanbanColumns);
-	}, [selectedView]);
+	}, [selectedView, completedList]);
 
 	const ListoClick = (subItem, fecha) => {
 		setListData((prevData) =>
@@ -180,6 +206,7 @@ export const useReminders = () => {
 	};
 
 	const handleDeleteAll = () => {
+		localStorage.removeItem('completedList');
 		setCompletedList([]); // Vaciar la lista de "Listo"
 	};
 

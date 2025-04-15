@@ -128,9 +128,6 @@ const Reminders = () => {
 							checked={showList}
 							onChange={(event) => {
 								const checked = event.target.checked;
-								if (!checked && selectedView === 'Listo') {
-									setSelectedView('hoy');
-								}
 								setShowList(checked);
 							}}
 						/>
@@ -143,21 +140,23 @@ const Reminders = () => {
 			</Grid>
 
 			{selectedView === 'Listo' ? (
-				<div>
+				<div style={{ textAlign: 'center' }}>
 					<CompleteList CompleteList={completedList} />
-					<Button
-						variant='contained'
-						color='error'
-						onClick={handleDeleteAll}
-						size='small'
-						sx={{
-							mt: 2,
-							padding: '4px 12px', // Ajusta el padding (espaciado interno)
-							fontSize: '0.75rem', // Ajusta el tamaño de la fuente
-						}}
-					>
-						Eliminar Todos
-					</Button>
+					{completedList.length > 0 && (
+						<Button
+							variant='contained'
+							color='error'
+							onClick={handleDeleteAll}
+							size='small'
+							sx={{
+								mt: 2,
+								padding: '4px 12px',
+								fontSize: '0.75rem',
+							}}
+						>
+							Eliminar Todos
+						</Button>
+					)}
 				</div>
 			) : showList ? (
 				<ListReminder
