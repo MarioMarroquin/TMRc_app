@@ -32,26 +32,53 @@ export const useReminders = () => {
 	const [openEditDialog, setOpenEditDialog] = useState(false);
 	const [itemToEdit, setItemToEdit] = useState(null);
 
+	const [deletedItems, setDeletedItems] = useState(() => {
+		const stored = localStorage.getItem('deletedItems');
+		return stored ? JSON.parse(stored) : [];
+	});
+
+	useEffect(() => {
+		localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+	}, [deletedItems]);
+
 	useEffect(() => {
 		const currentData = reminderData[selectedView] || [];
 
-		// Excluir los que ya están en completedList
+		const completedLocal =
+			JSON.parse(localStorage.getItem('completedList')) || [];
+		const deletedLocal = JSON.parse(localStorage.getItem('deletedItems')) || [];
+
+		const completedIds = completedLocal.map((item) => item.id);
+		const deletedIds = deletedLocal;
+
 		const filteredData = currentData
-			.map((group) => {
-				const filteredList = group.LIST.filter(
-					(item) => !completedList.some((done) => done.id === item.id)
-				);
-				return { ...group, LIST: filteredList };
-			})
+			.map((group) => ({
+				...group,
+				LIST: group.LIST.filter(
+					(item) =>
+						!completedIds.includes(item.id) && !deletedIds.includes(item.id)
+				),
+			}))
 			.filter((group) => group.LIST.length > 0);
 
 		setListData(filteredData);
 
-		const kanbanColumns = formatReminderDataForKanban(reminderData);
+		const kanbanColumns = formatReminderDataForKanban(
+			reminderData,
+			completedIds,
+			deletedIds
+		);
 		setColumns(kanbanColumns);
-	}, [selectedView, completedList]);
+	}, [selectedView]);
 
 	const ListoClick = (subItem, fecha) => {
+		const newCompleted = [...completedList, { ...subItem, FECHA: fecha }];
+
+		// Guardar en localStorage
+		localStorage.setItem('completedList', JSON.stringify(newCompleted));
+		setCompletedList(newCompleted);
+
+		// Quitar de la lista activa
 		setListData((prevData) =>
 			prevData
 				.map((item) =>
@@ -64,8 +91,6 @@ export const useReminders = () => {
 				)
 				.filter((item) => item.LIST.length > 0)
 		);
-
-		setCompletedList((prev) => [...prev, { ...subItem, FECHA: fecha }]);
 	};
 
 	const handleDeleteClick = (item) => {
@@ -76,16 +101,23 @@ export const useReminders = () => {
 	const handleConfirmDelete = () => {
 		if (!selectedItem) return;
 
-		const updatedListData = listData
-			.map((group) => {
-				return {
+		// Obtener eliminados actuales
+		const deletedLocal = JSON.parse(localStorage.getItem('deletedItems')) || [];
+
+		// Agregar el item a los eliminados
+		const updatedDeleted = [...deletedLocal, selectedItem.id];
+		localStorage.setItem('deletedItems', JSON.stringify(updatedDeleted));
+
+		// Eliminar el item de listData
+		setListData((prevData) =>
+			prevData
+				.map((group) => ({
 					...group,
 					LIST: group.LIST.filter((item) => item.id !== selectedItem.id),
-				};
-			})
-			.filter((group) => group.LIST.length > 0);
+				}))
+				.filter((group) => group.LIST.length > 0)
+		);
 
-		setListData(updatedListData);
 		setOpenDialog(false);
 		setSelectedItem(null);
 	};
@@ -102,7 +134,7 @@ export const useReminders = () => {
 		return `${dd}/${mm}/${yyyy}`; // sin ceros
 	};
 
-	const formatReminderDataForKanban = (reminderData) => {
+	const formatReminderDataForKanban = (reminderData, deletedItems = []) => {
 		const allReminders = [
 			...(reminderData.pasado || []),
 			...(reminderData.hoy || []),
@@ -136,16 +168,19 @@ export const useReminders = () => {
 			const formattedDate = `${day}/${month}/${year}`;
 
 			grupo.LIST.forEach((item) => {
-				columnsFormatted[status].push({
-					id: item.FOLIO,
-					title: item.SERVICIO,
-					description: formattedDate,
-				});
+				if (!deletedItems.includes(item.id)) {
+					columnsFormatted[status].push({
+						id: item.FOLIO,
+						title: item.SERVICIO,
+						description: formattedDate,
+					});
+				}
 			});
 		});
 
 		return columnsFormatted;
 	};
+
 	const onDragEnd = (result) => {
 		const { source, destination } = result;
 

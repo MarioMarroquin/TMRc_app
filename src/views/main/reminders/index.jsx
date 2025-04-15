@@ -82,6 +82,14 @@ const Reminders = () => {
 				.sort((a, b) => new Date(a.FECHA) - new Date(b.FECHA))
 		: [];
 
+	const [lastListView, setLastListView] = useState('hoy');
+
+	useEffect(() => {
+		if (showList) {
+			setLastListView(selectedView); // Guarda el último selectedView válido de la lista
+		}
+	}, [selectedView, showList]);
+
 	return (
 		<Container sx={{ paddingTop: '5px' }}>
 			<Grid
@@ -128,6 +136,15 @@ const Reminders = () => {
 							checked={showList}
 							onChange={(event) => {
 								const checked = event.target.checked;
+
+								if (!checked && selectedView === 'Listo') {
+									setSelectedView('hoy');
+								}
+
+								if (checked) {
+									setSelectedView(lastListView || 'hoy');
+								}
+
 								setShowList(checked);
 							}}
 						/>
@@ -139,39 +156,41 @@ const Reminders = () => {
 				</Grid>
 			</Grid>
 
-			{selectedView === 'Listo' ? (
-				<div style={{ textAlign: 'center' }}>
-					<CompleteList CompleteList={completedList} />
-					{completedList.length > 0 && (
-						<Button
-							variant='contained'
-							color='error'
-							onClick={handleDeleteAll}
-							size='small'
-							sx={{
-								mt: 2,
-								padding: '4px 12px',
-								fontSize: '0.75rem',
-							}}
-						>
-							Eliminar Todos
-						</Button>
-					)}
-				</div>
-			) : showList ? (
-				<ListReminder
-					listData={filteredListData}
-					setListData={setListData}
-					completedList={completedList}
-					setCompletedList={setCompletedList}
-					ListoClick={ListoClick}
-					handleDeleteClick={handleDeleteClick}
-					handleConfirmDelete={handleConfirmDelete}
-					handleCancelDelete={handleCancelDelete}
-					openDialog={openDialog}
-					selectedItem={selectedItem}
-					handleEditClick={handleEditClick}
-				/>
+			{showList ? (
+				selectedView === 'Listo' ? (
+					<div style={{ textAlign: 'center' }}>
+						<CompleteList CompleteList={completedList} />
+						{completedList.length > 0 && (
+							<Button
+								variant='contained'
+								color='error'
+								onClick={handleDeleteAll}
+								size='small'
+								sx={{
+									mt: 2,
+									padding: '4px 12px',
+									fontSize: '0.75rem',
+								}}
+							>
+								Eliminar Todos
+							</Button>
+						)}
+					</div>
+				) : (
+					<ListReminder
+						listData={filteredListData}
+						setListData={setListData}
+						completedList={completedList}
+						setCompletedList={setCompletedList}
+						ListoClick={ListoClick}
+						handleDeleteClick={handleDeleteClick}
+						handleConfirmDelete={handleConfirmDelete}
+						handleCancelDelete={handleCancelDelete}
+						openDialog={openDialog}
+						selectedItem={selectedItem}
+						handleEditClick={handleEditClick}
+					/>
+				)
 			) : (
 				<Kanban reminderData={reminderData} selectedView={selectedView} />
 			)}
