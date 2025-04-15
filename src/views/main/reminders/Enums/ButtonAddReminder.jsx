@@ -46,17 +46,18 @@ const ButtonAddReminder = () => {
 
 			<Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
 				<DialogTitle>Nuevo Recordatorio</DialogTitle>
-				<DialogContent>
-					<Stack spacing={3}>
+				<DialogContent sx={{ minHeight: '100px' }}>
+					<Stack spacing={10}>
 						{/* MENSAJE */}
 						<TextField
-							label='Agrega cualquier texto que desees'
+							placeholder='Agrega cualquier texto que desees'
 							variant='outlined'
 							fullWidth
-							value={mensaje}
-							onChange={(e) => setMensaje(e.target.value)}
 							multiline
 							minRows={4}
+							value={mensaje}
+							onChange={(e) => setMensaje(e.target.value)}
+							InputLabelProps={{ shrink: false }}
 						/>
 
 						{/* FECHA */}
@@ -65,10 +66,17 @@ const ButtonAddReminder = () => {
 							adapterLocale={es}
 						>
 							<DatePicker
-								label='Selecciona una fecha'
+								label='' // sin label
 								value={fecha}
 								onChange={(newValue) => setFecha(newValue)}
-								renderInput={(params) => <TextField {...params} fullWidth />}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										fullWidth
+										placeholder='Selecciona una fecha'
+										InputLabelProps={{ shrink: false }}
+									/>
+								)}
 							/>
 						</LocalizationProvider>
 					</Stack>
