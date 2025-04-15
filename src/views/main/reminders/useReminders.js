@@ -6,6 +6,9 @@ import { reminderData } from '@views/main/reminders/ReminderData.js';
 import { parse, isBefore, isAfter, isToday } from 'date-fns';
 
 export const useReminders = () => {
+	const [openDialog, setOpenDialog] = useState(false);
+	const [selectedItem, setSelectedItem] = useState(null);
+
 	const [completedList, setCompletedList] = useState(() => {
 		const saved = localStorage.getItem('completedList');
 		return saved ? JSON.parse(saved) : [];
@@ -15,13 +18,11 @@ export const useReminders = () => {
 		localStorage.setItem('completedList', JSON.stringify(completedList));
 	}, [completedList]);
 
-	const [openDialog, setOpenDialog] = useState(false);
-	const [selectedItem, setSelectedItem] = useState(null);
-
 	const [selectedView, setSelectedView] = useState(() => {
 		const saved = localStorage.getItem('selectedView');
 		return saved;
 	});
+
 	useEffect(() => {
 		localStorage.setItem('selectedView', selectedView);
 	}, [selectedView]);
@@ -71,26 +72,28 @@ export const useReminders = () => {
 		setColumns(kanbanColumns);
 	}, [selectedView]);
 
-	const ListoClick = (subItem, fecha) => {
-		const newCompleted = [...completedList, { ...subItem, FECHA: fecha }];
+	const ListoClick = (item, fechaOriginal) => {
+		const updatedListData = listData.map((group) => {
+			if (group.FECHA === fechaOriginal) {
+				return {
+					...group,
+					LIST: group.LIST.filter((i) => i.id !== item.id),
+				};
+			}
+			return group;
+		});
 
-		// Guardar en localStorage
-		localStorage.setItem('completedList', JSON.stringify(newCompleted));
-		setCompletedList(newCompleted);
+		const today = new Date().toISOString().split('T')[0];
+		const itemDate = new Date(fechaOriginal).toISOString().split('T')[0];
+		let origen = 'pasado';
+		if (itemDate === today) origen = 'hoy';
 
-		// Quitar de la lista activa
-		setListData((prevData) =>
-			prevData
-				.map((item) =>
-					item.FECHA === fecha
-						? {
-								...item,
-								LIST: item.LIST.filter((task) => task.id !== subItem.id),
-						  }
-						: item
-				)
-				.filter((item) => item.LIST.length > 0)
-		);
+		const updatedCompletedList = [...completedList, { ...item, origen }];
+
+		setListData(updatedListData);
+		setCompletedList(updatedCompletedList);
+		localStorage.setItem('listData', JSON.stringify(updatedListData));
+		localStorage.setItem('completedList', JSON.stringify(updatedCompletedList));
 	};
 
 	const handleDeleteClick = (item) => {
@@ -241,15 +244,11 @@ export const useReminders = () => {
 	};
 
 	const handleDeleteAll = () => {
-		const updatedDeletedItems = [
-			...deletedItems,
-			...completedList.map((item) => item.id),
-		];
+		const restantes = completedList.filter((item) => item.origen !== 'hoy');
 
-		setDeletedItems(updatedDeletedItems);
-		localStorage.setItem('deletedItems', JSON.stringify(updatedDeletedItems));
-
-		setCompletedList([]); // Vacía la lista visual de completados
+		// Actualizamos el estado y localStorage
+		setCompletedList(restantes);
+		localStorage.setItem('completedList', JSON.stringify(restantes));
 	};
 
 	return {

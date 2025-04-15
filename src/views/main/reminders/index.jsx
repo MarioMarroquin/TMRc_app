@@ -83,6 +83,7 @@ const Reminders = () => {
 		: [];
 
 	const [lastListView, setLastListView] = useState('hoy');
+	const [showRestoreButton, setShowRestoreButton] = useState(false);
 
 	useEffect(() => {
 		if (showList) {
@@ -160,6 +161,7 @@ const Reminders = () => {
 				selectedView === 'Listo' ? (
 					<div style={{ textAlign: 'center' }}>
 						<CompleteList CompleteList={completedList} />
+
 						{completedList.length > 0 && (
 							<Button
 								variant='contained'
@@ -170,6 +172,8 @@ const Reminders = () => {
 									mt: 2,
 									padding: '4px 12px',
 									fontSize: '0.75rem',
+									mx: 'auto',
+									display: 'block',
 								}}
 							>
 								Eliminar Todos
