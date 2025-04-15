@@ -31,6 +31,12 @@ const ListReminder = ({
 	handleCancelDelete,
 	openDialog,
 	selectedItem,
+	handleEditClick,
+	openEditDialog,
+	itemToEdit,
+	setItemToEdit,
+	handleCancelEdit,
+	handleSaveEdit,
 }) => {
 	const NoDataMessage = () => (
 		<Box
@@ -142,6 +148,7 @@ const ListReminder = ({
 													color='primary'
 													size='small'
 													startIcon={<EditIcon />}
+													onClick={() => handleEditClick(subItem, item.FECHA)}
 												>
 													Editar
 												</Button>

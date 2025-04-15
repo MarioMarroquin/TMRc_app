@@ -1,7 +1,5 @@
-import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import {
-	Box,
 	Button,
 	Container,
 	FormControl,
@@ -12,6 +10,10 @@ import {
 	Stack,
 	Switch,
 	Typography,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
 } from '@mui/material';
 import PlaylistAddCheckCircleIcon from '@mui/icons-material/PlaylistAddCheckCircle';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
@@ -37,6 +39,12 @@ const Reminders = () => {
 		selectedItem,
 		selectedView,
 		setSelectedView,
+		handleEditClick,
+		handleSaveEdit,
+		handleCancelEdit,
+		openEditDialog,
+		itemToEdit,
+		setItemToEdit,
 	} = useReminders();
 
 	const [showList, setShowList] = useState(
@@ -47,16 +55,10 @@ const Reminders = () => {
 		localStorage.setItem('showList', JSON.stringify(showList));
 	}, [showList]);
 
-	// 👇 Esto es lo que se pasa al componente ListReminder
 	const filteredListData = Array.isArray(listData)
 		? listData
 				.filter((group) => group.LIST && group.LIST.length > 0)
-				.sort((a, b) => {
-					// Transforma la fecha de 'yyyy/MM/dd' a objeto Date
-					const dateA = new Date(a.FECHA);
-					const dateB = new Date(b.FECHA);
-					return dateA - dateB; // Más reciente primero
-				})
+				.sort((a, b) => new Date(a.FECHA) - new Date(b.FECHA))
 		: [];
 
 	return (
@@ -133,14 +135,97 @@ const Reminders = () => {
 					handleCancelDelete={handleCancelDelete}
 					openDialog={openDialog}
 					selectedItem={selectedItem}
+					handleEditClick={handleEditClick}
 				/>
 			) : (
 				<Kanban reminderData={reminderData} selectedView={selectedView} />
 			)}
+
+			<Dialog
+				open={openEditDialog}
+				onClose={handleCancelEdit}
+				maxWidth='sm'
+				fullWidth
+			>
+				<DialogTitle>Editar Recordatorio</DialogTitle>
+				<DialogContent>
+					<Grid container spacing={2} sx={{ mt: 1 }}>
+						<Grid item xs={12} sm={6}>
+							<Typography variant='body2' fontWeight='bold'>
+								Folio
+							</Typography>
+							<input
+								type='text'
+								value={itemToEdit?.FOLIO || ''}
+								onChange={(e) =>
+									setItemToEdit({ ...itemToEdit, FOLIO: e.target.value })
+								}
+								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+							/>
+						</Grid>
+						<Grid item xs={12} sm={6}>
+							<Typography variant='body2' fontWeight='bold'>
+								Servicio
+							</Typography>
+							<input
+								type='text'
+								value={itemToEdit?.SERVICIO || ''}
+								onChange={(e) =>
+									setItemToEdit({ ...itemToEdit, SERVICIO: e.target.value })
+								}
+								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+							/>
+						</Grid>
+						<Grid item xs={12} sm={6}>
+							<Typography variant='body2' fontWeight='bold'>
+								Empresa
+							</Typography>
+							<input
+								type='text'
+								value={itemToEdit?.EMPRESA || ''}
+								onChange={(e) =>
+									setItemToEdit({ ...itemToEdit, EMPRESA: e.target.value })
+								}
+								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+							/>
+						</Grid>
+						<Grid item xs={12} sm={6}>
+							<Typography variant='body2' fontWeight='bold'>
+								Cliente
+							</Typography>
+							<input
+								type='text'
+								value={itemToEdit?.CLIENTE || ''}
+								onChange={(e) =>
+									setItemToEdit({ ...itemToEdit, CLIENTE: e.target.value })
+								}
+								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+							/>
+						</Grid>
+						<Grid item xs={12}>
+							<Typography variant='body2' fontWeight='bold'>
+								Contacto
+							</Typography>
+							<input
+								type='text'
+								value={itemToEdit?.CONTACT || ''}
+								onChange={(e) =>
+									setItemToEdit({ ...itemToEdit, CONTACT: e.target.value })
+								}
+								style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+							/>
+						</Grid>
+					</Grid>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleCancelEdit}>Cancelar</Button>
+					<Button variant='contained' onClick={handleSaveEdit} color='primary'>
+						Guardar
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</Container>
 	);
 };
-
-Reminders.propTypes = {};
 
 export default Reminders;

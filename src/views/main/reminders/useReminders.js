@@ -13,6 +13,8 @@ export const useReminders = () => {
 	const currentData = reminderData[selectedView] || [];
 	const [listData, setListData] = useState(currentData);
 	const [columns, setColumns] = useState({});
+	const [openEditDialog, setOpenEditDialog] = useState(false);
+	const [itemToEdit, setItemToEdit] = useState(null);
 	useEffect(() => {
 		const currentData = reminderData[selectedView] || [];
 		setListData(currentData);
@@ -144,6 +146,38 @@ export const useReminders = () => {
 		});
 	};
 
+	const handleEditClick = (item, fecha) => {
+		console.log('EDITAR:', item, fecha);
+		setItemToEdit({ ...item, FECHA: fecha });
+		setOpenEditDialog(true);
+	};
+
+	// Función para cerrar el diálogo sin guardar
+	const handleCancelEdit = () => {
+		setOpenEditDialog(false);
+		setItemToEdit(null);
+	};
+
+	// Función para guardar los cambios
+	const handleSaveEdit = () => {
+		if (!itemToEdit) return;
+
+		const updatedListData = listData.map((group) =>
+			group.FECHA === itemToEdit.FECHA
+				? {
+						...group,
+						LIST: group.LIST.map((task) =>
+							task.id === itemToEdit.id ? itemToEdit : task
+						),
+				  }
+				: group
+		);
+
+		setListData(updatedListData);
+		setOpenEditDialog(false);
+		toast.success('📝 Recordatorio actualizado');
+	};
+
 	return {
 		listData,
 		setListData,
@@ -162,5 +196,11 @@ export const useReminders = () => {
 		formatReminderDataForKanban,
 		getToday,
 		onDragEnd,
+		handleCancelEdit,
+		handleEditClick,
+		handleSaveEdit,
+		openEditDialog,
+		itemToEdit,
+		setItemToEdit,
 	};
 };
