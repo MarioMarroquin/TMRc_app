@@ -8,6 +8,18 @@ import { parse, isBefore, isAfter, isToday } from 'date-fns';
 export const useReminders = () => {
 	const [openDialog, setOpenDialog] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
+	const [openCompletedDeleteDialog, setOpenCompletedDeleteDialog] =
+		useState(false);
+	const [selectedCompletedItem, setSelectedCompletedItem] = useState(null);
+	const [openDeleteAllDialog, setOpenDeleteAllDialog] = useState(false);
+
+	const handleOpenDeleteAllDialog = () => {
+		setOpenDeleteAllDialog(true);
+	};
+
+	const handleCloseDeleteAllDialog = () => {
+		setOpenDeleteAllDialog(false);
+	};
 
 	const [completedList, setCompletedList] = useState(() => {
 		const saved = localStorage.getItem('completedList');
@@ -70,18 +82,20 @@ export const useReminders = () => {
 			deletedIds
 		);
 		setColumns(kanbanColumns);
-	}, [selectedView]);
+	}, [selectedView, completedList, deletedItems]);
 
 	const ListoClick = (item, fechaOriginal) => {
-		const updatedListData = listData.map((group) => {
-			if (group.FECHA === fechaOriginal) {
-				return {
-					...group,
-					LIST: group.LIST.filter((i) => i.id !== item.id),
-				};
-			}
-			return group;
-		});
+		const updatedListData = listData
+			.map((group) => {
+				if (group.FECHA === fechaOriginal) {
+					return {
+						...group,
+						LIST: group.LIST.filter((i) => i.id !== item.id),
+					};
+				}
+				return group;
+			})
+			.filter((group) => group.LIST.length > 0); // Quita grupos vacíos
 
 		const today = new Date().toISOString().split('T')[0];
 		const itemDate = new Date(fechaOriginal).toISOString().split('T')[0];
@@ -123,6 +137,7 @@ export const useReminders = () => {
 
 		setOpenDialog(false);
 		setSelectedItem(null);
+		toast.error('Recordatorio elimindo');
 	};
 
 	const handleCancelDelete = () => {
@@ -131,10 +146,10 @@ export const useReminders = () => {
 	};
 	const getToday = () => {
 		const today = new Date();
-		const dd = today.getDate(); // sin padStart
-		const mm = today.getMonth() + 1; // sin padStart
+		const dd = today.getDate();
+		const mm = today.getMonth() + 1;
 		const yyyy = today.getFullYear();
-		return `${dd}/${mm}/${yyyy}`; // sin ceros
+		return `${dd}/${mm}/${yyyy}`;
 	};
 
 	const formatReminderDataForKanban = (reminderData, deletedItems = []) => {
@@ -242,13 +257,67 @@ export const useReminders = () => {
 		setOpenEditDialog(false);
 		toast.success('📝 Recordatorio actualizado');
 	};
-
 	const handleDeleteAll = () => {
-		const restantes = completedList.filter((item) => item.origen !== 'hoy');
+		// Eliminamos todos los items que están en la sección "Listo" (es decir, en completedList)
+		const toDeleteIds = completedList.map((item) => item.id);
 
-		// Actualizamos el estado y localStorage
-		setCompletedList(restantes);
-		localStorage.setItem('completedList', JSON.stringify(restantes));
+		// Actualizamos lista de eliminados
+		const updatedDeletedItems = [...deletedItems, ...toDeleteIds];
+		setDeletedItems(updatedDeletedItems);
+		localStorage.setItem('deletedItems', JSON.stringify(updatedDeletedItems));
+
+		// Limpiamos la sección "Listo"
+		setCompletedList([]);
+		localStorage.setItem('completedList', JSON.stringify([]));
+
+		toast.success('🗑️ Todos los recordatorios completados han sido eliminados');
+	};
+
+	const handleUndoCompleted = (item) => {
+		const updatedCompleted = completedList.filter((i) => i.id !== item.id);
+
+		const updatedList = [...listData];
+		const index = updatedList.findIndex((group) => group.FECHA === item.FECHA);
+
+		if (index >= 0) {
+			updatedList[index].LIST.push(item);
+		} else {
+			updatedList.push({ FECHA: item.FECHA, LIST: [item] });
+		}
+
+		setCompletedList(updatedCompleted);
+		setListData(updatedList);
+		localStorage.setItem('completedList', JSON.stringify(updatedCompleted));
+		localStorage.setItem('listData', JSON.stringify(updatedList));
+	};
+	const handleDeleteCompletedClick = (item) => {
+		setSelectedCompletedItem(item);
+		setOpenCompletedDeleteDialog(true);
+	};
+
+	const handleCancelCompletedDelete = () => {
+		setOpenCompletedDeleteDialog(false);
+		setSelectedCompletedItem(null);
+	};
+
+	const handleConfirmCompletedDelete = () => {
+		if (!selectedCompletedItem) return;
+
+		const updatedCompleted = completedList.filter(
+			(item) => item.id !== selectedCompletedItem.id
+		);
+
+		const updatedDeletedItems = [...deletedItems, selectedCompletedItem.id];
+		setDeletedItems(updatedDeletedItems);
+		localStorage.setItem('deletedItems', JSON.stringify(updatedDeletedItems));
+
+		setCompletedList(updatedCompleted);
+		localStorage.setItem('completedList', JSON.stringify(updatedCompleted));
+
+		setOpenCompletedDeleteDialog(false);
+		setSelectedCompletedItem(null);
+
+		toast.error('🗑️ Recordatorio eliminado');
 	};
 
 	return {
@@ -276,5 +345,14 @@ export const useReminders = () => {
 		itemToEdit,
 		setItemToEdit,
 		handleDeleteAll,
+		handleUndoCompleted,
+		handleDeleteCompletedClick,
+		handleConfirmCompletedDelete,
+		handleCancelCompletedDelete,
+		openCompletedDeleteDialog,
+		selectedCompletedItem,
+		openDeleteAllDialog,
+		handleOpenDeleteAllDialog,
+		handleCloseDeleteAllDialog,
 	};
 };

@@ -15,6 +15,7 @@ import {
 	DialogContent,
 	DialogActions,
 	TextField,
+	DialogContentText,
 } from '@mui/material';
 import PlaylistAddCheckCircleIcon from '@mui/icons-material/PlaylistAddCheckCircle';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
@@ -34,7 +35,6 @@ const Reminders = () => {
 		setCompletedList,
 		ListoClick,
 		handleDeleteClick,
-		handleConfirmDelete,
 		handleCancelDelete,
 		openDialog,
 		selectedItem,
@@ -47,6 +47,16 @@ const Reminders = () => {
 		itemToEdit,
 		setItemToEdit,
 		handleDeleteAll,
+		handleUndoCompleted,
+		handleDeleteCompletedClick,
+		handleConfirmCompletedDelete,
+		handleCancelCompletedDelete,
+		openCompletedDeleteDialog,
+		selectedCompletedItem,
+		handleConfirmDelete,
+		openDeleteAllDialog,
+		handleOpenDeleteAllDialog,
+		handleCloseDeleteAllDialog,
 	} = useReminders();
 
 	const [showList, setShowList] = useState(
@@ -58,17 +68,12 @@ const Reminders = () => {
 	}, [showList]);
 
 	useEffect(() => {
-		const storedListData = JSON.parse(localStorage.getItem('listData'));
-		const storedCompletedList = JSON.parse(
-			localStorage.getItem('completedList')
-		);
+		const storedListData = JSON.parse(localStorage.getItem('listData')) || [];
+		const storedCompleted =
+			JSON.parse(localStorage.getItem('completedList')) || [];
 
-		if (storedListData) {
-			setListData(storedListData);
-		}
-		if (storedCompletedList) {
-			setCompletedList(storedCompletedList);
-		}
+		setListData(storedListData);
+		setCompletedList(storedCompleted);
 	}, []);
 
 	useEffect(() => {
@@ -83,7 +88,6 @@ const Reminders = () => {
 		: [];
 
 	const [lastListView, setLastListView] = useState('hoy');
-	const [showRestoreButton, setShowRestoreButton] = useState(false);
 
 	useEffect(() => {
 		if (showList) {
@@ -160,13 +164,21 @@ const Reminders = () => {
 			{showList ? (
 				selectedView === 'Listo' ? (
 					<div style={{ textAlign: 'center' }}>
-						<CompleteList CompleteList={completedList} />
+						<CompleteList
+							CompleteList={completedList}
+							handleUndoCompleted={handleUndoCompleted}
+							handleDeleteCompletedClick={handleDeleteCompletedClick}
+							handleConfirmCompletedDelete={handleConfirmCompletedDelete}
+							handleCancelCompletedDelete={handleCancelCompletedDelete}
+							openCompletedDeleteDialog={openCompletedDeleteDialog}
+							selectedCompletedItem={selectedCompletedItem}
+						/>
 
 						{completedList.length > 0 && (
 							<Button
 								variant='contained'
 								color='error'
-								onClick={handleDeleteAll}
+								onClick={handleOpenDeleteAllDialog}
 								size='small'
 								sx={{
 									mt: 2,
@@ -335,6 +347,31 @@ const Reminders = () => {
 					<Button onClick={handleCancelEdit}>Cancelar</Button>
 					<Button variant='contained' onClick={handleSaveEdit} color='primary'>
 						Guardar
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			<Dialog open={openDeleteAllDialog} onClose={handleCloseDeleteAllDialog}>
+				<DialogTitle>
+					¿Eliminar todos los recordatorios completados?
+				</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						Esta acción eliminará todos los recordatorios completados de forma
+						permanente. ¿Estás seguro?
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleCloseDeleteAllDialog}>Cancelar</Button>
+					<Button
+						onClick={() => {
+							handleDeleteAll();
+							handleCloseDeleteAllDialog();
+						}}
+						variant='contained'
+						color='error'
+					>
+						Sí, eliminar todos
 					</Button>
 				</DialogActions>
 			</Dialog>
