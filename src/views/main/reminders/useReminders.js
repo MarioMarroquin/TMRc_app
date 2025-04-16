@@ -202,10 +202,9 @@ export const useReminders = () => {
 	const onDragEnd = (result) => {
 		const { source, destination } = result;
 
-		// Si no se suelta en un destino válido
 		if (!destination) return;
 
-		// Si se suelta en la misma posición
+		// Si la posición no cambió
 		if (
 			source.droppableId === destination.droppableId &&
 			source.index === destination.index
@@ -213,17 +212,26 @@ export const useReminders = () => {
 			return;
 		}
 
-		const sourceColumn = columns[source.droppableId];
-		const destColumn = columns[destination.droppableId];
+		const sourceColumn = [...columns[source.droppableId]];
+		const destColumn = [...columns[destination.droppableId]];
 		const [movedItem] = sourceColumn.splice(source.index, 1);
 
-		destColumn.splice(destination.index, 0, movedItem);
+		// Si movemos dentro de la misma columna
+		if (source.droppableId === destination.droppableId) {
+			sourceColumn.splice(destination.index, 0, movedItem);
+		} else {
+			destColumn.splice(destination.index, 0, movedItem);
+		}
 
-		setColumns({
+		const updatedColumns = {
 			...columns,
 			[source.droppableId]: sourceColumn,
 			[destination.droppableId]: destColumn,
-		});
+		};
+
+		setColumns(updatedColumns);
+		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+		toast.success(' 💾 Guardado');
 	};
 
 	const handleEditClick = (item, fecha) => {

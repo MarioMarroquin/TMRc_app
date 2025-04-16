@@ -10,7 +10,11 @@ const Kanban = ({ reminderData, selectedView }) => {
 		useReminders();
 
 	useEffect(() => {
-		if (!localStorage.getItem('kanbanColumns') && reminderData) {
+		const savedColumns = localStorage.getItem('kanbanColumns');
+
+		if (savedColumns) {
+			setColumns(JSON.parse(savedColumns));
+		} else if (reminderData) {
 			const columnasFormateadas = formatReminderDataForKanban(reminderData);
 			setColumns(columnasFormateadas);
 			localStorage.setItem(
