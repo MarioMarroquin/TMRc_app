@@ -34,7 +34,7 @@ const UserModal = ({
 		<Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
 			<DialogTitle>{isEdit ? 'Editar Usuario' : 'Agregar Usuario'}</DialogTitle>
 			<DialogContent>
-				<Stack spacing={9} mt={1}>
+				<Stack spacing={3} mt={1}>
 					{/* Campos */}
 					<TextField
 						label='Nombre'

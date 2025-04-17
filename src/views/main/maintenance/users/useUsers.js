@@ -21,6 +21,87 @@ const initialUsers = [
 		usuario: 'anagr',
 		activo: false,
 	},
+	{
+		id: 3,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 4,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 5,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 6,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 7,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 8,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 9,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 10,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
+	{
+		id: 11,
+		nombre: 'Mariana',
+		apellidoPaterno: 'Velazquez',
+		apellidoMaterno: 'Ramírez',
+		telefono: '3547328294',
+		usuario: 'marivel',
+		activo: false,
+	},
 ];
 
 const emptyUser = {
@@ -45,7 +126,6 @@ export const useUsers = () => {
 	const [userData, setUserData] = useState(emptyUser);
 	const [isEdit, setIsEdit] = useState(false);
 
-	// ✅ Guardar automáticamente en localStorage cuando users cambia
 	useEffect(() => {
 		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
 	}, [users]);
@@ -65,7 +145,7 @@ export const useUsers = () => {
 	};
 
 	const handleEditUser = (user) => {
-		setUserData({ ...user }); // ← clonamos para evitar editar por referencia
+		setUserData({ ...user });
 		setIsEdit(true);
 		setOpenModal(true);
 	};
