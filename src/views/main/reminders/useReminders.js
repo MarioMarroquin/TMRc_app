@@ -137,7 +137,7 @@ export const useReminders = () => {
 
 		setOpenDialog(false);
 		setSelectedItem(null);
-		toast.error('Recordatorio elimindo');
+		toast.error(' 🗑️ Recordatorio eliminado');
 	};
 
 	const handleCancelDelete = () => {
