@@ -41,7 +41,6 @@ const LeadsGrid = ({ rows, doubleClickAction, gridRef }) => {
 		};
 	}, []);
 
-	// Column Definitions: Defines the columns to be displayed.
 	const [colDefs, setColDefs] = useState([
 		{
 			field: 'requestStatus',
@@ -198,15 +197,15 @@ const LeadsGrid = ({ rows, doubleClickAction, gridRef }) => {
 
 	return (
 		<div
-			className='ag-theme-quartz' // applying the Data Grid theme
+			className='ag-theme-quartz'
 			style={{ height: height - 170 }} // the Data Grid will fill the size of the parent container
 		>
 			<AgGridReact
 				rowData={rows}
 				defaultColDef={defaultColDef}
 				columnDefs={colDefs}
-				pagination={true}
 				paginationAutoPageSize={true}
+				pagination={true}
 				onRowDoubleClicked={doubleClickAction}
 				ref={gridRef}
 				onFirstDataRendered={onRenderedGoToPage}

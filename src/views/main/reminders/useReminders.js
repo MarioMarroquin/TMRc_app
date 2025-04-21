@@ -3,15 +3,19 @@ import { GET_LEAD_REMINDERS } from './queryLeadReminders';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
-import { parse, isBefore, isAfter, isToday } from 'date-fns';
 
 export const useReminders = () => {
+	const [reminders, setReminders] = useState({});
 	const [openDialog, setOpenDialog] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [openCompletedDeleteDialog, setOpenCompletedDeleteDialog] =
 		useState(false);
 	const [selectedCompletedItem, setSelectedCompletedItem] = useState(null);
 	const [openDeleteAllDialog, setOpenDeleteAllDialog] = useState(false);
+	const [reminderDataState, setReminderDataState] = useState(() => {
+		const saved = localStorage.getItem('reminderData');
+		return saved ? JSON.parse(saved) : reminderData; // fallback al archivo estático
+	});
 
 	const handleOpenDeleteAllDialog = () => {
 		setOpenDeleteAllDialog(true);
@@ -39,7 +43,7 @@ export const useReminders = () => {
 		localStorage.setItem('selectedView', selectedView);
 	}, [selectedView]);
 
-	const currentData = reminderData[selectedView] || [];
+	const currentData = reminderDataState[selectedView] || [];
 	const [listData, setListData] = useState(currentData);
 	const [columns, setColumns] = useState({});
 	const [openEditDialog, setOpenEditDialog] = useState(false);
@@ -55,7 +59,7 @@ export const useReminders = () => {
 	}, [deletedItems]);
 
 	useEffect(() => {
-		const currentData = reminderData[selectedView] || [];
+		const currentData = reminderDataState[selectedView] || [];
 
 		const completedLocal =
 			JSON.parse(localStorage.getItem('completedList')) || [];
@@ -77,12 +81,12 @@ export const useReminders = () => {
 		setListData(filteredData);
 
 		const kanbanColumns = formatReminderDataForKanban(
-			reminderData,
+			reminderDataState,
 			completedIds,
 			deletedIds
 		);
 		setColumns(kanbanColumns);
-	}, [selectedView, completedList, deletedItems]);
+	}, [selectedView, completedList, deletedItems, reminderDataState]);
 
 	const ListoClick = (item, fechaOriginal) => {
 		const updatedListData = listData
@@ -152,42 +156,29 @@ export const useReminders = () => {
 		return `${dd}/${mm}/${yyyy}`;
 	};
 
-	const formatReminderDataForKanban = (reminderData, deletedItems = []) => {
-		const allReminders = [
-			...(reminderData.pasado || []),
-			...(reminderData.hoy || []),
-		].sort((a, b) => {
-			const dateA = new Date(a.FECHA);
-			const dateB = new Date(b.FECHA);
-			return dateA - dateB;
-		});
-
-		const today = new Date();
-
+	const formatReminderDataForKanban = (
+		reminderData,
+		completedIds = [],
+		deletedIds = []
+	) => {
 		const columnsFormatted = {
 			VENCIDO: [],
 			HOY: [],
 			'POR VENCER': [],
 		};
 
-		allReminders.forEach((grupo) => {
-			const fecha = parse(grupo.FECHA, 'yyyy/MM/dd', new Date());
+		// Helper para formatear fecha
+		const formatDate = (fechaStr) => {
+			const [year, month, day] = fechaStr.split('/');
+			return `${day}/${month}/${year}`;
+		};
 
-			let status = '';
-			if (isBefore(fecha, today)) {
-				status = 'VENCIDO';
-			} else if (isToday(fecha)) {
-				status = 'HOY';
-			} else if (isAfter(fecha, today)) {
-				status = 'POR VENCER';
-			}
-
-			const [year, month, day] = grupo.FECHA.split('/');
-			const formattedDate = `${day}/${month}/${year}`;
-
+		// PASADO -> VENCIDO
+		(reminderData.pasado || []).forEach((grupo) => {
+			const formattedDate = formatDate(grupo.FECHA);
 			grupo.LIST.forEach((item) => {
-				if (!deletedItems.includes(item.id)) {
-					columnsFormatted[status].push({
+				if (!completedIds.includes(item.id) && !deletedIds.includes(item.id)) {
+					columnsFormatted['VENCIDO'].push({
 						id: item.FOLIO,
 						title: item.SERVICIO,
 						description: formattedDate,
@@ -196,7 +187,154 @@ export const useReminders = () => {
 			});
 		});
 
+		// HOY -> HOY
+		(reminderData.hoy || []).forEach((grupo) => {
+			const formattedDate = formatDate(grupo.FECHA);
+			grupo.LIST.forEach((item) => {
+				if (!completedIds.includes(item.id) && !deletedIds.includes(item.id)) {
+					columnsFormatted['HOY'].push({
+						id: item.FOLIO,
+						title: item.SERVICIO,
+						description: formattedDate,
+					});
+				}
+			});
+		});
+
+		// POR VENCER → cualquier otro (futuro)
+		Object.entries(reminderData).forEach(([key, grupos]) => {
+			if (key !== 'pasado' && key !== 'hoy') {
+				grupos.forEach((grupo) => {
+					const formattedDate = formatDate(grupo.FECHA);
+					grupo.LIST.forEach((item) => {
+						if (
+							!completedIds.includes(item.id) &&
+							!deletedIds.includes(item.id)
+						) {
+							columnsFormatted['POR VENCER'].push({
+								id: item.FOLIO,
+								title: item.SERVICIO,
+								description: formattedDate,
+							});
+						}
+					});
+				});
+			}
+		});
+
 		return columnsFormatted;
+	};
+
+	useEffect(() => {
+		// Inicializamos los recordatorios con los datos de reminderData
+		const data = {
+			pasado: reminderData.pasado.flatMap((group) => group.LIST),
+			hoy: reminderData.hoy.flatMap((group) => group.LIST),
+			// Puedes agregar más estados si es necesario
+		};
+
+		setReminders(data);
+
+		// Sincronizamos con localStorage si es necesario
+		localStorage.setItem('reminders', JSON.stringify(data));
+	}, []);
+
+	const findReminderStatusById = (id) => {
+		for (const [status, list] of Object.entries(columns)) {
+			if (list.find((item) => item.id === id)) {
+				return status;
+			}
+		}
+		return null;
+	};
+
+	const moveReminder = (reminderId, destinationId) => {
+		const sourceId = findReminderStatusById(reminderId);
+		if (!sourceId || sourceId === destinationId) return;
+
+		const sourceColumn = [...columns[sourceId]];
+		const destColumn = [...columns[destinationId]];
+		const sourceIndex = sourceColumn.findIndex(
+			(item) => item.id === reminderId
+		);
+
+		if (sourceIndex === -1) return;
+
+		const [movedItem] = sourceColumn.splice(sourceIndex, 1);
+		const destinationIndex = 0; // Lo insertamos al inicio, o cámbialo si quieres al final
+
+		destColumn.splice(destinationIndex, 0, movedItem);
+
+		const updatedColumns = {
+			...columns,
+			[sourceId]: sourceColumn,
+			[destinationId]: destColumn,
+		};
+
+		setColumns(updatedColumns);
+		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+
+		const updatedReminderData = { ...reminderDataState };
+
+		// Limpiar de todos los grupos anteriores
+		Object.keys(updatedReminderData).forEach((key) => {
+			updatedReminderData[key] = updatedReminderData[key]
+				.map((group) => ({
+					...group,
+					LIST: group.LIST.filter((item) => item.FOLIO !== movedItem.id),
+				}))
+				.filter((group) => group.LIST.length > 0);
+		});
+
+		// Obtener nueva fecha desde el description (usada como fecha en tu lógica)
+		let newFechaRaw = movedItem.description?.split('/').reverse().join('/');
+
+		if (destinationId === 'POR VENCER') {
+			const today = new Date();
+			const day = String(today.getDate()).padStart(2, '0');
+			const month = String(today.getMonth() + 1).padStart(2, '0');
+			const year = today.getFullYear();
+			const newFecha = `${day}/${month}/${year}`;
+			newFechaRaw = `${year}/${month}/${day}`;
+			movedItem.description = newFecha;
+		}
+
+		const newItem = {
+			FOLIO: movedItem.id,
+			SERVICIO: movedItem.title,
+			FECHA: newFechaRaw,
+		};
+
+		const destKey =
+			destinationId === 'POR VENCER'
+				? 'porVencer'
+				: destinationId.toLowerCase(); // 'hoy' o 'vencido'
+
+		if (!updatedReminderData[destKey]) updatedReminderData[destKey] = [];
+
+		const existingGroupIndex = updatedReminderData[destKey].findIndex(
+			(group) => group.FECHA === newFechaRaw
+		);
+
+		if (existingGroupIndex !== -1) {
+			updatedReminderData[destKey][existingGroupIndex].LIST.push(newItem);
+		} else {
+			updatedReminderData[destKey].push({
+				FECHA: newFechaRaw,
+				LIST: [newItem],
+			});
+		}
+
+		setReminderDataState(updatedReminderData);
+		localStorage.setItem('reminderData', JSON.stringify(updatedReminderData));
+
+		toast.success('💾 Guardado');
+	};
+
+	const findReminderById = (id) => {
+		// Función para encontrar un recordatorio por ID
+		const allReminders = Object.values(reminders).flat();
+		return allReminders.find((reminder) => reminder.id === id);
 	};
 
 	const onDragEnd = (result) => {
@@ -204,7 +342,6 @@ export const useReminders = () => {
 
 		if (!destination) return;
 
-		// Si la posición no cambió
 		if (
 			source.droppableId === destination.droppableId &&
 			source.index === destination.index
@@ -212,26 +349,12 @@ export const useReminders = () => {
 			return;
 		}
 
-		const sourceColumn = [...columns[source.droppableId]];
-		const destColumn = [...columns[destination.droppableId]];
-		const [movedItem] = sourceColumn.splice(source.index, 1);
-
-		// Si movemos dentro de la misma columna
-		if (source.droppableId === destination.droppableId) {
-			sourceColumn.splice(destination.index, 0, movedItem);
-		} else {
-			destColumn.splice(destination.index, 0, movedItem);
-		}
-
-		const updatedColumns = {
-			...columns,
-			[source.droppableId]: sourceColumn,
-			[destination.droppableId]: destColumn,
-		};
-
-		setColumns(updatedColumns);
-		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-		toast.success(' 💾 Guardado');
+		moveReminder(
+			source.droppableId,
+			destination.droppableId,
+			source.index,
+			destination.index
+		);
 	};
 
 	const handleEditClick = (item, fecha) => {
@@ -362,5 +485,7 @@ export const useReminders = () => {
 		openDeleteAllDialog,
 		handleOpenDeleteAllDialog,
 		handleCloseDeleteAllDialog,
+		reminders,
+		moveReminder,
 	};
 };

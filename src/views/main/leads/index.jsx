@@ -112,13 +112,11 @@ const Leads = (props) => {
 		exportToExcelDefault,
 	} = useLeads();
 
-	// Create a gridRef
 	const gridRef = useRef();
 
 	const [searchSellers] = useLazyQuery(GET_SELLERS_ALL);
 
 	const onChangeSeller = (event, value) => {
-		// console.log('value', value);
 		if (!value) {
 			assignedUser.onChange({
 				...assignedUser.selected,

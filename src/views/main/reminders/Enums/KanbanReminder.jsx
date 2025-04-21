@@ -1,77 +1,50 @@
-import { Card, CardContent, Typography, Box } from '@mui/material';
+import { Card, CardContent, Typography, IconButton, Box } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import { useEffect, useRef } from 'react';
+import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { useReminders } from '@views/main/reminders/useReminders.js';
 
-const KanbanReminder = ({ folio, servicio, fecha }) => {
+const KanbanReminder = ({ reminder }) => {
+	const { handleDelete, handleEdit } = useReminders();
+	const cardRef = useRef(null);
+
+	useEffect(() => {
+		if (!cardRef.current) return;
+
+		return draggable({
+			element: cardRef.current,
+			getData: () => ({
+				type: 'REMINDER-DND',
+				reminderId: reminder.id,
+			}),
+		});
+	}, [reminder.id]);
+
 	return (
 		<Card
+			ref={cardRef}
 			sx={{
-				display: 'flex',
-				padding: 8,
-				mx: 10,
-				my: 5,
-				transition: 'transform 0.2s ease-in-out',
-				'&:hover': {
-					transform: 'scale(1.03)',
-					cursor: 'grab',
+				mb: 2,
+				cursor: 'grab',
+				'&:active': {
+					cursor: 'grabbing',
 				},
 			}}
 		>
 			<CardContent>
-				{/* FOLIO */}
-				<Box display='flex' alignItems='center' mb={2} gap={2}>
-					<Typography variant='body1' fontWeight='bold'>
-						Folio:
-					</Typography>
-					<Typography
-						variant='body2'
-						fontWeight='normal'
-						color='text.secondary'
-						sx={{ letterSpacing: '0.5px', ml: 5 }}
-					>
-						{folio}
-					</Typography>
-				</Box>
-
-				{/* SERVICIO con ícono y color personalizado */}
-				<Box
-					px={1.8}
-					py={0.8}
-					mb={2}
-					display='inline-flex'
-					alignItems='center'
-					gap={1}
-					borderRadius={2}
-				>
-					<Typography
-						variant='body2'
-						fontWeight='medium'
-						color={
-							servicio === 'RENTA'
-								? '#1976D2'
-								: servicio === 'VENTA'
-								? '#2E7D32'
-								: '#EF6C00'
-						}
-					></Typography>
-					<Typography
-						variant='body2'
-						fontWeight='medium'
-						color={
-							servicio === 'RENTA'
-								? '#1976D2'
-								: servicio === 'VENTA'
-								? '#2E7D32'
-								: '#EF6C00'
-						}
-						sx={{ mt: 8 }}
-					>
-						{servicio}
-					</Typography>
-				</Box>
-
-				{/* FECHA */}
-				<Typography variant='body2' color='text.secondary' sx={{ mt: 10 }}>
-					📅 {fecha}
+				<Typography variant='h6'>{reminder.title}</Typography>
+				<Typography variant='body2' color='text.secondary'>
+					{reminder.description}
 				</Typography>
+				<Box mt={1} display='flex' justifyContent='flex-end' gap={1}>
+					<IconButton onClick={() => handleEdit(reminder)}>
+						<EditIcon fontSize='small' />
+					</IconButton>
+					<IconButton onClick={() => handleDelete(reminder.id)}>
+						<DeleteIcon fontSize='small' />
+					</IconButton>
+				</Box>
 			</CardContent>
 		</Card>
 	);
