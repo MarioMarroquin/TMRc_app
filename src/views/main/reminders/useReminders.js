@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
+export const sortRemindersByDate = (columnId) => {
+	return columnId.sort((a, b) => {
+		const dateA = new Date(a.description);
+		const dateB = new Date(b.description);
+		return dateB - dateA;
+	});
+};
+
 export const useReminders = () => {
 	const [openDialog, setOpenDialog] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
@@ -15,6 +23,8 @@ export const useReminders = () => {
 		const saved = localStorage.getItem('reminderData');
 		return saved ? JSON.parse(saved) : reminderData; // fallback al archivo estático
 	});
+	const [draggingId, setDraggingId] = useState(null);
+	const [draggingColumnId, setDraggingColumnId] = useState(null);
 
 	const [reminders, setReminders] = useState(() => {
 		const storedData = localStorage.getItem('reminders');
@@ -425,6 +435,29 @@ export const useReminders = () => {
 		toast.error('🗑️ Recordatorio eliminado');
 	};
 
+	const handleDragStart = (event, reminderId, columnId) => {
+		setDraggingId(reminderId);
+		setDraggingColumnId(columnId);
+		event.dataTransfer.setData('reminderId', reminderId);
+		event.dataTransfer.setData('sourceColumn', columnId);
+		event.target.classList.add('dragging');
+	};
+
+	const handleDragEnd = (event) => {
+		event.target.classList.remove('dragging');
+		setDraggingId(null);
+		setDraggingColumnId(null);
+	};
+
+	const handleDrop = (event, targetColumnId) => {
+		const reminderId = event.dataTransfer.getData('reminderId');
+		const sourceColumn = event.dataTransfer.getData('sourceColumn');
+
+		if (sourceColumn !== targetColumnId) {
+			moveReminder(reminderId, targetColumnId);
+		}
+	};
+
 	return {
 		listData,
 		setListData,
@@ -461,5 +494,9 @@ export const useReminders = () => {
 		handleCloseDeleteAllDialog,
 		reminders,
 		moveReminder,
+		handleDragStart,
+		handleDragEnd,
+		handleDrop,
+		draggingColumnId,
 	};
 };
