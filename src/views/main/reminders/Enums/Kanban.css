@@ -1,0 +1,95 @@
+.kanban-container {
+	display: flex;
+	gap: 16px;
+	overflow-x: auto;
+	padding: 16px;
+}
+
+.kanban-column {
+	flex: 1 0 400px; /* flex-grow: 1, flex-shrink: 0, flex-basis: 400px */
+	max-width: 500px;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+	padding: 12px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-column-title {
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.2rem;
+	padding: 16px 0;
+	color: #444;
+	text-transform: uppercase;
+	margin-bottom: 4px;
+}
+
+.kanban-group {
+	margin-bottom: 20px;
+}
+
+.kanban-group-date {
+	background-color: #ddd;
+	padding: 5px 10px;
+	border-radius: 4px;
+	font-weight: bold;
+}
+
+.kanban-card {
+	background-color: #fff;
+	margin-bottom: 10px;
+	padding: 10px;
+	border-radius: 4px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	cursor: grab;
+	transition: transform 0.3s ease; /* Transición para suavizar el movimiento */
+}
+
+.kanban-card.dragging {
+	opacity: 0.6;
+	transform: scale(1.05);
+	cursor: grabbing; /* Ampliación para hacerla más visible al arrastrar */
+}
+
+.kanban-card:hover {
+	transform: scale(1.03);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.kanban-card-move {
+	animation: moveAnimation 0.5s ease-out;
+}
+
+@keyframes moveAnimation {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(
+			20px
+		); /* Mueve un poco la tarjeta durante el arrastre */
+	}
+}
+
+.kanban-card-folio {
+	font-size: 0.9rem;
+	color: #2d3436;
+	margin-bottom: 4px;
+}
+
+.kanban-card-service {
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+
+.kanban-card-service.renta {
+	color: #e74c3c; /* rojo */
+}
+
+.kanban-card-service.venta {
+	color: #3498db; /* azul */
+}
+
+.kanban-card-date {
+	font-size: 0.85rem;
+	color: #636e72;
+}

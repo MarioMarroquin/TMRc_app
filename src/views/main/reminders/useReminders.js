@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
 export const useReminders = () => {
-	const [reminders, setReminders] = useState({});
 	const [openDialog, setOpenDialog] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
 	const [openCompletedDeleteDialog, setOpenCompletedDeleteDialog] =
@@ -15,6 +14,11 @@ export const useReminders = () => {
 	const [reminderDataState, setReminderDataState] = useState(() => {
 		const saved = localStorage.getItem('reminderData');
 		return saved ? JSON.parse(saved) : reminderData; // fallback al archivo estático
+	});
+
+	const [reminders, setReminders] = useState(() => {
+		const storedData = localStorage.getItem('reminders');
+		return storedData ? JSON.parse(storedData) : reminderData;
 	});
 
 	const handleOpenDeleteAllDialog = () => {
@@ -173,53 +177,29 @@ export const useReminders = () => {
 			return `${day}/${month}/${year}`;
 		};
 
-		// PASADO -> VENCIDO
-		(reminderData.pasado || []).forEach((grupo) => {
-			const formattedDate = formatDate(grupo.FECHA);
-			grupo.LIST.forEach((item) => {
-				if (!completedIds.includes(item.id) && !deletedIds.includes(item.id)) {
-					columnsFormatted['VENCIDO'].push({
-						id: item.FOLIO,
-						title: item.SERVICIO,
-						description: formattedDate,
-					});
-				}
-			});
-		});
-
-		// HOY -> HOY
-		(reminderData.hoy || []).forEach((grupo) => {
-			const formattedDate = formatDate(grupo.FECHA);
-			grupo.LIST.forEach((item) => {
-				if (!completedIds.includes(item.id) && !deletedIds.includes(item.id)) {
-					columnsFormatted['HOY'].push({
-						id: item.FOLIO,
-						title: item.SERVICIO,
-						description: formattedDate,
-					});
-				}
-			});
-		});
-
-		// POR VENCER → cualquier otro (futuro)
-		Object.entries(reminderData).forEach(([key, grupos]) => {
-			if (key !== 'pasado' && key !== 'hoy') {
-				grupos.forEach((grupo) => {
-					const formattedDate = formatDate(grupo.FECHA);
-					grupo.LIST.forEach((item) => {
-						if (
-							!completedIds.includes(item.id) &&
-							!deletedIds.includes(item.id)
-						) {
-							columnsFormatted['POR VENCER'].push({
-								id: item.FOLIO,
-								title: item.SERVICIO,
-								description: formattedDate,
-							});
-						}
-					});
+		// Mapea datos de cada sección (pasado, hoy, futuro)
+		['pasado', 'hoy', 'porVencer'].forEach((key) => {
+			(reminderData[key] || []).forEach((grupo) => {
+				const formattedDate = formatDate(grupo.FECHA);
+				grupo.LIST.forEach((item) => {
+					if (
+						!completedIds.includes(item.id) &&
+						!deletedIds.includes(item.id)
+					) {
+						columnsFormatted[
+							key === 'pasado'
+								? 'VENCIDO'
+								: key === 'hoy'
+								? 'HOY'
+								: 'POR VENCER'
+						].push({
+							id: item.FOLIO,
+							title: item.SERVICIO,
+							description: formattedDate,
+						});
+					}
 				});
-			}
+			});
 		});
 
 		return columnsFormatted;
@@ -329,12 +309,6 @@ export const useReminders = () => {
 		localStorage.setItem('reminderData', JSON.stringify(updatedReminderData));
 
 		toast.success('💾 Guardado');
-	};
-
-	const findReminderById = (id) => {
-		// Función para encontrar un recordatorio por ID
-		const allReminders = Object.values(reminders).flat();
-		return allReminders.find((reminder) => reminder.id === id);
 	};
 
 	const onDragEnd = (result) => {
