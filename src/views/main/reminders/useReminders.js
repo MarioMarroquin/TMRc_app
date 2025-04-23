@@ -4,10 +4,15 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
-export const sortRemindersByDate = (columnId) => {
-	return columnId.sort((a, b) => {
-		const dateA = new Date(a.description);
-		const dateB = new Date(b.description);
+const convertToDate = (dateString) => {
+	const [day, month, year] = dateString.split('/');
+	return new Date(`${year}-${month}-${day}`);
+};
+
+export const sortRemindersByDate = (reminders) => {
+	return reminders.sort((a, b) => {
+		const dateA = convertToDate(a.description);
+		const dateB = convertToDate(b.description);
 		return dateB - dateA;
 	});
 };
@@ -251,7 +256,7 @@ export const useReminders = () => {
 		if (sourceIndex === -1) return;
 
 		const [movedItem] = sourceColumn.splice(sourceIndex, 1);
-		const destinationIndex = 0; // Lo insertamos al inicio, o cámbialo si quieres al final
+		const destinationIndex = 0;
 
 		destColumn.splice(destinationIndex, 0, movedItem);
 

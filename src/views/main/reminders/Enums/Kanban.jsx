@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
 	useReminders,
 	sortRemindersByDate,
-} from '@views/main/reminders/useReminders.js';
+} from '@views/main/reminders/useReminders.js'; // Asegúrate de importar la función
 import '@views/main/reminders/Enums/Kanban.css';
 
 const COLUMN_LABELS = {
@@ -37,7 +37,7 @@ const Kanban = () => {
 						{COLUMN_LABELS[columnId] ? COLUMN_LABELS[columnId] : columnId}{' '}
 					</div>
 
-					{/* Ordenamos los recordatorios antes de renderizarlos */}
+					{/* Verifica si no hay recordatorios en la columna */}
 					{columns[columnId].length === 0 ? (
 						<div className='empty-column-message'>
 							Arrastra un recordatorio aquí
