@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
 const convertToDate = (dateString) => {
+	if (!dateString || typeof dateString !== 'string') return new Date(); // o retorna null si prefieres
+
 	const [day, month, year] = dateString.split('/');
 	return new Date(`${year}-${month}-${day}`);
 };
@@ -463,6 +465,17 @@ export const useReminders = () => {
 		}
 	};
 
+	const addReminderToColumn = (columnId, reminder) => {
+		setColumns((prev) => {
+			const updated = {
+				...prev,
+				[columnId]: [...prev[columnId], reminder],
+			};
+			localStorage.setItem('reminders', JSON.stringify(updated));
+			return updated;
+		});
+	};
+
 	return {
 		listData,
 		setListData,
@@ -503,5 +516,6 @@ export const useReminders = () => {
 		handleDragEnd,
 		handleDrop,
 		draggingColumnId,
+		addReminderToColumn,
 	};
 };
