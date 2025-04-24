@@ -45,19 +45,27 @@ const UserModal = ({
 						onChange={handleChange}
 					/>
 					<TextField
-						label='Apellido Paterno'
-						name='apellidoPaterno'
+						label='Apellido'
+						name='apellido'
 						fullWidth
 						variant='outlined'
-						value={userData.apellidoPaterno}
+						value={userData.apellido}
 						onChange={handleChange}
 					/>
 					<TextField
-						label='Apellido Materno'
-						name='apellidoMaterno'
+						label='Rol'
+						name='rol'
 						fullWidth
 						variant='outlined'
-						value={userData.apellidoMaterno}
+						value={userData.rol}
+						onChange={handleChange}
+					/>
+					<TextField
+						label='Nombre de Usuario'
+						name='usuario'
+						fullWidth
+						variant='outlined'
+						value={userData.usuario}
 						onChange={handleChange}
 					/>
 					<TextField
@@ -68,12 +76,13 @@ const UserModal = ({
 						value={userData.telefono}
 						onChange={handleChange}
 					/>
+
 					<TextField
-						label='Nombre de Usuario'
-						name='usuario'
+						label='Email'
+						name='email'
 						fullWidth
 						variant='outlined'
-						value={userData.usuario}
+						value={userData.email}
 						onChange={handleChange}
 					/>
 

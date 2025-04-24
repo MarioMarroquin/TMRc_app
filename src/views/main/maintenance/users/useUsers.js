@@ -1,134 +1,42 @@
 import { useState, useEffect } from 'react';
-
-const LOCAL_STORAGE_KEY = 'usuarios_data';
-
-const initialUsers = [
-	{
-		id: 1,
-		nombre: 'Juan',
-		apellidoPaterno: 'Pérez',
-		apellidoMaterno: 'López',
-		telefono: '1234567890',
-		usuario: 'juanp',
-		activo: true,
-	},
-	{
-		id: 2,
-		nombre: 'Ana',
-		apellidoPaterno: 'García',
-		apellidoMaterno: 'Ramírez',
-		telefono: '0987654321',
-		usuario: 'anagr',
-		activo: false,
-	},
-	{
-		id: 3,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 4,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 5,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 6,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 7,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 8,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 9,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 10,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-	{
-		id: 11,
-		nombre: 'Mariana',
-		apellidoPaterno: 'Velazquez',
-		apellidoMaterno: 'Ramírez',
-		telefono: '3547328294',
-		usuario: 'marivel',
-		activo: false,
-	},
-];
+import { useMutation, useQuery } from '@apollo/client'; // 🆕
+import { GET_USERS } from '@views/main/maintenance/users/queryRequests.js';
 
 const emptyUser = {
 	nombre: '',
-	apellidoPaterno: '',
-	apellidoMaterno: '',
-	telefono: '',
+	apellido: '',
+	rol: '',
 	usuario: '',
+	telefono: '',
+	email: '',
 	activo: true,
 };
 
 export const useUsers = () => {
-	const [users, setUsers] = useState(() => {
-		const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-		return saved ? JSON.parse(saved) : initialUsers;
-	});
+	const { data, loading, error } = useQuery(GET_USERS); // 🆕
+	const [users, setUsers] = useState([]);
 
 	const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
-
 	const [openModal, setOpenModal] = useState(false);
 	const [userData, setUserData] = useState(emptyUser);
 	const [isEdit, setIsEdit] = useState(false);
 
 	useEffect(() => {
-		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
-	}, [users]);
+		if (data?.users?.results) {
+			const formatted = data.users.results.map((user) => ({
+				id: user.id,
+				nombre: user.firstName,
+				apellido: user.lastName,
+				rol: user.role,
+				telefono: user.phoneNumber,
+				usuario: user.username,
+				email: user.email,
+				activo: true,
+			}));
+			setUsers(formatted);
+		}
+	}, [data]); // 🆕 carga los datos una vez que están disponibles
 
 	const toggleActivo = (id) => {
 		setUsers((prev) =>
@@ -201,5 +109,7 @@ export const useUsers = () => {
 		handleCloseModal,
 		isEdit,
 		toggleActivo,
+		loading,
+		error,
 	};
 };

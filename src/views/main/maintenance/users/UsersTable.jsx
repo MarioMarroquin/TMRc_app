@@ -11,9 +11,12 @@ import {
 	Switch,
 	Typography,
 	Stack,
+	Alert,
+	CircularProgress,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import { useUsers } from '@views/main/maintenance/users/useUsers.js';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
@@ -33,6 +36,8 @@ const UsersTable = ({
 	openDeleteDialog,
 	selectedUser,
 	toggleActivo,
+	loading,
+	error,
 }) => {
 	const defaultColDef = useMemo(
 		() => ({
@@ -46,11 +51,13 @@ const UsersTable = ({
 
 	const colDefs = useMemo(
 		() => [
+			{ field: 'id', headerName: 'Id', flex: 1 },
 			{ field: 'nombre', headerName: 'Nombre', flex: 1 },
-			{ field: 'apellidoPaterno', headerName: 'Apellido Paterno', flex: 1 },
-			{ field: 'apellidoMaterno', headerName: 'Apellido Materno', flex: 1 },
+			{ field: 'apellido', headerName: 'Apellido', flex: 1 },
+			{ field: 'rol', headerName: 'Rol', flex: 1 },
+			{ field: 'usuario', headerName: 'NombreUsuario', flex: 1 },
 			{ field: 'telefono', headerName: 'Teléfono', flex: 1 },
-			{ field: 'usuario', headerName: 'Usuario', flex: 1 },
+			{ field: 'email', headerName: 'email', flex: 1 },
 			{
 				field: 'activo',
 				headerName: 'Estado',
@@ -110,6 +117,22 @@ const UsersTable = ({
 		...user,
 		id: user.id || index,
 	}));
+
+	if (loading) {
+		return (
+			<Box display='flex' justifyContent='center' mt={4}>
+				<CircularProgress />
+			</Box>
+		);
+	}
+
+	if (error) {
+		return (
+			<Box display='flex' justifyContent='center' mt={4}>
+				<Alert severity='error'>Ocurrió un error al cargar los usuarios</Alert>
+			</Box>
+		);
+	}
 
 	return (
 		<Box>
