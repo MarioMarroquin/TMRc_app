@@ -2,30 +2,27 @@ import { useState } from 'react';
 import {
 	useReminders,
 	sortRemindersByDate,
-} from '@views/main/reminders/useReminders.js'; // Asegúrate de importar la función
-import '@views/main/reminders/Enums/Kanban.css';
-import AddIcon from '@mui/icons-material/Add';
+} from '@views/main/reminders/useReminders';
+import { CreateReminderModal } from '@views/main/reminders/Enums/CreateReminderModal.jsx';
 import {
+	Box,
+	Chip,
 	IconButton,
 	Tooltip,
-	Chip,
+	Typography,
 	Stack,
 	Divider,
-	Typography,
-	Button,
 } from '@mui/material';
-import { CreateReminderModal } from '@views/main/reminders/Enums/CreateReminderModal.jsx';
-import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const COLUMN_LABELS = {
 	VENCIDO: 'VENCIDO',
 	HOY: 'HOY',
 	'POR VENCER': 'POR VENCER',
-};
-
-export const handleClick = () => {
-	console.info('You clicked the Chip.');
 };
 
 const Kanban = () => {
@@ -38,6 +35,9 @@ const Kanban = () => {
 		handleDrop,
 		draggingColumnId,
 		addReminderToColumn,
+		handleDeleteClick,
+		handleCardClick,
+		ListoClick,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -56,136 +56,176 @@ const Kanban = () => {
 
 	return (
 		<>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'flex-end',
-					paddingLeft: '16px',
-					marginBottom: '8px',
-				}}
-			>
+			<Box display='flex' justifyContent='flex-end' p={1}>
 				<Tooltip title='Agregar nuevo recordatorio'>
 					<IconButton
 						size='small'
 						onClick={() => handleOpenModal('HOY')}
-						style={{
-							backgroundColor: '#f5f5f5',
+						sx={{
+							bgcolor: '#f5f5f5',
 							border: '1px solid #ccc',
 							borderRadius: '50%',
 							boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-							width: '32px',
-							height: '32px',
+							width: 32,
+							height: 32,
 						}}
 					>
 						<AddIcon fontSize='small' />
 					</IconButton>
 				</Tooltip>
-			</div>
-			<div className='kanban-container'>
+			</Box>
+
+			<Box display='flex' overflow='auto' gap={90} px={30}>
 				{Object.keys(columns).map((columnId) => (
-					<div
+					<Box
 						key={columnId}
-						className={`kanban-column ${
-							draggingColumnId === columnId ? 'dragging-over' : ''
-						}`}
 						onDragOver={(e) => e.preventDefault()}
 						onDrop={(e) => handleDrop(e, columnId)}
+						sx={{
+							minWidth: 300,
+							flexShrink: 0,
+							bgcolor: '#fafafa',
+							border: '1px solid #ddd',
+							borderRadius: 2,
+							p: 10,
+							boxShadow:
+								draggingColumnId === columnId
+									? '0 0 0 2px #1976d2 inset'
+									: '0 1px 3px rgba(0,0,0,0.1)',
+						}}
 					>
-						<div className='kanban-column-title'>
-							{COLUMN_LABELS[columnId] ? COLUMN_LABELS[columnId] : columnId}{' '}
-							<Tooltip title='Agregar recordatorio a esta columna'>
-								<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-									<IconButton
-										size='small'
-										onClick={() => handleOpenModal(columnId)}
-										style={{
-											display: 'flex',
-											justifyContent: 'flex-end',
-											backgroundColor: '#e0e0e0',
-											boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-										}}
-									>
-										<AddIcon fontSize='small' />
-									</IconButton>
-								</div>
+						<Box
+							position='relative'
+							display='flex'
+							justifyContent='center'
+							alignItems='center'
+							mb={5}
+						>
+							<Typography variant='h5' fontWeight='bold'>
+								{COLUMN_LABELS[columnId]}
+							</Typography>
+							<Tooltip title='Agregar recordatorio'>
+								<IconButton
+									size='small'
+									onClick={() => handleOpenModal(columnId)}
+									sx={{ position: 'absolute', right: 0 }}
+								>
+									<AddIcon fontSize='small' />
+								</IconButton>
 							</Tooltip>
-						</div>
+						</Box>
 
-						{/* Verifica si no hay recordatorios en la columna */}
 						{columns[columnId].length === 0 ? (
-							<div className='empty-column-message'>
+							<Typography
+								display='flex'
+								justifyContent='center'
+								variant='body2'
+								color='textSecondary'
+							>
 								Arrastra o agrega un recordatorio aquí
-							</div>
+							</Typography>
 						) : (
 							sortRemindersByDate(columns[columnId]).map((reminder) => (
-								<div
+								<Box
 									key={reminder.id}
-									className='kanban-card'
 									draggable
 									onDragStart={(e) => handleDragStart(e, reminder.id)}
 									onDragEnd={handleDragEnd}
+									sx={{
+										position: 'relative',
+										bgcolor: 'white',
+										p: 15,
+										borderRadius: 2,
+										boxShadow: 1,
+										mb: 30,
+										cursor: 'grab',
+									}}
 								>
-									<div
-										style={{
-											display: 'flex',
-											flexDirection: 'column',
-											gap: '6px',
-											marginBottom: '8px',
+									<Tooltip title='Estatus'>
+										<IconButton
+											size='small'
+											onClick={() => handleDeleteClick(reminder)}
+											sx={{
+												position: 'absolute',
+												top: 4,
+												right: 32,
+											}}
+										>
+											<NotificationsIcon fontSize='small' />
+										</IconButton>
+									</Tooltip>
+
+									{/* Botón de eliminar (tacha) arriba a la derecha */}
+									<Tooltip title='Eliminar'>
+										<IconButton
+											size='small'
+											color='error'
+											onClick={() => handleDeleteClick(reminder)}
+											sx={{
+												position: 'absolute',
+												top: 4,
+												right: 4,
+											}}
+										>
+											<CloseIcon fontSize='small' />
+										</IconButton>
+									</Tooltip>
+
+									<Stack direction='row' spacing={1} mb={1}>
+										<Chip label='LEAD' size='small' />
+										<Chip
+											label={reminder.title || 'Personal'}
+											color={
+												reminder.title?.toLowerCase() === 'renta'
+													? 'error'
+													: 'primary'
+											}
+											size='small'
+										/>
+									</Stack>
+									<Typography>Hola</Typography>
+									<Divider />
+									<Stack direction='row' alignItems='center' mt={1}>
+										<Typography variant='caption'>
+											📅 {reminder.description}
+										</Typography>
+									</Stack>
+
+									<Stack
+										direction='row'
+										spacing={1}
+										sx={{
+											position: 'absolute',
+											bottom: 4,
+											right: 4,
 										}}
 									>
-										<Stack direction='row'>
-											<Chip
-												label={reminder.id}
-												onClick={handleClick}
+										<Tooltip title='Editar recordatorio'>
+											<IconButton
 												size='small'
-											/>
-											<Chip
-												label={reminder.title || 'Personal'}
-												onClick={handleClick}
-												color={
-													reminder.title?.toLowerCase() === 'renta'
-														? 'error'
-														: 'primary'
-												}
+												color='primary'
+												onClick={() => handleCardClick(reminder)}
+											>
+												<EditIcon fontSize='small' />
+											</IconButton>
+										</Tooltip>
+										<Tooltip title='Hecho'>
+											<IconButton
 												size='small'
-											/>
-										</Stack>
-										<Divider />
-										<Stack
-											direction='row'
-											spacing={1}
-											alignItems='center'
-											justifyContent='space-between'
-										>
-											<Typography variant='caption'>{`📅 ${reminder.description}`}</Typography>
-											<Stack direction='row' spacing={0.5}>
-												<Button
-													variant='outlined'
-													size='small'
-													color='error'
-													startIcon={<DeleteIcon fontSize='small' />}
-													sx={{ minHeight: 24, height: 24, px: 1, padding: 8 }}
-												>
-													Eliminar
-												</Button>
-												<Button
-													variant='contained'
-													size='small'
-													color='success'
-													startIcon={<CheckIcon fontSize='small' />}
-													sx={{ minHeight: 24, height: 24, px: 1, padding: 8 }}
-												>
-													Listo
-												</Button>
-											</Stack>
-										</Stack>
-									</div>
-								</div>
+												color='success'
+												onClick={() => ListoClick(reminder)}
+											>
+												<CheckIcon fontSize='small' />
+											</IconButton>
+										</Tooltip>
+									</Stack>
+								</Box>
 							))
 						)}
-					</div>
+					</Box>
 				))}
-			</div>
+			</Box>
+
 			<CreateReminderModal
 				open={modalOpen}
 				onClose={() => setModalOpen(false)}

@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { addDays, format } from 'date-fns';
 
-const style = {
+const modalStyle = {
 	position: 'absolute',
 	top: '50%',
 	left: '50%',
@@ -50,7 +50,7 @@ export const CreateReminderModal = ({ open, onClose, onSave }) => {
 
 	return (
 		<Modal open={open} onClose={onClose}>
-			<Box sx={style}>
+			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
 					Nuevo Recordatorio
 				</Typography>
