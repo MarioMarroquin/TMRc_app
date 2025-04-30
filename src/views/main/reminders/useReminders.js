@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
 const convertToDate = (dateString) => {
-	if (!dateString || typeof dateString !== 'string') return new Date(); // o retorna null si prefieres
+	if (!dateString || typeof dateString !== 'string') return new Date();
 
 	const [day, month, year] = dateString.split('/');
 	return new Date(`${year}-${month}-${day}`);

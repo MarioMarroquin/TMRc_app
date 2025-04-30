@@ -21,6 +21,13 @@ export const SCOPES_REQUEST = {
 	export: 'export',
 };
 
+export const SCOPES_REMINDERS = {
+	total: 'total',
+	create: 'create',
+	filterOperator: 'filterOperator',
+	export: 'export',
+};
+
 export const SCOPES_REQUEST_DETAILS = {
 	total: 'total',
 	interact: 'interact',
@@ -31,7 +38,11 @@ export const SCOPES_REQUEST_DETAILS = {
 
 export const PERMISSIONS = {
 	[ROLES.admin]: [SCOPES_GENERAL.total],
-	[ROLES.desk]: [SCOPES_REQUEST.total, SCOPES_REQUEST.export],
+	[ROLES.desk]: [
+		SCOPES_REQUEST.total,
+		SCOPES_REQUEST.export,
+		SCOPES_REMINDERS.total,
+	],
 	[ROLES.salesManager]: [
 		SCOPES_REQUEST.total,
 		SCOPES_REQUEST.filterOperator,
@@ -39,10 +50,13 @@ export const PERMISSIONS = {
 		SCOPES_REQUEST_DETAILS.interact,
 		SCOPES_REQUEST_DETAILS.edit,
 		SCOPES_REQUEST_DETAILS.commentManager,
+		SCOPES_REMINDERS.total,
 	],
 	[ROLES.salesOperator]: [
+		SCOPES_REQUEST.total,
 		SCOPES_REQUEST_DETAILS.interact,
 		SCOPES_REQUEST_DETAILS.edit,
 		SCOPES_REQUEST_DETAILS.commentOperator,
+		SCOPES_REMINDERS.total,
 	],
 };

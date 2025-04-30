@@ -227,6 +227,7 @@ const Leads = (props) => {
 					rows={leads.list}
 					doubleClickAction={navigateToRequest}
 					gridRef={gridRef}
+					loading={leads.loading}
 				/>
 			</Box>
 

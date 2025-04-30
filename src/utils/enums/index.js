@@ -36,10 +36,19 @@ const RequestStatusList = {
 	FINISHED: { format: 'CONCLUIDO', name: 'FINISHED' },
 };
 
+const UserRoles = {
+	ADMIN: 'ADMIN',
+	DESK: 'DESK',
+	MARKETING: 'MARKETING',
+	SALESMANAGER: 'SALESMANAGER',
+	SALESOPERATOR: 'SALESOPERATOR',
+};
+
 export {
 	ServiceType,
 	ContactMedium,
 	ProductStatus,
 	RequestStatus,
 	RequestStatusList,
+	UserRoles,
 };

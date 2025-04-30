@@ -11,7 +11,6 @@ import {
 	Stack,
 	Divider,
 	Fade,
-	Button,
 	Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -41,6 +40,7 @@ const Kanban = () => {
 		ListoClick,
 	} = useReminders();
 
+	const [draggingId, setDraggingId] = useState(null);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [activeColumn, setActiveColumn] = useState(null);
 	const kanbanContainerRef = useRef(null); // Referencia para el contenedor del Kanban
@@ -62,17 +62,24 @@ const Kanban = () => {
 	};
 
 	// Función para manejar el drop y mover la tarjeta
-	const handleDrop = (e, targetColumnId) => {
-		e.preventDefault();
-		const reminderId = e.dataTransfer.getData('reminderId');
-		if (reminderId) {
-			moveReminder(reminderId, targetColumnId);
-		}
+	const handleDragStart = (e, id, columnId) => {
+		setDraggingId(id);
+		e.dataTransfer.setData('id', id); // Save the dragged item data
+		e.dataTransfer.setData('columnId', columnId); // Save the column of the dragged item
 	};
 
-	const handleDragStart = (e, reminderId) => {
-		e.dataTransfer.setData('reminderId', reminderId);
-		e.target.style.opacity = '0.5'; // Cambio de opacidad cuando se arrastra
+	const handleDrop = (e, targetColumnId) => {
+		e.preventDefault();
+		const draggedId = e.dataTransfer.getData('id');
+		const sourceColumnId = e.dataTransfer.getData('columnId');
+
+		if (sourceColumnId !== targetColumnId) {
+			// Add the card to the new column
+			const draggedItem = columns[sourceColumnId].find(
+				(item) => item.id === draggedId
+			);
+			addReminderToColumn(targetColumnId, draggedItem); // Moves the item to the new column
+		}
 	};
 
 	const handleDragEnd = (e) => {
@@ -87,12 +94,13 @@ const Kanban = () => {
 						size='small'
 						onClick={() => handleOpenModal('HOY')}
 						sx={{
-							bgcolor: '#1976d2',
+							backgroundColor: 'black',
 							color: 'white',
-							borderRadius: '50%',
-							boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-							width: 40,
-							height: 40,
+							transition: 'transform 0.2s ease',
+							'&:hover': {
+								transform: 'scale(1.1)',
+								backgroundColor: 'black', // mantiene el fondo negro
+							},
 						}}
 					>
 						<AddIcon fontSize='small' />
@@ -103,7 +111,7 @@ const Kanban = () => {
 			{/* Contenedor Kanban con scroll y mayor espacio entre columnas */}
 			<Box
 				display='flex'
-				gap={3} // Espacio mayor entre las columnas
+				gap={8} // Espacio mayor entre las columnas
 				ref={kanbanContainerRef}
 				sx={{
 					maxHeight: '80vh',
@@ -111,8 +119,7 @@ const Kanban = () => {
 					p: 2,
 				}}
 			>
-				<Grid container spacing={3}>
-					{' '}
+				<Grid container spacing={40}>
 					{/* Espacio entre los grids */}
 					{Object.keys(columns).map((columnId) => (
 						<Grid
@@ -133,7 +140,7 @@ const Kanban = () => {
 								sx={{
 									bgcolor: '#f5f5f5',
 									boxShadow: 3,
-									mb: 2,
+									mb: 3,
 									display: 'flex',
 									flexDirection: 'column',
 									minHeight: 200,
@@ -146,24 +153,26 @@ const Kanban = () => {
 											<IconButton
 												size='small'
 												onClick={() => handleOpenModal(columnId)}
+												sx={{ color: 'white' }}
 											>
 												<AddIcon />
 											</IconButton>
 										</Tooltip>
 									}
 									sx={{
-										bgcolor: '#1976d2',
+										bgcolor: '#000000',
 										color: 'white',
 										textAlign: 'center',
 										borderRadius: '4px 4px 0 0',
 									}}
 								/>
+
 								<CardContent
 									sx={{
 										display: 'flex',
 										flexDirection: 'column',
 										justifyContent: 'flex-start',
-										gap: 2, // Aumentamos el espacio entre las tarjetas dentro de la columna
+										gap: 15, // Aumentamos el espacio entre las tarjetas dentro de la columna
 										overflowY: 'auto',
 										paddingBottom: 3,
 									}}
@@ -194,6 +203,21 @@ const Kanban = () => {
 													onDragStart={(e) => handleDragStart(e, reminder.id)}
 													onDragEnd={handleDragEnd}
 												>
+													<Tooltip title='Eliminar'>
+														<IconButton
+															size='small'
+															color='error'
+															onClick={handleDeleteClick}
+															sx={{
+																position: 'absolute',
+																top: 1,
+																right: 1,
+																zIndex: 2,
+															}}
+														>
+															<CloseIcon fontSize='small' />
+														</IconButton>
+													</Tooltip>
 													<Stack direction='row' spacing={1} mb={1}>
 														<Chip label='LEAD' size='small' />
 														<Chip
@@ -209,7 +233,7 @@ const Kanban = () => {
 													<Typography variant='body2'>
 														{reminder.title}
 													</Typography>
-													<Divider sx={{ my: 1 }} />
+													<Divider sx={{ my: 10 }} />
 													<Typography variant='caption' color='textSecondary'>
 														📅 {reminder.description}
 													</Typography>
@@ -218,8 +242,8 @@ const Kanban = () => {
 														spacing={1}
 														sx={{
 															position: 'absolute',
-															bottom: 8,
-															right: 8,
+															bottom: 1,
+															right: 1,
 														}}
 													>
 														<Tooltip title='Editar recordatorio'>
@@ -238,15 +262,6 @@ const Kanban = () => {
 																onClick={() => ListoClick(reminder)}
 															>
 																<CheckIcon fontSize='small' />
-															</IconButton>
-														</Tooltip>
-														<Tooltip title='Eliminar'>
-															<IconButton
-																size='small'
-																color='error'
-																onClick={() => handleDeleteClick(reminder)}
-															>
-																<CloseIcon fontSize='small' />
 															</IconButton>
 														</Tooltip>
 													</Stack>

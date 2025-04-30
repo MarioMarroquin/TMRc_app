@@ -1,5 +1,5 @@
 import { AgGridReact } from 'ag-grid-react';
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
 	AssignmentTurnedIn,
 	ContentPasteSearch,
@@ -28,7 +28,7 @@ const CellStackRender = ({ children }) => (
 	</Stack>
 );
 
-const LeadsGrid = ({ rows, doubleClickAction, gridRef }) => {
+const LeadsGrid = ({ rows, doubleClickAction, gridRef, loading }) => {
 	const { height, width } = useWindowDimensions();
 	const [gridState, setGridState] = useState(
 		JSON.parse(sessionStorage.getItem('gridState')) ?? {}
@@ -210,7 +210,7 @@ const LeadsGrid = ({ rows, doubleClickAction, gridRef }) => {
 				ref={gridRef}
 				onFirstDataRendered={onRenderedGoToPage}
 				onPaginationChanged={onPaginationChanged}
-				loading={!rows.length}
+				loading={loading}
 				onStateUpdated={saveGridState}
 				initialState={gridState}
 			/>

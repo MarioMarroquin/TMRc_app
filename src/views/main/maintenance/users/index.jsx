@@ -1,68 +1,55 @@
-import React from 'react';
-import { Container, Typography, Box } from '@mui/material';
-import UsersTable from './UsersTable';
-import UserModal from './UserModal';
+import { useState } from 'react';
+import UsersGrid from './UsersGrid';
+import DialogUserUC from './DialogUserUC/DialogUserUC';
 import { useUsers } from './useUsers';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-const theme = createTheme({
-	typography: {
-		fontFamily: 'Inter, sans-serif',
-	},
-});
+const Users = () => {
+	const { users } = useUsers();
 
-const UsersPage = () => {
-	const {
-		users,
-		selectedUser,
-		openDeleteDialog,
-		handleEditUser,
-		handleAddUserClick,
-		handleDeleteUserClick,
-		handleConfirmDelete,
-		handleCancelDelete,
-		openModal,
-		userData,
-		setUserData,
-		handleSaveUser,
-		handleCloseModal,
-		isEdit,
-		toggleActivo,
-	} = useUsers();
+	const [userDialogStatus, setUserDialogStatus] = useState({
+		visible: false,
+		editMode: false,
+		user: null,
+		userId: null,
+	});
+
+	const openUserEditDialog = (user, userId) =>
+		setUserDialogStatus({ visible: true, editMode: true, user, userId });
+
+	const closeUserDialog = (userId) =>
+		setUserDialogStatus({
+			visible: false,
+			editMode: false,
+			user: null,
+			userId: null,
+		});
+
+	const openUserCreateDialog = () =>
+		setUserDialogStatus({
+			visible: true,
+			editMode: false,
+			user: null,
+			userId: null,
+		});
+
+	const navigateToRequest = (row) => {
+		const { id, ...user } = { ...row.data };
+		openUserEditDialog(user, id);
+	}; // needs to be string for route params
 
 	return (
-		<ThemeProvider theme={theme}>
-			<Container maxWidth='xl'>
-				<Typography
-					variant='h4'
-					gutterBottom
-					sx={{ textAlign: 'center', fontFamily: 'Inter', fontWeight: 'bold' }}
-				>
-					Usuarios
-				</Typography>
-				<UsersTable
-					users={users}
-					selectedUser={selectedUser}
-					openDeleteDialog={openDeleteDialog}
-					handleEditUser={handleEditUser}
-					handleAddUserClick={handleAddUserClick}
-					handleConfirmDelete={handleConfirmDelete}
-					handleCancelDelete={handleCancelDelete}
-					handleDeleteUserClick={handleDeleteUserClick}
-					toggleActivo={toggleActivo}
-				/>
+		<>
+			<DialogUserUC
+				refetchUsers={users.fetch}
+				userDialogStatus={userDialogStatus}
+				closeUserDialog={closeUserDialog}
+				openUserCreateDialog={openUserCreateDialog}
+			/>
 
-				<UserModal
-					open={openModal}
-					handleClose={handleCloseModal}
-					handleSave={handleSaveUser}
-					userData={userData}
-					setUserData={setUserData}
-					isEdit={isEdit}
-				/>
-			</Container>
-		</ThemeProvider>
+			<UsersGrid users={users.list} doubleClickAction={navigateToRequest} />
+		</>
 	);
 };
 
-export default UsersPage;
+export default Users;

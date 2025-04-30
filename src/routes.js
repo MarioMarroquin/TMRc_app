@@ -9,6 +9,11 @@ import {
 import { lazy } from 'react';
 import { Typography } from '@mui/material';
 import Reminders from '@views/main/reminders';
+import {
+	SCOPES_GENERAL,
+	SCOPES_REMINDERS,
+	SCOPES_REQUEST,
+} from '@config/permisissions/permissions';
 
 const Leads = lazy(() => import('./views/main/leads'));
 const LeadDetail = lazy(() => import('./views/main/leads/subviews/leadDetail'));
@@ -25,6 +30,7 @@ const mainRoutes = [
 		name: 'Solicitudes',
 		path: '/leads',
 		active: true,
+		scopes: [SCOPES_GENERAL.total, SCOPES_REQUEST.total],
 	},
 	{
 		// children: [{ path: ':id', element: <LeadDetail /> }],
@@ -34,6 +40,7 @@ const mainRoutes = [
 		name: 'Recordatorios',
 		path: '/reminders',
 		active: true,
+		scopes: [SCOPES_GENERAL.total, SCOPES_REMINDERS.total],
 	},
 	{
 		routes: [
@@ -45,6 +52,7 @@ const mainRoutes = [
 				name: 'Usuarios',
 				path: '/management/users',
 				active: false,
+				scopes: [SCOPES_GENERAL.total],
 			},
 		],
 		mainIcon: <SettingsPhone />,

@@ -14,6 +14,7 @@ import { mainRoutes } from '../../../../routes';
 import { pxToRem } from '@config/theme/functions';
 import { ExpandLess, ExpandMore, StarBorder } from '@mui/icons-material';
 import { AxiosHeaders as prev } from 'axios';
+import PermissionsGate from '@components/PermissionsGate';
 
 const DrawerContent = () => {
 	const location = useLocation().pathname;
@@ -71,6 +72,7 @@ const DrawerContent = () => {
 						routes,
 						mainIcon,
 						active,
+						scopes: os,
 					}) => {
 						if (nested) {
 							return (
@@ -123,88 +125,94 @@ const DrawerContent = () => {
 										unmountOnExit
 									>
 										<List component='div' disablePadding>
-											{routes.map(({ icon: ni, name: na, path: np }) => {
-												return (
-													<ListItemButton
-														disableRipple
-														disableTouchRipple
-														key={np}
-														selected={location.includes(np)}
-														onClick={() => {
-															navigate(np, { replace: true });
-														}}
-														sx={{
-															color: '#1313134F',
-															py: 8,
-															m: 2,
-															ml: 40,
-															borderRadius: 8,
-															'&.Mui-selected': {
-																color: theme.palette.primary.main,
-															},
-														}}
-													>
-														<ListItemIcon
-															sx={{
-																color: 'inherit',
-																justifyContent: 'flex-start',
-																minWidth: 36,
-															}}
-														>
-															{ni}
-														</ListItemIcon>
-														<ListItemText
-															primary={na}
-															primaryTypographyProps={{
-																fontSize: 12,
-																fontWeight: 700,
-															}}
-														/>
-													</ListItemButton>
-												);
-											})}
+											{routes.map(
+												({ icon: ni, name: na, path: np, scopes: is }) => {
+													return (
+														<PermissionsGate scopes={is}>
+															<ListItemButton
+																disableRipple
+																disableTouchRipple
+																key={np}
+																selected={location.includes(np)}
+																onClick={() => {
+																	navigate(np, { replace: true });
+																}}
+																sx={{
+																	color: '#1313134F',
+																	py: 8,
+																	m: 2,
+																	ml: 40,
+																	borderRadius: 8,
+																	'&.Mui-selected': {
+																		color: theme.palette.primary.main,
+																	},
+																}}
+															>
+																<ListItemIcon
+																	sx={{
+																		color: 'inherit',
+																		justifyContent: 'flex-start',
+																		minWidth: 36,
+																	}}
+																>
+																	{ni}
+																</ListItemIcon>
+																<ListItemText
+																	primary={na}
+																	primaryTypographyProps={{
+																		fontSize: 12,
+																		fontWeight: 700,
+																	}}
+																/>
+															</ListItemButton>
+														</PermissionsGate>
+													);
+												}
+											)}
 										</List>
 									</Collapse>
 								</>
 							);
 						} else {
 							return (
-								<ListItemButton
-									disableRipple
-									disableTouchRipple
-									key={path}
-									selected={location.includes(path)}
-									onClick={() => {
-										navigate(path, { replace: true });
-									}}
-									disabled={!active}
-									sx={{
-										color: '#1313134F',
-										m: 4,
-										pl: 0,
-										borderRadius: 8,
-										'&.Mui-selected': {
-											backgroundColor: 'transparent',
-											color: theme.palette.primary.main,
-										},
-									}}
-								>
-									<ListItemIcon
+								<PermissionsGate scopes={os}>
+									<ListItemButton
+										disableRipple
+										disableTouchRipple
+										key={path}
+										selected={location.includes(path)}
+										onClick={() => {
+											navigate(path, { replace: true });
+										}}
+										disabled={!active}
 										sx={{
-											color: 'inherit',
-											justifyContent: 'center',
+											color: '#1313134F',
+											m: 4,
+											pl: 0,
+											borderRadius: 8,
+											'&.Mui-selected': {
+												backgroundColor: 'transparent',
+												color: theme.palette.primary.main,
+											},
 										}}
 									>
-										{icon}
-									</ListItemIcon>
-									<ListItemText
-										primary={name}
-										primaryTypographyProps={{
-											fontSize: 14,
-											fontWeight: 700,
-										}}
-									/>
-								</ListItemButton>
+										<ListItemIcon
+											sx={{
+												color: 'inherit',
+												justifyContent: 'center',
+											}}
+										>
+											{icon}
+										</ListItemIcon>
+										<ListItemText
+											primary={name}
+											primaryTypographyProps={{
+												fontSize: 14,
+												fontWeight: 700,
+											}}
+										/>
+									</ListItemButton>
+								</PermissionsGate>
 							);
 						}
 					}
