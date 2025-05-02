@@ -305,7 +305,9 @@ export const useReminders = () => {
 		const destKey =
 			destinationId === 'POR VENCER'
 				? 'porVencer'
-				: destinationId.toLowerCase(); // 'hoy' o 'vencido'
+				: destinationId === 'HOY'
+				? 'hoy'
+				: 'pasado';
 
 		if (!updatedReminderData[destKey]) updatedReminderData[destKey] = [];
 
@@ -442,18 +444,14 @@ export const useReminders = () => {
 		toast.error('🗑️ Recordatorio eliminado');
 	};
 
-	const handleDragStart = (event, reminderId, columnId) => {
-		setDraggingId(reminderId);
-		setDraggingColumnId(columnId);
-		event.dataTransfer.setData('reminderId', reminderId);
-		event.dataTransfer.setData('sourceColumn', columnId);
-		event.target.classList.add('dragging');
+	const handleDragStart = (e, reminderId, columnId) => {
+		e.dataTransfer.setData('reminderId', reminderId);
+		e.target.style.transform = 'scale(1.05)'; // Aumenta ligeramente el tamaño de la tarjeta
+		e.target.style.transition = 'transform 0.2s ease'; // Añade una transición suave
 	};
 
-	const handleDragEnd = (event) => {
-		event.target.classList.remove('dragging');
-		setDraggingId(null);
-		setDraggingColumnId(null);
+	const handleDragEnd = (e) => {
+		e.target.style.transform = '';
 	};
 
 	const handleDrop = (event, targetColumnId) => {

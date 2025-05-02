@@ -40,7 +40,6 @@ const Kanban = () => {
 		ListoClick,
 	} = useReminders();
 
-	const [draggingId, setDraggingId] = useState(null);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [activeColumn, setActiveColumn] = useState(null);
 	const kanbanContainerRef = useRef(null); // Referencia para el contenedor del Kanban
@@ -62,33 +61,29 @@ const Kanban = () => {
 	};
 
 	// Función para manejar el drop y mover la tarjeta
-	const handleDragStart = (e, id, columnId) => {
-		setDraggingId(id);
-		e.dataTransfer.setData('id', id); // Save the dragged item data
-		e.dataTransfer.setData('columnId', columnId); // Save the column of the dragged item
-	};
-
 	const handleDrop = (e, targetColumnId) => {
 		e.preventDefault();
-		const draggedId = e.dataTransfer.getData('id');
-		const sourceColumnId = e.dataTransfer.getData('columnId');
-
-		if (sourceColumnId !== targetColumnId) {
-			// Add the card to the new column
-			const draggedItem = columns[sourceColumnId].find(
-				(item) => item.id === draggedId
-			);
-			addReminderToColumn(targetColumnId, draggedItem); // Moves the item to the new column
+		const reminderId = e.dataTransfer.getData('reminderId');
+		if (reminderId) {
+			moveReminder(reminderId, targetColumnId);
 		}
+	};
+
+	const handleDragStart = (e, reminderId) => {
+		e.dataTransfer.setData('reminderId', reminderId);
+		e.target.style.transform = 'scale(1.02)';
+		e.target.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
 	};
 
 	const handleDragEnd = (e) => {
 		e.target.style.opacity = ''; // Restaurar la opacidad después del drag
+		e.target.style.transform = '';
+		e.target.style.boxShadow = '';
 	};
 
 	return (
 		<>
-			<Box display='flex' justifyContent='flex-end' p={1}>
+			<Box display='flex' justifyContent='flex-start' p={1}>
 				<Tooltip title='Agregar nuevo recordatorio'>
 					<IconButton
 						size='small'
@@ -111,7 +106,7 @@ const Kanban = () => {
 			{/* Contenedor Kanban con scroll y mayor espacio entre columnas */}
 			<Box
 				display='flex'
-				gap={8} // Espacio mayor entre las columnas
+				gap={3} // Espacio mayor entre las columnas
 				ref={kanbanContainerRef}
 				sx={{
 					maxHeight: '80vh',
@@ -125,8 +120,9 @@ const Kanban = () => {
 						<Grid
 							key={columnId}
 							item
-							xs={12}
-							sm={4}
+							xs={6}
+							sm={12}
+							md={4}
 							sx={{
 								display: 'flex',
 								flexDirection: 'column',
@@ -144,6 +140,8 @@ const Kanban = () => {
 									display: 'flex',
 									flexDirection: 'column',
 									minHeight: 200,
+									height: 'calc(88vh - 64px)',
+									overflow: 'hidden',
 								}}
 							>
 								<CardHeader
@@ -169,12 +167,9 @@ const Kanban = () => {
 
 								<CardContent
 									sx={{
-										display: 'flex',
-										flexDirection: 'column',
-										justifyContent: 'flex-start',
-										gap: 15, // Aumentamos el espacio entre las tarjetas dentro de la columna
+										flex: 1,
 										overflowY: 'auto',
-										paddingBottom: 3,
+										padding: 12,
 									}}
 								>
 									{columns[columnId].length === 0 ? (
@@ -186,88 +181,103 @@ const Kanban = () => {
 											Arrastra o agrega un recordatorio aquí
 										</Typography>
 									) : (
-										sortRemindersByDate(columns[columnId]).map((reminder) => (
-											<Fade in timeout={300} key={reminder.id}>
-												<Card
-													sx={{
-														mb: 3, // Espacio mayor entre las tarjetas
-														cursor: 'grab',
-														boxShadow: 2,
-														borderRadius: 2,
-														bgcolor: 'white',
-														p: 2,
-														position: 'relative',
-														transition: 'all 0.3s ease',
-													}}
-													draggable
-													onDragStart={(e) => handleDragStart(e, reminder.id)}
-													onDragEnd={handleDragEnd}
-												>
-													<Tooltip title='Eliminar'>
-														<IconButton
-															size='small'
-															color='error'
-															onClick={handleDeleteClick}
+										<Stack spacing={20}>
+											{sortRemindersByDate(columns[columnId]).map(
+												(reminder) => (
+													<Fade in timeout={300} key={reminder.id}>
+														<Card
 															sx={{
-																position: 'absolute',
-																top: 1,
-																right: 1,
-																zIndex: 2,
+																mb: 3,
+																cursor: 'grab',
+																boxShadow: 2,
+																borderRadius: 2,
+																bgcolor: 'white',
+																p: 2,
+																position: 'relative',
+																transition:
+																	'transform 0.35s ease-in-out, box-shadow 0.50s ease',
+																'&:hover': {
+																	transform: 'scale(1.03) translateY(-1px)',
+																	boxShadow: 8,
+																	zIndex: 3,
+																},
 															}}
-														>
-															<CloseIcon fontSize='small' />
-														</IconButton>
-													</Tooltip>
-													<Stack direction='row' spacing={1} mb={1}>
-														<Chip label='LEAD' size='small' />
-														<Chip
-															label={reminder.title || 'Personal'}
-															color={
-																reminder.title?.toLowerCase() === 'renta'
-																	? 'error'
-																	: 'primary'
+															draggable
+															onDragStart={(e) =>
+																handleDragStart(e, reminder.id)
 															}
-															size='small'
-														/>
-													</Stack>
-													<Typography variant='body2'>
-														{reminder.title}
-													</Typography>
-													<Divider sx={{ my: 10 }} />
-													<Typography variant='caption' color='textSecondary'>
-														📅 {reminder.description}
-													</Typography>
-													<Stack
-														direction='row'
-														spacing={1}
-														sx={{
-															position: 'absolute',
-															bottom: 1,
-															right: 1,
-														}}
-													>
-														<Tooltip title='Editar recordatorio'>
-															<IconButton
-																size='small'
-																color='primary'
-																onClick={() => handleCardClick(reminder)}
+															onDragEnd={handleDragEnd}
+														>
+															<Tooltip title='Eliminar'>
+																<IconButton
+																	size='small'
+																	color='error'
+																	onClick={handleDeleteClick}
+																	sx={{
+																		position: 'absolute',
+																		top: 0,
+																		right: 1,
+																		zIndex: 2,
+																	}}
+																>
+																	<CloseIcon fontSize='small' />
+																</IconButton>
+															</Tooltip>
+															<Stack direction='row' spacing={1} mb={1}>
+																<Chip label='LEAD' size='small' />
+																<Chip
+																	label={reminder.title || 'Personal'}
+																	color={
+																		reminder.title?.toLowerCase() === 'renta'
+																			? 'error'
+																			: 'primary'
+																	}
+																	size='small'
+																/>
+															</Stack>
+															<Typography variant='body2'>
+																{reminder.title}
+															</Typography>
+															<Divider sx={{ my: 10 }} />
+															<Typography
+																variant='caption'
+																color='textSecondary'
 															>
-																<EditIcon fontSize='small' />
-															</IconButton>
-														</Tooltip>
-														<Tooltip title='Hecho'>
-															<IconButton
-																size='small'
-																color='success'
-																onClick={() => ListoClick(reminder)}
+																📅 {reminder.description}
+															</Typography>
+															<Stack
+																direction='row'
+																spacing={1}
+																sx={{
+																	position: 'absolute',
+																	bottom: 1,
+																	right: 1,
+																}}
 															>
-																<CheckIcon fontSize='small' />
-															</IconButton>
-														</Tooltip>
-													</Stack>
-												</Card>
-											</Fade>
-										))
+																<Tooltip title='Editar recordatorio'>
+																	<IconButton
+																		size='small'
+																		color='primary'
+																		onClick={() => handleCardClick(reminder)}
+																	>
+																		<EditIcon fontSize='small' />
+																	</IconButton>
+																</Tooltip>
+																<Tooltip title='Hecho'>
+																	<IconButton
+																		size='small'
+																		color='success'
+																		onClick={() => ListoClick(reminder)}
+																	>
+																		<CheckIcon fontSize='small' />
+																	</IconButton>
+																</Tooltip>
+															</Stack>
+														</Card>
+													</Fade>
+												)
+											)}
+										</Stack>
 									)}
 								</CardContent>
 							</Card>
