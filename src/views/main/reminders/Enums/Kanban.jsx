@@ -38,6 +38,8 @@ const Kanban = () => {
 		handleCardClick,
 		handleDeleteClick,
 		ListoClick,
+		deleteReminder,
+		completeReminder,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -91,6 +93,7 @@ const Kanban = () => {
 						sx={{
 							backgroundColor: 'black',
 							color: 'white',
+							p: 7,
 							transition: 'transform 0.2s ease',
 							'&:hover': {
 								transform: 'scale(1.1)',
@@ -212,7 +215,19 @@ const Kanban = () => {
 																<IconButton
 																	size='small'
 																	color='error'
-																	onClick={handleDeleteClick}
+																	onClick={() => {
+																		if (
+																			confirm(
+																				'¿Quieres que este elemento se elimine por completo?'
+																			)
+																		) {
+																			deleteReminder(reminder.id, columnId);
+																			console.log(
+																				'kanban eliminado',
+																				reminder.id
+																			);
+																		}
+																	}}
 																	sx={{
 																		position: 'absolute',
 																		top: 0,
@@ -267,7 +282,22 @@ const Kanban = () => {
 																	<IconButton
 																		size='small'
 																		color='success'
-																		onClick={() => ListoClick(reminder)}
+																		onClick={() => {
+																			if (
+																				confirm(
+																					'¿Marcar este recordatorio como completado?'
+																				)
+																			) {
+																				ListoClick(
+																					reminder,
+																					reminder.description
+																				);
+																				console.log(
+																					'✅ Kanban completado:',
+																					reminder
+																				);
+																			}
+																		}}
 																	>
 																		<CheckIcon fontSize='small' />
 																	</IconButton>

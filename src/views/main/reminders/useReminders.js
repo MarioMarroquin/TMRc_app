@@ -32,6 +32,7 @@ export const useReminders = () => {
 	});
 	const [draggingId, setDraggingId] = useState(null);
 	const [draggingColumnId, setDraggingColumnId] = useState(null);
+	const [kanbanCompleted, setKanbanCompleted] = useState([]);
 
 	const [reminders, setReminders] = useState(() => {
 		const storedData = localStorage.getItem('reminders');
@@ -474,6 +475,33 @@ export const useReminders = () => {
 		});
 	};
 
+	const deleteReminder = (id, columnId) => {
+		const updatedColumns = {
+			...columns,
+			[columnId]: columns[columnId].filter((item) => item.id !== id),
+		};
+		setColumns(updatedColumns);
+		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+		toast.error('🗑️ Recordatorio eliminado');
+	};
+
+	const completeReminder = (reminder, columnId) => {
+		// Eliminar del kanban
+		const updatedColumns = {
+			...columns,
+			[columnId]: columns[columnId].filter((item) => item.id !== reminder.id),
+		};
+		setColumns(updatedColumns);
+		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+
+		// Agregar a completados
+		const updatedCompleted = [...kanbanCompleted, reminder];
+		setKanbanCompleted(updatedCompleted);
+
+		console.log('✅ Kanban completado:', updatedCompleted);
+		toast.success('✔️ Marcado como hecho');
+	};
+
 	return {
 		listData,
 		setListData,
@@ -515,5 +543,7 @@ export const useReminders = () => {
 		handleDrop,
 		draggingColumnId,
 		addReminderToColumn,
+		deleteReminder,
+		completeReminder,
 	};
 };
