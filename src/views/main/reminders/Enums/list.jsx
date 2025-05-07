@@ -9,6 +9,7 @@ import {
 	DialogContent,
 	DialogActions,
 	Box,
+	Fade,
 } from '@mui/material';
 import DoneIcon from '@mui/icons-material/Done';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -37,6 +38,7 @@ const ListReminder = ({
 	setItemToEdit,
 	handleCancelEdit,
 	handleSaveEdit,
+	handleMarkAsCompleted,
 }) => {
 	const NoDataMessage = () => (
 		<Box

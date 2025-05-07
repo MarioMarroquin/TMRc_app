@@ -30,7 +30,7 @@ const COLUMN_LABELS = {
 	'POR VENCER': 'POR VENCER',
 };
 
-const Kanban = () => {
+const Kanban = ({ handleMarkAsCompleted }) => {
 	const {
 		columns,
 		moveReminder,
@@ -40,27 +40,36 @@ const Kanban = () => {
 		ListoClick,
 		deleteReminder,
 		completeReminder,
+		handleSaveFromModal,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
 	const [activeColumn, setActiveColumn] = useState(null);
 	const kanbanContainerRef = useRef(null); // Referencia para el contenedor del Kanban
+	const [selectedReminder, setSelectedReminder] = useState(null);
 
-	const handleOpenModal = (columnId) => {
+	const handleOpenModal = (columnId, reminder = null) => {
 		setActiveColumn(columnId);
+		if (reminder)
+			setSelectedReminder(reminder); // si hay reminder, lo usamos para edición
+		else setSelectedReminder(null); // si es nuevo, lo limpiamos
 		setModalOpen(true);
 	};
-
-	const handleSaveReminder = (newReminder) => {
-		if (activeColumn) {
-			addReminderToColumn(activeColumn, newReminder);
-			// Aseguramos que el scroll baje cuando se agrega un recordatorio
-			if (kanbanContainerRef.current) {
-				kanbanContainerRef.current.scrollTop =
-					kanbanContainerRef.current.scrollHeight;
-			}
-		}
-	};
+	// const handleSaveReminder = (newReminder) => {
+	// 	// Si es un nuevo recordatorio, asignamos 'personal' por defecto
+	// 	const reminderWithType = {
+	// 		...newReminder,
+	// 		type: newReminder.type || 'personal', // Si no tiene tipo, asignamos 'personal'
+	// 	};
+	// 	if (activeColumn) {
+	// 		addReminderToColumn(activeColumn, reminderWithType);
+	// 		// Aseguramos que el scroll baje cuando se agrega un recordatorio
+	// 		if (kanbanContainerRef.current) {
+	// 			kanbanContainerRef.current.scrollTop =
+	// 				kanbanContainerRef.current.scrollHeight;
+	// 		}
+	// 	}
+	// };
 
 	// Función para manejar el drop y mover la tarjeta
 	const handleDrop = (e, targetColumnId) => {
@@ -68,6 +77,18 @@ const Kanban = () => {
 		const reminderId = e.dataTransfer.getData('reminderId');
 		if (reminderId) {
 			moveReminder(reminderId, targetColumnId);
+
+			if (targetColumnId === 'POR VENCER') {
+				// Buscar el reminder en cualquier columna
+				const allReminders = Object.values(columns).flat();
+				const reminder = allReminders.find(
+					(r) => r.id.toString() === reminderId
+				);
+
+				if (reminder) {
+					handleOpenModal(targetColumnId, reminder);
+				}
+			}
 		}
 	};
 
@@ -239,15 +260,23 @@ const Kanban = () => {
 																</IconButton>
 															</Tooltip>
 															<Stack direction='row' spacing={1} mb={1}>
-																<Chip label='LEAD' size='small' />
+																{console.log(
+																	'Tipo de recordatorio:',
+																	reminder.type
+																)}
 																<Chip
-																	label={reminder.title || 'Personal'}
+																	label={
+																		reminder.type === 'lead'
+																			? 'LEAD'
+																			: 'Personal'
+																	}
 																	color={
-																		reminder.title?.toLowerCase() === 'renta'
-																			? 'error'
+																		reminder.type === 'lead'
+																			? 'secondary'
 																			: 'primary'
 																	}
 																	size='small'
+																	sx={{ fontWeight: 'bold' }}
 																/>
 															</Stack>
 															<Typography variant='body2'>
@@ -259,6 +288,12 @@ const Kanban = () => {
 																color='textSecondary'
 															>
 																📅 {reminder.description}
+															</Typography>
+															<Typography
+																variant='caption'
+																color='textSecondary'
+															>
+																{reminder.hora}
 															</Typography>
 															<Stack
 																direction='row'
@@ -282,22 +317,9 @@ const Kanban = () => {
 																	<IconButton
 																		size='small'
 																		color='success'
-																		onClick={() => {
-																			if (
-																				confirm(
-																					'¿Marcar este recordatorio como completado?'
-																				)
-																			) {
-																				ListoClick(
-																					reminder,
-																					reminder.description
-																				);
-																				console.log(
-																					'✅ Kanban completado:',
-																					reminder
-																				);
-																			}
-																		}}
+																		onClick={() =>
+																			handleMarkAsCompleted(reminder)
+																		}
 																	>
 																		<CheckIcon fontSize='small' />
 																	</IconButton>
@@ -319,7 +341,8 @@ const Kanban = () => {
 			<CreateReminderModal
 				open={modalOpen}
 				onClose={() => setModalOpen(false)}
-				onSave={handleSaveReminder}
+				onSave={handleSaveFromModal}
+				reminder={selectedReminder}
 			/>
 		</>
 	);

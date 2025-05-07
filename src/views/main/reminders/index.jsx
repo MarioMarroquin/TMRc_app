@@ -16,6 +16,7 @@ import {
 	DialogActions,
 	TextField,
 	DialogContentText,
+	Fade,
 } from '@mui/material';
 import PlaylistAddCheckCircleIcon from '@mui/icons-material/PlaylistAddCheckCircle';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
@@ -57,6 +58,7 @@ const Reminders = () => {
 		openDeleteAllDialog,
 		handleOpenDeleteAllDialog,
 		handleCloseDeleteAllDialog,
+		handleMarkAsCompleted,
 	} = useReminders();
 
 	const [showList, setShowList] = useState(
@@ -118,7 +120,7 @@ const Reminders = () => {
 								<FormControlLabel
 									value='pasado'
 									control={<Radio />}
-									label='Pasado'
+									label='Vencido'
 								/>
 								<FormControlLabel value='hoy' control={<Radio />} label='Hoy' />
 								<FormControlLabel
@@ -161,44 +163,24 @@ const Reminders = () => {
 				</Grid>
 			</Grid>
 
-			{showList ? (
-				selectedView === 'Listo' ? (
-					<div style={{ textAlign: 'center' }}>
-						<CompleteList
-							CompleteList={completedList}
-							handleUndoCompleted={handleUndoCompleted}
-							handleDeleteCompletedClick={handleDeleteCompletedClick}
-							handleConfirmCompletedDelete={handleConfirmCompletedDelete}
-							handleCancelCompletedDelete={handleCancelCompletedDelete}
-							openCompletedDeleteDialog={openCompletedDeleteDialog}
-							selectedCompletedItem={selectedCompletedItem}
-						/>
+			<Fade in={!showList} timeout={150} unmountOnExit>
+				<div>
+					<Kanban handleMarkAsCompleted={handleMarkAsCompleted} />
+				</div>
+			</Fade>
 
-						{completedList.length > 0 && (
-							<Button
-								variant='contained'
-								color='error'
-								onClick={handleOpenDeleteAllDialog}
-								size='small'
-								sx={{
-									mt: 2,
-									padding: '4px 12px',
-									fontSize: '0.75rem',
-									mx: 'auto',
-									display: 'block',
-								}}
-							>
-								Eliminar Todos
-							</Button>
-						)}
-					</div>
-				) : (
+			<Fade
+				in={showList && selectedView !== 'Listo'}
+				timeout={200}
+				unmountOnExit
+			>
+				<div>
 					<ListReminder
 						listData={filteredListData}
 						setListData={setListData}
 						completedList={completedList}
 						setCompletedList={setCompletedList}
-						ListoClick={ListoClick}
+						ListoClick={handleMarkAsCompleted}
 						handleDeleteClick={handleDeleteClick}
 						handleConfirmDelete={handleConfirmDelete}
 						handleCancelDelete={handleCancelDelete}
@@ -206,10 +188,43 @@ const Reminders = () => {
 						selectedItem={selectedItem}
 						handleEditClick={handleEditClick}
 					/>
-				)
-			) : (
-				<Kanban reminderData={reminderData} selectedView={selectedView} />
-			)}
+				</div>
+			</Fade>
+
+			<Fade
+				in={showList && selectedView === 'Listo'}
+				timeout={200}
+				unmountOnExit
+			>
+				<div style={{ textAlign: 'center' }}>
+					<CompleteList
+						CompleteList={completedList}
+						handleUndoCompleted={handleUndoCompleted}
+						handleDeleteCompletedClick={handleDeleteCompletedClick}
+						handleConfirmCompletedDelete={handleConfirmCompletedDelete}
+						handleCancelCompletedDelete={handleCancelCompletedDelete}
+						openCompletedDeleteDialog={openCompletedDeleteDialog}
+						selectedCompletedItem={selectedCompletedItem}
+					/>
+					{completedList.length > 0 && (
+						<Button
+							variant='contained'
+							color='error'
+							onClick={handleOpenDeleteAllDialog}
+							size='small'
+							sx={{
+								mt: 2,
+								padding: '4px 12px',
+								fontSize: '0.75rem',
+								mx: 'auto',
+								display: 'block',
+							}}
+						>
+							Eliminar Todos
+						</Button>
+					)}
+				</div>
+			</Fade>
 
 			<Dialog
 				open={openEditDialog}
