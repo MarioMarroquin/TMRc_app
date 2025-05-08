@@ -41,6 +41,8 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		deleteReminder,
 		completeReminder,
 		handleSaveFromModal,
+		restoreReminderToSource,
+		handleCancelModal,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -49,12 +51,18 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	const [selectedReminder, setSelectedReminder] = useState(null);
 
 	const handleOpenModal = (columnId, reminder = null) => {
-		setActiveColumn(columnId);
-		if (reminder)
-			setSelectedReminder(reminder); // si hay reminder, lo usamos para edición
-		else setSelectedReminder(null); // si es nuevo, lo limpiamos
+		setActiveColumn('POR VENCER');
+		if (reminder) {
+			setSelectedReminder({
+				...reminder,
+				originalColumn: columnId,
+			});
+		} else {
+			setSelectedReminder(null);
+		}
 		setModalOpen(true);
 	};
+
 	// const handleSaveReminder = (newReminder) => {
 	// 	// Si es un nuevo recordatorio, asignamos 'personal' por defecto
 	// 	const reminderWithType = {
@@ -71,25 +79,43 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	// 	}
 	// };
 
-	// Función para manejar el drop y mover la tarjeta
 	const handleDrop = (e, targetColumnId) => {
 		e.preventDefault();
 		const reminderId = e.dataTransfer.getData('reminderId');
+
 		if (reminderId) {
-			moveReminder(reminderId, targetColumnId);
-
-			if (targetColumnId === 'POR VENCER') {
-				// Buscar el reminder en cualquier columna
-				const allReminders = Object.values(columns).flat();
-				const reminder = allReminders.find(
-					(r) => r.id.toString() === reminderId
+			// Encontrar el recordatorio en cualquier columna
+			let movedItem;
+			Object.keys(columns).forEach((columnId) => {
+				const item = columns[columnId].find(
+					(item) => item.id.toString() === reminderId
 				);
-
-				if (reminder) {
-					handleOpenModal(targetColumnId, reminder);
+				if (item) {
+					movedItem = item;
 				}
+			});
+
+			if (targetColumnId === 'POR VENCER' && movedItem) {
+				const [date = '', time = ''] =
+					movedItem.description?.split(' - ') || [];
+				handleOpenModal(targetColumnId, {
+					id: movedItem.id,
+					title: movedItem.title,
+					date,
+					time,
+					type: movedItem.type,
+				});
+			} else {
+				moveReminder(reminderId, targetColumnId);
 			}
 		}
+	};
+
+	const handleSaveReminderFromModal = (newReminder) => {
+		handleSaveFromModal(newReminder);
+		setModalOpen(false);
+		setSelectedReminder(null);
+		setActiveColumn('POR VENCER');
 	};
 
 	const handleDragStart = (e, reminderId) => {
@@ -104,13 +130,19 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		e.target.style.boxShadow = '';
 	};
 
+	const handleCloseModal = () => {
+		handleCancelModal(); // Restaurar la card a su posición original
+		setModalOpen(false);
+		setSelectedReminder(null);
+	};
+
 	return (
 		<>
 			<Box display='flex' justifyContent='flex-start' p={1}>
 				<Tooltip title='Agregar nuevo recordatorio'>
 					<IconButton
 						size='small'
-						onClick={() => handleOpenModal('HOY')}
+						onClick={() => handleOpenModal('POR VENCER')} // Cambiar 'HOY' por 'POR VENCER'
 						sx={{
 							backgroundColor: 'black',
 							color: 'white',
@@ -118,7 +150,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 							transition: 'transform 0.2s ease',
 							'&:hover': {
 								transform: 'scale(1.1)',
-								backgroundColor: 'black', // mantiene el fondo negro
+								backgroundColor: 'black',
 							},
 						}}
 					>
@@ -260,10 +292,6 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 																</IconButton>
 															</Tooltip>
 															<Stack direction='row' spacing={1} mb={1}>
-																{console.log(
-																	'Tipo de recordatorio:',
-																	reminder.type
-																)}
 																<Chip
 																	label={
 																		reminder.type === 'lead'
@@ -340,8 +368,8 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 
 			<CreateReminderModal
 				open={modalOpen}
-				onClose={() => setModalOpen(false)}
-				onSave={handleSaveFromModal}
+				onClose={handleCloseModal}
+				onSave={handleSaveReminderFromModal}
 				reminder={selectedReminder}
 			/>
 		</>
