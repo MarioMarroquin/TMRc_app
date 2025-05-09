@@ -572,6 +572,27 @@ export const useReminders = () => {
 		toast.success(`✅ Recordatorio guardado en ${targetColumn}`);
 	};
 
+	const saveReminderInOriginalColumn = (reminder, originalColumnId) => {
+		setColumns((prevColumns) => {
+			const updatedColumns = { ...prevColumns };
+
+			// Quitar el recordatorio de todas las columnas
+			for (const columnId in updatedColumns) {
+				updatedColumns[columnId] = updatedColumns[columnId].filter(
+					(item) => item.id !== reminder.id
+				);
+			}
+
+			// Agregar el recordatorio editado a su columna original
+			updatedColumns[originalColumnId] = [
+				...updatedColumns[originalColumnId],
+				reminder,
+			];
+
+			return updatedColumns;
+		});
+	};
+
 	return {
 		listData,
 		setListData,
@@ -618,5 +639,6 @@ export const useReminders = () => {
 		handleMarkAsCompleted,
 		handleSaveFromModal,
 		handleCancelModal,
+		saveReminderInOriginalColumn,
 	};
 };

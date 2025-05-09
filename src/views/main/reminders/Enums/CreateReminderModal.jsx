@@ -57,6 +57,7 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 			date: selectedDate,
 			time: selectedTime,
 			title,
+			description: `${selectedDate} - ${selectedTime}`, // para mostrar en la card
 			type: reminder?.type || 'personal',
 		};
 		onSave(newReminder);

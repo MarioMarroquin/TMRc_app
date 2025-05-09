@@ -43,6 +43,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		handleSaveFromModal,
 		restoreReminderToSource,
 		handleCancelModal,
+		saveReminderInOriginalColumn,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -51,11 +52,11 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	const [selectedReminder, setSelectedReminder] = useState(null);
 
 	const handleOpenModal = (columnId, reminder = null) => {
-		setActiveColumn(columnId); // Cambiar esto para usar la columna correcta
+		setActiveColumn(columnId);
 		if (reminder) {
 			setSelectedReminder({
 				...reminder,
-				originalColumn: columnId,
+				originalColumn: columnId, // importante
 			});
 		} else {
 			setSelectedReminder(null);
@@ -112,10 +113,12 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	};
 
 	const handleSaveReminderFromModal = (newReminder) => {
-		handleSaveFromModal(newReminder);
+		const originalColumn = selectedReminder?.originalColumn || 'POR VENCER';
+
+		saveReminderInOriginalColumn(newReminder, originalColumn);
+
 		setModalOpen(false);
 		setSelectedReminder(null);
-		setActiveColumn('POR VENCER');
 	};
 
 	const handleDragStart = (e, reminderId) => {
@@ -263,96 +266,95 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 																handleDragStart(e, reminder.id)
 															}
 															onDragEnd={handleDragEnd}
+															onClick={() =>
+																handleOpenModal(columnId, reminder)
+															}
 														>
-															<Tooltip title='Eliminar'>
-																<IconButton
-																	size='small'
-																	color='error'
-																	onClick={() => {
-																		if (
-																			confirm(
-																				'¿Quieres que este elemento se elimine por completo?'
-																			)
-																		) {
-																			deleteReminder(reminder.id, columnId);
-																			console.log(
-																				'kanban eliminado',
-																				reminder.id
-																			);
+															<Tooltip
+																title='Haz click para editar o manten presionado para arrastrar'
+																arrow
+															>
+																<Tooltip title='Eliminar'>
+																	<IconButton
+																		size='small'
+																		color='error'
+																		onClick={() => {
+																			if (
+																				confirm(
+																					'¿Quieres que este elemento se elimine por completo?'
+																				)
+																			) {
+																				deleteReminder(reminder.id, columnId);
+																				console.log(
+																					'kanban eliminado',
+																					reminder.id
+																				);
+																			}
+																		}}
+																		sx={{
+																			position: 'absolute',
+																			top: 0,
+																			right: 1,
+																			zIndex: 2,
+																		}}
+																	>
+																		<CloseIcon fontSize='small' />
+																	</IconButton>
+																</Tooltip>
+																<Stack direction='row' spacing={1} mb={1}>
+																	<Chip
+																		label={
+																			reminder.type === 'lead'
+																				? 'LEAD'
+																				: 'Personal'
 																		}
-																	}}
+																		color={
+																			reminder.type === 'lead'
+																				? 'secondary'
+																				: 'primary'
+																		}
+																		size='small'
+																		sx={{ fontWeight: 'bold' }}
+																	/>
+																</Stack>
+																<Typography variant='body2'>
+																	{reminder.title}
+																</Typography>
+																<Divider sx={{ my: 10 }} />
+																<Typography
+																	variant='caption'
+																	color='textSecondary'
+																>
+																	📅 {reminder.description}
+																</Typography>
+																<Typography
+																	variant='caption'
+																	color='textSecondary'
+																>
+																	{reminder.hora}
+																</Typography>
+																<Stack
+																	direction='row'
+																	spacing={1}
 																	sx={{
 																		position: 'absolute',
-																		top: 0,
+																		bottom: 1,
 																		right: 1,
-																		zIndex: 2,
 																	}}
 																>
-																	<CloseIcon fontSize='small' />
-																</IconButton>
+																	<Tooltip title='Hecho'>
+																		<IconButton
+																			size='small'
+																			color='success'
+																			onClick={() =>
+																				handleMarkAsCompleted(reminder)
+																			}
+																		>
+																			<CheckIcon fontSize='small' />
+																		</IconButton>
+																	</Tooltip>
+																</Stack>
 															</Tooltip>
-															<Stack direction='row' spacing={1} mb={1}>
-																<Chip
-																	label={
-																		reminder.type === 'lead'
-																			? 'LEAD'
-																			: 'Personal'
-																	}
-																	color={
-																		reminder.type === 'lead'
-																			? 'secondary'
-																			: 'primary'
-																	}
-																	size='small'
-																	sx={{ fontWeight: 'bold' }}
-																/>
-															</Stack>
-															<Typography variant='body2'>
-																{reminder.title}
-															</Typography>
-															<Divider sx={{ my: 10 }} />
-															<Typography
-																variant='caption'
-																color='textSecondary'
-															>
-																📅 {reminder.description}
-															</Typography>
-															<Typography
-																variant='caption'
-																color='textSecondary'
-															>
-																{reminder.hora}
-															</Typography>
-															<Stack
-																direction='row'
-																spacing={1}
-																sx={{
-																	position: 'absolute',
-																	bottom: 1,
-																	right: 1,
-																}}
-															>
-																<Tooltip title='Editar recordatorio'>
-																	<IconButton
-																		size='small'
-																		color='primary'
-																		onClick={() => handleCardClick(reminder)}
-																	>
-																		<EditIcon fontSize='small' />
-																	</IconButton>
-																</Tooltip>
-																<Tooltip title='Hecho'>
-																	<IconButton
-																		size='small'
-																		color='success'
-																		onClick={() =>
-																			handleMarkAsCompleted(reminder)
-																		}
-																	>
-																		<CheckIcon fontSize='small' />
-																	</IconButton>
-																</Tooltip>
-															</Stack>
 														</Card>
 													</Fade>
 												)
