@@ -264,32 +264,46 @@ export const useReminders = () => {
 		return null;
 	};
 
-	const moveReminder = (reminderId, destinationId) => {
-		const sourceId = findReminderStatusById(reminderId);
-		if (!sourceId || sourceId === destinationId) return;
+	const moveReminder = (reminderId, targetColumnId) => {
+		const updatedColumns = { ...columns };
+		let movedItem;
 
-		const sourceColumn = [...columns[sourceId]];
-		const sourceIndex = sourceColumn.findIndex(
-			(item) => item.id === reminderId
-		);
+		// Encontrar y remover el recordatorio de su columna actual
+		Object.keys(updatedColumns).forEach((columnId) => {
+			const itemIndex = updatedColumns[columnId].findIndex(
+				(item) => item.id.toString() === reminderId.toString()
+			);
+			if (itemIndex !== -1) {
+				[movedItem] = updatedColumns[columnId].splice(itemIndex, 1);
+			}
+		});
 
-		if (sourceIndex === -1) return;
+		if (movedItem && targetColumnId === 'HOY') {
+			// Actualizar la fecha al día de hoy
+			const today = new Date();
+			const formattedDate = `${String(today.getDate()).padStart(
+				2,
+				'0'
+			)}/${String(today.getMonth() + 1).padStart(
+				2,
+				'0'
+			)}/${today.getFullYear()}`;
 
-		const [movedItem] = sourceColumn.splice(sourceIndex, 1);
+			// Mantener la hora original
+			const [_, originalTime] = movedItem.description.split(' - ');
 
-		// Guardar el item y su columna de origen
-		setTempRemovedItem(movedItem);
-		setSourceColumnId(sourceId);
+			// Actualizar la descripción con la nueva fecha pero manteniendo la hora
+			movedItem.description = `${formattedDate} - ${originalTime}`;
+		}
 
-		// Actualizar columnas
-		const updatedColumns = {
-			...columns,
-			[sourceId]: sourceColumn,
-		};
+		// Agregar el recordatorio a la columna destino
+		if (!updatedColumns[targetColumnId]) {
+			updatedColumns[targetColumnId] = [];
+		}
+		updatedColumns[targetColumnId].push(movedItem);
 
 		setColumns(updatedColumns);
 		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-		return movedItem;
 	};
 
 	const onDragEnd = (result) => {
@@ -524,7 +538,6 @@ export const useReminders = () => {
 		setSourceColumnId(null);
 	};
 
-	// Modificar handleSaveFromModal para limpiar los estados temporales
 	const handleSaveFromModal = (reminder) => {
 		// Convertir el formato de fecha de dd-MM-yyyy a dd/MM/yyyy
 		const formattedDate = reminder.date.replace(/-/g, '/');
@@ -532,8 +545,8 @@ export const useReminders = () => {
 		const newItem = {
 			id: reminder.id || Date.now(),
 			title: reminder.title,
-			description: `${formattedDate} - ${reminder.time}`, // Fecha - hora
-			type: reminder.type || 'personal',
+			description: `${formattedDate} - ${reminder.time}`,
+			type: 'personal', // Siempre personal para nuevos recordatorios
 		};
 
 		const updatedColumns = { ...columns };
@@ -545,19 +558,18 @@ export const useReminders = () => {
 				[];
 		});
 
-		// Asegurar que existe la columna POR VENCER
-		if (!updatedColumns['POR VENCER']) {
-			updatedColumns['POR VENCER'] = [];
+		// Agregar el recordatorio a la columna especificada
+		const targetColumn = reminder.columnId || 'POR VENCER';
+		if (!updatedColumns[targetColumn]) {
+			updatedColumns[targetColumn] = [];
 		}
-
-		// Colocar el recordatorio al inicio de POR VENCER
-		updatedColumns['POR VENCER'].unshift(newItem);
+		updatedColumns[targetColumn].unshift(newItem);
 
 		// Actualizar el estado y localStorage
 		setColumns(updatedColumns);
 		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
 
-		toast.success('✅ Recordatorio guardado en Por Vencer');
+		toast.success(`✅ Recordatorio guardado en ${targetColumn}`);
 	};
 
 	return {

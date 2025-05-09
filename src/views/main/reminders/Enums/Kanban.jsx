@@ -51,7 +51,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	const [selectedReminder, setSelectedReminder] = useState(null);
 
 	const handleOpenModal = (columnId, reminder = null) => {
-		setActiveColumn('POR VENCER');
+		setActiveColumn(columnId); // Cambiar esto para usar la columna correcta
 		if (reminder) {
 			setSelectedReminder({
 				...reminder,
@@ -371,6 +371,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 				onClose={handleCloseModal}
 				onSave={handleSaveReminderFromModal}
 				reminder={selectedReminder}
+				columnId={activeColumn} // Agregar esta línea
 			/>
 		</>
 	);
