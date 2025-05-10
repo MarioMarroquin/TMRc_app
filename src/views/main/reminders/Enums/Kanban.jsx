@@ -19,6 +19,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { CreateReminderModal } from '@views/main/reminders/Enums/CreateReminderModal.jsx';
+import { QuickReminderModal } from '@views/main/reminders/Enums/QuickReminderModal.jsx';
 import {
 	useReminders,
 	sortRemindersByDate,
@@ -43,25 +44,34 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		handleSaveFromModal,
 		restoreReminderToSource,
 		handleCancelModal,
-		saveReminderInOriginalColumn,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
 	const [activeColumn, setActiveColumn] = useState(null);
 	const kanbanContainerRef = useRef(null); // Referencia para el contenedor del Kanban
 	const [selectedReminder, setSelectedReminder] = useState(null);
+	const [quickModalOpen, setQuickModalOpen] = useState(false);
+	const [quickModalColumn, setQuickModalColumn] = useState(null);
 
 	const handleOpenModal = (columnId, reminder = null) => {
-		setActiveColumn(columnId);
+		setActiveColumn(columnId); // Establecemos la columna activa correctamente
 		if (reminder) {
 			setSelectedReminder({
 				...reminder,
-				originalColumn: columnId, // importante
+				originalColumn: columnId, // Columna original del recordatorio
 			});
 		} else {
 			setSelectedReminder(null);
 		}
 		setModalOpen(true);
+	};
+	const handleOpenQuickModal = (columnId) => {
+		setQuickModalColumn(columnId);
+		setQuickModalOpen(true);
+	};
+
+	const handleSaveQuickReminder = (columnId, newReminder) => {
+		addReminderToColumn(columnId, newReminder);
 	};
 
 	// const handleSaveReminder = (newReminder) => {
@@ -104,7 +114,8 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 					title: movedItem.title,
 					date,
 					time,
-					type: movedItem.type,
+					type: movedItem.type, // <--- Esto es lo importante
+					description: movedItem.description,
 				});
 			} else {
 				moveReminder(reminderId, targetColumnId);
@@ -113,12 +124,17 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	};
 
 	const handleSaveReminderFromModal = (newReminder) => {
-		const originalColumn = selectedReminder?.originalColumn || 'POR VENCER';
-
-		saveReminderInOriginalColumn(newReminder, originalColumn);
+		// Si el recordatorio fue movido a 'Por Vencer', lo guardamos en esa columna
+		if (activeColumn === 'POR VENCER') {
+			handleSaveFromModal(newReminder); // Se guarda en la columna 'POR VENCER'
+		} else {
+			// Si no está en 'Por Vencer', se guarda en su columna original sin mover
+			handleSaveFromModal(newReminder); // Se guarda en la columna original
+		}
 
 		setModalOpen(false);
 		setSelectedReminder(null);
+		setActiveColumn('POR VENCER');
 	};
 
 	const handleDragStart = (e, reminderId) => {
@@ -209,7 +225,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 										<Tooltip title='Agregar recordatorio'>
 											<IconButton
 												size='small'
-												onClick={() => handleOpenModal(columnId)}
+												onClick={() => handleOpenQuickModal(columnId)}
 												sx={{ color: 'white' }}
 											>
 												<AddIcon />
@@ -317,7 +333,16 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 																		sx={{ fontWeight: 'bold' }}
 																	/>
 																</Stack>
-																<Typography variant='body2'>
+																<Typography
+																	variant='caption'
+																	sx={{
+																		display: 'block',
+																		whiteSpace: 'nowrap',
+																		overflow: 'hidden',
+																		textOverflow: 'ellipsis',
+																		maxWidth: '100%', // Asegura que el texto no se expanda
+																	}}
+																>
 																	{reminder.title}
 																</Typography>
 																<Divider sx={{ my: 10 }} />
@@ -374,6 +399,13 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 				onSave={handleSaveReminderFromModal}
 				reminder={selectedReminder}
 				columnId={activeColumn} // Agregar esta línea
+			/>
+
+			<QuickReminderModal
+				open={quickModalOpen}
+				onClose={() => setQuickModalOpen(false)}
+				onSave={handleSaveQuickReminder}
+				columnId={quickModalColumn}
 			/>
 		</>
 	);

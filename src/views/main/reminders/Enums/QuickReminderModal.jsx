@@ -5,10 +5,10 @@ import {
 	Typography,
 	Button,
 	TextField,
-	MenuItem,
-	Select,
-	InputLabel,
 	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from '@mui/material';
 import { addDays, format } from 'date-fns';
 
@@ -24,67 +24,59 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
+export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
 	const today = new Date();
-	const [selectedDate, setSelectedDate] = useState(
-		reminder ? reminder.date : format(addDays(today, 1), 'yyyy-MM-dd')
-	);
-	const [selectedTime, setSelectedTime] = useState(
-		reminder ? reminder.time : ''
-	);
 
 	const availableDates = Array.from({ length: 8 }, (_, i) =>
-		format(addDays(today, i + 1), 'dd-MM-yyyy')
+		format(addDays(today, i + 1), 'dd/MM/yyyy')
 	);
 	const availableTimes = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
 
-	const [title, setTitle] = useState(reminder ? reminder.title : '');
-	const [description, setDescription] = useState(
-		reminder ? reminder.description : ''
-	);
-
-	useEffect(() => {
-		if (open && reminder) {
-			setSelectedDate(reminder.date);
-			setSelectedTime(reminder.time);
-			setTitle(reminder.title);
-			setDescription(reminder.description);
-		} else if (open && !reminder) {
-			// Limpia si es nuevo
-			const defaultDate = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-			setSelectedDate(defaultDate);
-			setSelectedTime('');
-			setTitle('');
-			setDescription('');
-		}
-	}, [open, reminder]);
+	const [title, setTitle] = useState('');
+	const [selectedDate, setSelectedDate] = useState(availableDates[0]);
+	const [selectedTime, setSelectedTime] = useState(availableTimes[0]);
 
 	const handleSave = () => {
+		if (!title.trim()) return;
+
 		const newReminder = {
-			id: reminder ? reminder.id : Date.now(),
+			id: Date.now(),
+			title,
+			description: `${selectedDate} - ${selectedTime}`,
 			date: selectedDate,
 			time: selectedTime,
-			title,
-			description,
-			// Este es el cambio importante:
-			type: reminder && reminder.type ? reminder.type : 'personal',
+			type: 'personal',
 		};
-		onSave(newReminder);
+
+		onSave(columnId, newReminder);
 		onClose();
+		// resetear campos
+		setTitle('');
+		setSelectedDate(availableDates[0]);
+		setSelectedTime(availableTimes[0]);
 	};
+
+	useEffect(() => {
+		if (open) {
+			setTitle('');
+			setSelectedDate(availableDates[0]);
+			setSelectedTime(availableTimes[0]);
+		}
+	}, [open]);
+
 	return (
 		<Modal open={open} onClose={onClose}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
-					{reminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
+					Nuevo Recordatorio Personal
 				</Typography>
 
 				<FormControl fullWidth sx={{ mb: 2 }}>
 					<InputLabel>Fecha</InputLabel>
 					<Select
 						value={selectedDate}
-						onChange={(e) => setSelectedDate(e.target.value)}
 						label='Fecha'
+						onChange={(e) => setSelectedDate(e.target.value)}
 					>
 						{availableDates.map((date) => (
 							<MenuItem key={date} value={date}>
@@ -98,8 +90,8 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					<InputLabel>Hora</InputLabel>
 					<Select
 						value={selectedTime}
-						onChange={(e) => setSelectedTime(e.target.value)}
 						label='Hora'
+						onChange={(e) => setSelectedTime(e.target.value)}
 					>
 						{availableTimes.map((time) => (
 							<MenuItem key={time} value={time}>
@@ -120,11 +112,11 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button onClick={onClose} variant='outlined'>
+					<Button variant='outlined' onClick={onClose}>
 						Cancelar
 					</Button>
-					<Button onClick={handleSave} variant='contained'>
-						{reminder ? 'Guardar' : 'Crear'}
+					<Button variant='contained' onClick={handleSave}>
+						Crear
 					</Button>
 				</Box>
 			</Box>

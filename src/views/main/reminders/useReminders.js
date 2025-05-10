@@ -546,7 +546,7 @@ export const useReminders = () => {
 			id: reminder.id || Date.now(),
 			title: reminder.title,
 			description: `${formattedDate} - ${reminder.time}`,
-			type: 'personal', // Siempre personal para nuevos recordatorios
+			type: reminder.type || 'personal', // <-- conservar si ya existe
 		};
 
 		const updatedColumns = { ...columns };
