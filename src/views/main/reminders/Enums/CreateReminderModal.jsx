@@ -27,14 +27,16 @@ const modalStyle = {
 export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 	const today = new Date();
 	const [selectedDate, setSelectedDate] = useState(
-		reminder ? reminder.date : format(addDays(today, 1), 'yyyy-MM-dd')
+		reminder ? reminder.date : format(addDays(today, 1), 'dd/MM/yyyy')
 	);
 	const [selectedTime, setSelectedTime] = useState(
 		reminder ? reminder.time : ''
 	);
 
-	const availableDates = Array.from({ length: 8 }, (_, i) =>
-		format(addDays(today, i + 1), 'dd-MM-yyyy')
+	const [availableDates, setAvailableDates] = useState(
+		Array.from({ length: 8 }, (_, i) =>
+			format(addDays(today, i + 1), 'dd/MM/yyyy')
+		)
 	);
 	const availableTimes = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
 
@@ -44,20 +46,27 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 	);
 
 	useEffect(() => {
-		if (open && reminder) {
-			setSelectedDate(reminder.date);
-			setSelectedTime(reminder.time);
-			setTitle(reminder.title);
-			setDescription(reminder.description);
-		} else if (open && !reminder) {
-			// Limpia si es nuevo
-			const defaultDate = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-			setSelectedDate(defaultDate);
-			setSelectedTime('');
-			setTitle('');
-			setDescription('');
+		if (reminder) {
+			// Aquí estamos obteniendo la fecha de la card y poniéndola en el formato adecuado
+			const [parsedDate, parsedTime] = reminder.description?.split(' / ') || [];
+
+			// Si parsedDate existe y está en el formato correcto, la asignamos
+			if (parsedDate) {
+				const normalizedDate = parsedDate.replaceAll('-', '/'); // Aseguramos que esté en el formato 'dd/MM/yyyy'
+
+				// Verificamos si la fecha es válida dentro de las fechas disponibles
+				const matchedDate = availableDates.includes(normalizedDate)
+					? normalizedDate
+					: availableDates[0];
+
+				setSelectedDate(matchedDate); // Seteamos la fecha en el estado
+			}
+			setSelectedTime(parsedTime || ''); // Aseguramos que se setee la hora también
+
+			setTitle(reminder.title || '');
+			setDescription(reminder.description || '');
 		}
-	}, [open, reminder]);
+	}, [reminder, availableDates]);
 
 	const handleSave = () => {
 		const newReminder = {
@@ -65,7 +74,7 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 			date: selectedDate,
 			time: selectedTime,
 			title,
-			description,
+			description: `${selectedDate.replaceAll('-', '/')} - ${selectedTime}`,
 			// Este es el cambio importante:
 			type: reminder && reminder.type ? reminder.type : 'personal',
 		};
@@ -79,7 +88,7 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					{reminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
 				</Typography>
 
-				<FormControl fullWidth sx={{ mb: 2 }}>
+				<FormControl fullWidth sx={{ mb: 16 }}>
 					<InputLabel>Fecha</InputLabel>
 					<Select
 						value={selectedDate}
@@ -94,7 +103,7 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					</Select>
 				</FormControl>
 
-				<FormControl fullWidth sx={{ mb: 2 }}>
+				<FormControl fullWidth sx={{ mb: 16 }}>
 					<InputLabel>Hora</InputLabel>
 					<Select
 						value={selectedTime}
@@ -116,7 +125,7 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					minRows={3} // Ajusta este número si quieres más alto
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
-					sx={{ mb: 2 }}
+					sx={{ mb: 16 }}
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>

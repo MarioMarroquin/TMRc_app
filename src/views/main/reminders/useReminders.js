@@ -328,8 +328,11 @@ export const useReminders = () => {
 
 	const handleEditClick = (item, fecha) => {
 		console.log('EDITAR:', item, fecha);
-		setItemToEdit({ ...item, FECHA: fecha });
-		setOpenEditDialog(true);
+		setItemToEdit({
+			...item,
+			FECHA: fecha, // Aquí le asignamos la fecha que viene desde la tarjeta.
+		});
+		setOpenEditDialog(true); // Abre el modal de edición
 	};
 
 	// Función para cerrar el diálogo sin guardar
@@ -342,12 +345,18 @@ export const useReminders = () => {
 	const handleSaveEdit = () => {
 		if (!itemToEdit) return;
 
+		// Actualiza la fecha correctamente
 		const updatedListData = listData.map((group) =>
 			group.FECHA === itemToEdit.FECHA
 				? {
 						...group,
 						LIST: group.LIST.map((task) =>
-							task.id === itemToEdit.id ? itemToEdit : task
+							task.id === itemToEdit.id
+								? {
+										...task,
+										description: `${itemToEdit.FECHA} - ${itemToEdit.HORA}`,
+								  } // Aquí se asegura que la fecha y la hora se actualicen correctamente.
+								: task
 						),
 				  }
 				: group

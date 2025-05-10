@@ -282,12 +282,12 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 																handleDragStart(e, reminder.id)
 															}
 															onDragEnd={handleDragEnd}
-															onClick={() =>
+															onDoubleClick={() =>
 																handleOpenModal(columnId, reminder)
 															}
 														>
 															<Tooltip
-																title='Haz click para editar o manten presionado para arrastrar'
+																title='Haz double click para editar o manten presionado para arrastrar'
 																arrow
 															>
 																<Tooltip title='Eliminar'>

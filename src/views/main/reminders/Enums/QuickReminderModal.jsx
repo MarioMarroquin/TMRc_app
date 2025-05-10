@@ -71,7 +71,7 @@ export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
 					Nuevo Recordatorio Personal
 				</Typography>
 
-				<FormControl fullWidth sx={{ mb: 2 }}>
+				<FormControl fullWidth sx={{ mb: 16 }}>
 					<InputLabel>Fecha</InputLabel>
 					<Select
 						value={selectedDate}
@@ -86,7 +86,7 @@ export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
 					</Select>
 				</FormControl>
 
-				<FormControl fullWidth sx={{ mb: 2 }}>
+				<FormControl fullWidth sx={{ mb: 16 }}>
 					<InputLabel>Hora</InputLabel>
 					<Select
 						value={selectedTime}
@@ -108,7 +108,7 @@ export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
 					minRows={3} // Ajusta este número si quieres más alto
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
-					sx={{ mb: 2 }}
+					sx={{ mb: 16 }}
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>
