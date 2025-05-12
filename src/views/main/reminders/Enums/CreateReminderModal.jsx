@@ -27,10 +27,14 @@ const modalStyle = {
 export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 	const today = new Date();
 	const [selectedDate, setSelectedDate] = useState(
-		reminder ? reminder.date : format(addDays(today, 1), 'dd/MM/yyyy')
+		reminder ? reminder.date : ''
 	);
 	const [selectedTime, setSelectedTime] = useState(
 		reminder ? reminder.time : ''
+	);
+	const [title, setTitle] = useState(reminder ? reminder.title : '');
+	const [description, setDescription] = useState(
+		reminder ? reminder.description : ''
 	);
 
 	const [availableDates, setAvailableDates] = useState(
@@ -39,11 +43,6 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 		)
 	);
 	const availableTimes = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
-
-	const [title, setTitle] = useState(reminder ? reminder.title : '');
-	const [description, setDescription] = useState(
-		reminder ? reminder.description : ''
-	);
 
 	useEffect(() => {
 		if (reminder) {
@@ -65,6 +64,12 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 
 			setTitle(reminder.title || '');
 			setDescription(reminder.description || '');
+		} else {
+			// Si no hay un recordatorio, los campos deben estar vacíos o con valores por defecto
+			setSelectedDate(''); // Deja la fecha vacía (o puedes poner la fecha por defecto si prefieres)
+			setSelectedTime(''); // Deja la hora vacía
+			setTitle(''); // Título vacío
+			setDescription(''); // Descripción vacía
 		}
 	}, [reminder, availableDates]);
 

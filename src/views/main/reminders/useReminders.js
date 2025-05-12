@@ -19,6 +19,22 @@ export const sortRemindersByDate = (reminders) => {
 	});
 };
 
+const extractDateFromDescription = (description) => {
+	if (!description) return new Date(0); // fecha muy antigua por defecto
+	const [dateStr] = description.split(' - ');
+	const [dd, mm, yyyy] = dateStr.split('/');
+	return new Date(`${yyyy}-${mm}-${dd}`);
+};
+
+const sortCardsByDate = (cards) => {
+	return [...cards].sort((a, b) => {
+		return (
+			extractDateFromDescription(b.description) -
+			extractDateFromDescription(a.description)
+		);
+	});
+};
+
 export const useReminders = () => {
 	const [openDialog, setOpenDialog] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(null);
@@ -82,6 +98,7 @@ export const useReminders = () => {
 		localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
 	}, [deletedItems]);
 
+	// Esto se encuentra en tu hook 'useReminders' donde se gestiona el listado de recordatorios
 	useEffect(() => {
 		const currentData = reminderDataState[selectedView] || [];
 
@@ -102,7 +119,7 @@ export const useReminders = () => {
 			}))
 			.filter((group) => group.LIST.length > 0);
 
-		setListData(filteredData);
+		setListData(sortRemindersByDate(filteredData)); // Aplicamos el orden después de filtrar los datos
 
 		const kanbanColumns = formatReminderDataForKanban(
 			reminderDataState,
@@ -238,6 +255,10 @@ export const useReminders = () => {
 			});
 		});
 
+		Object.keys(columnsFormatted).forEach((key) => {
+			columnsFormatted[key] = sortCardsByDate(columnsFormatted[key]);
+		});
+
 		return columnsFormatted;
 	};
 
@@ -301,6 +322,9 @@ export const useReminders = () => {
 			updatedColumns[targetColumnId] = [];
 		}
 		updatedColumns[targetColumnId].push(movedItem);
+		updatedColumns[targetColumnId] = sortCardsByDate(
+			updatedColumns[targetColumnId]
+		);
 
 		setColumns(updatedColumns);
 		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
@@ -343,27 +367,22 @@ export const useReminders = () => {
 
 	// Función para guardar los cambios
 	const handleSaveEdit = () => {
-		if (!itemToEdit) return;
+		if (!itemToEdit || !itemToEdit.id) return;
 
-		// Actualiza la fecha correctamente
-		const updatedListData = listData.map((group) =>
-			group.FECHA === itemToEdit.FECHA
-				? {
-						...group,
-						LIST: group.LIST.map((task) =>
-							task.id === itemToEdit.id
-								? {
-										...task,
-										description: `${itemToEdit.FECHA} - ${itemToEdit.HORA}`,
-								  } // Aquí se asegura que la fecha y la hora se actualicen correctamente.
-								: task
-						),
-				  }
-				: group
-		);
+		const updatedList = listData.map((group) => {
+			if (group.FECHA === itemToEdit.FECHA) {
+				const updatedItems = group.LIST.map((item) =>
+					item.id === itemToEdit.id ? itemToEdit : item
+				);
+				return { ...group, LIST: updatedItems };
+			}
+			return group;
+		});
 
-		setListData(updatedListData);
+		setListData([...updatedList]); // <-- Esto es lo importante
+
 		setOpenEditDialog(false);
+		setItemToEdit(null);
 		toast.success('📝 Recordatorio actualizado');
 	};
 	const handleDeleteAll = () => {
@@ -467,7 +486,7 @@ export const useReminders = () => {
 		setColumns((prev) => {
 			const updated = {
 				...prev,
-				[columnId]: [...prev[columnId], reminder],
+				[columnId]: sortCardsByDate([...prev[columnId], reminder]),
 			};
 			localStorage.setItem('reminders', JSON.stringify(updated));
 			return updated;
@@ -573,6 +592,9 @@ export const useReminders = () => {
 			updatedColumns[targetColumn] = [];
 		}
 		updatedColumns[targetColumn].unshift(newItem);
+		updatedColumns[targetColumn] = sortCardsByDate(
+			updatedColumns[targetColumn]
+		);
 
 		// Actualizar el estado y localStorage
 		setColumns(updatedColumns);

@@ -44,6 +44,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		handleSaveFromModal,
 		restoreReminderToSource,
 		handleCancelModal,
+		itemToEdit,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -61,10 +62,11 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 				originalColumn: columnId, // Columna original del recordatorio
 			});
 		} else {
-			setSelectedReminder(null);
+			setSelectedReminder(null); // Asegúrate de pasar null para limpiar los campos
 		}
 		setModalOpen(true);
 	};
+
 	const handleOpenQuickModal = (columnId) => {
 		setQuickModalColumn(columnId);
 		setQuickModalOpen(true);
@@ -406,6 +408,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 				onClose={() => setQuickModalOpen(false)}
 				onSave={handleSaveQuickReminder}
 				columnId={quickModalColumn}
+				reminder={itemToEdit}
 			/>
 		</>
 	);

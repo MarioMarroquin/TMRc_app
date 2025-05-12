@@ -24,7 +24,13 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
+export const QuickReminderModal = ({
+	open,
+	onClose,
+	onSave,
+	columnId,
+	reminder,
+}) => {
 	const today = new Date();
 
 	const availableDates = Array.from({ length: 8 }, (_, i) =>
@@ -35,12 +41,15 @@ export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
 	const [title, setTitle] = useState('');
 	const [selectedDate, setSelectedDate] = useState(availableDates[0]);
 	const [selectedTime, setSelectedTime] = useState(availableTimes[0]);
+	const [description, setDescription] = useState(
+		reminder ? reminder.description : ''
+	);
 
 	const handleSave = () => {
 		if (!title.trim()) return;
 
 		const newReminder = {
-			id: Date.now(),
+			id: reminder?.id || Date.now(),
 			title,
 			description: `${selectedDate} - ${selectedTime}`,
 			date: selectedDate,
@@ -58,11 +67,22 @@ export const QuickReminderModal = ({ open, onClose, onSave, columnId }) => {
 
 	useEffect(() => {
 		if (open) {
-			setTitle('');
-			setSelectedDate(availableDates[0]);
-			setSelectedTime(availableTimes[0]);
+			// Si el modal se abre, pero no se pasa un recordatorio, los campos deben estar vacíos
+			if (!reminder) {
+				setTitle(''); // Mantener título vacío
+				setSelectedDate(availableDates[0]); // Fecha por defecto
+				setSelectedTime(availableTimes[0]); // Hora por defecto
+			} else {
+				// Si el recordatorio existe, se cargan los datos
+				setTitle(reminder.title || '');
+				if (reminder.description) {
+					const [datePart, timePart] = reminder.description.split(' - ');
+					setSelectedDate(datePart || availableDates[0]);
+					setSelectedTime(timePart || availableTimes[0]);
+				}
+			}
 		}
-	}, [open]);
+	}, [open, reminder]);
 
 	return (
 		<Modal open={open} onClose={onClose}>
