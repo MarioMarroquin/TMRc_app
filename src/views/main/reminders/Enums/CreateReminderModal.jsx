@@ -79,9 +79,8 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 			date: selectedDate,
 			time: selectedTime,
 			title,
-			description: `${selectedDate.replaceAll('-', '/')} - ${selectedTime}`,
-			// Este es el cambio importante:
-			type: reminder && reminder.type ? reminder.type : 'personal',
+			type: reminder?.type ?? 'personal',
+			columnId: reminder?.columnId, // ← Asegúrate de mantenerlo
 		};
 		onSave(newReminder);
 		onClose();

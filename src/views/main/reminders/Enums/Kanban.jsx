@@ -59,7 +59,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		if (reminder) {
 			setSelectedReminder({
 				...reminder,
-				originalColumn: columnId, // Columna original del recordatorio
+				columnId,
 			});
 		} else {
 			setSelectedReminder(null); // Asegúrate de pasar null para limpiar los campos
@@ -133,7 +133,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 			// Si no está en 'Por Vencer', se guarda en su columna original sin mover
 			handleSaveFromModal(newReminder); // Se guarda en la columna original
 		}
-
+		console.log('datos: ', newReminder);
 		setModalOpen(false);
 		setSelectedReminder(null);
 		setActiveColumn('POR VENCER');

@@ -350,13 +350,13 @@ export const useReminders = () => {
 		);
 	};
 
-	const handleEditClick = (item, fecha) => {
-		console.log('EDITAR:', item, fecha);
+	const handleEditClick = (item, fecha, columnId) => {
 		setItemToEdit({
 			...item,
-			FECHA: fecha, // Aquí le asignamos la fecha que viene desde la tarjeta.
+			FECHA: fecha,
+			columnId: columnId, // Asegúrate de pasar la columna
 		});
-		setOpenEditDialog(true); // Abre el modal de edición
+		setOpenEditDialog(true);
 	};
 
 	// Función para cerrar el diálogo sin guardar
@@ -379,11 +379,32 @@ export const useReminders = () => {
 			return group;
 		});
 
-		setListData([...updatedList]); // <-- Esto es lo importante
+		setListData(updatedList);
 
-		setOpenEditDialog(false);
-		setItemToEdit(null);
-		toast.success('📝 Recordatorio actualizado');
+		// Aquí, en lugar de usar una propiedad fija, usa itemToEdit.columnId
+		const targetColumn = itemToEdit.columnId || 'POR VENCER';
+
+		// Quitar el recordatorio de todas las columnas
+		const updatedColumns = { ...columns };
+		Object.keys(updatedColumns).forEach((colId) => {
+			updatedColumns[colId] = updatedColumns[colId].filter(
+				(item) => item.id !== itemToEdit.id
+			);
+		});
+
+		// Insertar en la misma columna original
+		if (!updatedColumns[targetColumn]) {
+			updatedColumns[targetColumn] = [];
+		}
+		updatedColumns[targetColumn].push(itemToEdit); // No usar unshift si quieres mantener el orden
+		updatedColumns[targetColumn] = sortCardsByDate(
+			updatedColumns[targetColumn]
+		);
+
+		setColumns(updatedColumns);
+		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+
+		toast.success(`✅ Recordatorio actualizado en ${targetColumn}`);
 	};
 	const handleDeleteAll = () => {
 		// Eliminamos todos los items que están en la sección "Listo" (es decir, en completedList)
@@ -567,39 +588,38 @@ export const useReminders = () => {
 	};
 
 	const handleSaveFromModal = (reminder) => {
-		// Convertir el formato de fecha de dd-MM-yyyy a dd/MM/yyyy
 		const formattedDate = reminder.date.replace(/-/g, '/');
 
 		const newItem = {
 			id: reminder.id || Date.now(),
 			title: reminder.title,
 			description: `${formattedDate} - ${reminder.time}`,
-			type: reminder.type || 'personal', // <-- conservar si ya existe
+			type: reminder.type || 'personal',
 		};
 
 		const updatedColumns = { ...columns };
 
-		// Limpiar el recordatorio de todas las columnas para evitar duplicados
+		// Quitar el reminder de todas las columnas (para evitar duplicados)
 		Object.keys(updatedColumns).forEach((columnId) => {
-			updatedColumns[columnId] =
-				updatedColumns[columnId]?.filter((item) => item.id !== newItem.id) ||
-				[];
+			updatedColumns[columnId] = updatedColumns[columnId].filter(
+				(item) => item.id !== newItem.id
+			);
 		});
 
-		// Agregar el recordatorio a la columna especificada
-		const targetColumn = reminder.columnId || 'POR VENCER';
+		const currentColumn = reminder.columnId;
+		const targetColumn = currentColumn || 'POR VENCER'; // Usa columna actual si existe
+
 		if (!updatedColumns[targetColumn]) {
 			updatedColumns[targetColumn] = [];
 		}
+
 		updatedColumns[targetColumn].unshift(newItem);
 		updatedColumns[targetColumn] = sortCardsByDate(
 			updatedColumns[targetColumn]
 		);
 
-		// Actualizar el estado y localStorage
 		setColumns(updatedColumns);
 		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-
 		toast.success(`✅ Recordatorio guardado en ${targetColumn}`);
 	};
 
