@@ -6,10 +6,13 @@ import {
 	Settings,
 	SettingsPhone,
 } from '@mui/icons-material';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+
 import { lazy } from 'react';
 import { Typography } from '@mui/material';
 import Reminders from '@views/main/reminders';
 import {
+	SCOPES_GENERAL as Scopes_REQUEST,
 	SCOPES_GENERAL,
 	SCOPES_REMINDERS,
 	SCOPES_REQUEST,
@@ -20,6 +23,8 @@ const LeadDetail = lazy(() => import('./views/main/leads/subviews/leadDetail'));
 const Maintenance = lazy(() => import('./views/main/maintenance'));
 const Users = lazy(() => import('./views/main/maintenance/users'));
 const Clients = lazy(() => import('./views/main/maintenance/clients'));
+const Companies = lazy(() => import('./views/main/companies'));
+const Brand = lazy(() => import('./views/main/brand'));
 
 const mainRoutes = [
 	{
@@ -43,6 +48,24 @@ const mainRoutes = [
 		scopes: [SCOPES_GENERAL.total, SCOPES_REMINDERS.total],
 	},
 	{
+		element: <Companies />,
+		icon: <Business />,
+		index: true,
+		name: 'Compañias',
+		path: '/companies',
+		active: true,
+		scopes: [SCOPES_GENERAL.total],
+	},
+	{
+		element: <Brand />,
+		icon: <LocalOfferIcon />,
+		index: true,
+		name: 'Marca',
+		path: '/brand',
+		active: true,
+		scopes: [SCOPES_GENERAL.total],
+	},
+	{
 		routes: [
 			{
 				// children: [{ path: ':id', element: <LeadDetail /> }],
@@ -52,6 +75,15 @@ const mainRoutes = [
 				name: 'Usuarios',
 				path: '/management/users',
 				active: false,
+				scopes: [SCOPES_GENERAL.total],
+			},
+			{
+				element: <Clients />,
+				icon: <Person />,
+				index: true,
+				name: 'Clientes',
+				path: '/clients',
+				active: true,
 				scopes: [SCOPES_GENERAL.total],
 			},
 		],
@@ -80,7 +112,7 @@ const mainRoutes = [
 	// 	path: '/clients',
 	// 	icon: <Person />,
 	// 	element: <Clients />,
-	// 	children: [{ path: ':id', element: <ClientDetails /> }],
+	// 	children: [{ path: ':id', element: <ClientDetails /> }],z<s
 	// },
 ];
 

@@ -26,52 +26,30 @@ const modalStyle = {
 
 export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 	const today = new Date();
-	const [selectedDate, setSelectedDate] = useState(
-		reminder ? reminder.date : ''
-	);
-	const [selectedTime, setSelectedTime] = useState(
-		reminder ? reminder.time : ''
-	);
-	const [title, setTitle] = useState(reminder ? reminder.title : '');
-	const [description, setDescription] = useState(
-		reminder ? reminder.description : ''
-	);
-
-	const [availableDates, setAvailableDates] = useState(
-		Array.from({ length: 8 }, (_, i) =>
-			format(addDays(today, i + 1), 'dd/MM/yyyy')
-		)
+	const availableDates = Array.from({ length: 8 }, (_, i) =>
+		format(addDays(today, i + 1), 'dd/MM/yyyy')
 	);
 	const availableTimes = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
 
+	const [selectedDate, setSelectedDate] = useState('');
+	const [selectedTime, setSelectedTime] = useState('');
+	const [title, setTitle] = useState('');
+	const [description, setDescription] = useState('');
+
 	useEffect(() => {
 		if (reminder) {
-			// Aquí estamos obteniendo la fecha de la card y poniéndola en el formato adecuado
-			const [parsedDate, parsedTime] = reminder.description?.split(' / ') || [];
-
-			// Si parsedDate existe y está en el formato correcto, la asignamos
-			if (parsedDate) {
-				const normalizedDate = parsedDate.replaceAll('-', '/'); // Aseguramos que esté en el formato 'dd/MM/yyyy'
-
-				// Verificamos si la fecha es válida dentro de las fechas disponibles
-				const matchedDate = availableDates.includes(normalizedDate)
-					? normalizedDate
-					: availableDates[0];
-
-				setSelectedDate(matchedDate); // Seteamos la fecha en el estado
-			}
-			setSelectedTime(parsedTime || ''); // Aseguramos que se setee la hora también
-
 			setTitle(reminder.title || '');
+			setSelectedDate(reminder.date || '');
+			setSelectedTime(reminder.time || '');
 			setDescription(reminder.description || '');
 		} else {
-			// Si no hay un recordatorio, los campos deben estar vacíos o con valores por defecto
-			setSelectedDate(''); // Deja la fecha vacía (o puedes poner la fecha por defecto si prefieres)
-			setSelectedTime(''); // Deja la hora vacía
-			setTitle(''); // Título vacío
-			setDescription(''); // Descripción vacía
+			// Limpiar campos si no hay recordatorio
+			setTitle('');
+			setSelectedDate('');
+			setSelectedTime('');
+			setDescription('');
 		}
-	}, [reminder, availableDates]);
+	}, [reminder, open]);
 
 	const handleSave = () => {
 		const newReminder = {
@@ -79,25 +57,35 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 			date: selectedDate,
 			time: selectedTime,
 			title,
+			description: `${selectedDate} - ${selectedTime}`,
 			type: reminder?.type ?? 'personal',
-			columnId: reminder?.columnId, // ← Asegúrate de mantenerlo
+			columnId: reminder?.columnId,
 		};
 		onSave(newReminder);
+		handleClose();
+	};
+
+	const handleClose = () => {
+		setTitle('');
+		setSelectedDate('');
+		setSelectedTime('');
+		setDescription('');
 		onClose();
 	};
+
 	return (
-		<Modal open={open} onClose={onClose}>
+		<Modal open={open} onClose={handleClose}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
 					{reminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
 				</Typography>
 
-				<FormControl fullWidth sx={{ mb: 16 }}>
+				<FormControl fullWidth sx={{ mb: 2 }}>
 					<InputLabel>Fecha</InputLabel>
 					<Select
 						value={selectedDate}
-						onChange={(e) => setSelectedDate(e.target.value)}
 						label='Fecha'
+						onChange={(e) => setSelectedDate(e.target.value)}
 					>
 						{availableDates.map((date) => (
 							<MenuItem key={date} value={date}>
@@ -107,12 +95,12 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					</Select>
 				</FormControl>
 
-				<FormControl fullWidth sx={{ mb: 16 }}>
+				<FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
 					<InputLabel>Hora</InputLabel>
 					<Select
 						value={selectedTime}
-						onChange={(e) => setSelectedTime(e.target.value)}
 						label='Hora'
+						onChange={(e) => setSelectedTime(e.target.value)}
 					>
 						{availableTimes.map((time) => (
 							<MenuItem key={time} value={time}>
@@ -126,14 +114,14 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					label='Nota'
 					fullWidth
 					multiline
-					minRows={3} // Ajusta este número si quieres más alto
+					minRows={3}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
-					sx={{ mb: 16 }}
+					sx={{ mb: 2, mt: 2 }}
 				/>
 
-				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button onClick={onClose} variant='outlined'>
+				<Box display='flex' justifyContent='flex-end' gap={1} mt={2}>
+					<Button onClick={handleClose} variant='outlined'>
 						Cancelar
 					</Button>
 					<Button onClick={handleSave} variant='contained'>

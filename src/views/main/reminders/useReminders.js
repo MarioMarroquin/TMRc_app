@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
 import { GET_LEAD_REMINDERS } from './queryLeadReminders';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
@@ -57,6 +57,11 @@ export const useReminders = () => {
 		return storedData ? JSON.parse(storedData) : reminderData;
 	});
 
+	const [showList, setShowList] = useState(() => {
+		const saved = localStorage.getItem('showList');
+		return saved ? JSON.parse(saved) : false;
+	});
+
 	const handleOpenDeleteAllDialog = () => {
 		setOpenDeleteAllDialog(true);
 	};
@@ -75,17 +80,34 @@ export const useReminders = () => {
 	}, [completedList]);
 
 	const [selectedView, setSelectedView] = useState(() => {
-		const saved = localStorage.getItem('selectedView');
-		return saved;
+		return localStorage.getItem('selectedView') || 'hoy';
 	});
 
 	useEffect(() => {
 		localStorage.setItem('selectedView', selectedView);
 	}, [selectedView]);
 
+	useEffect(() => {
+		localStorage.setItem('showList', JSON.stringify(showList));
+	}, [showList]);
+
 	const currentData = reminderDataState[selectedView] || [];
-	const [listData, setListData] = useState(currentData);
-	const [columns, setColumns] = useState({});
+	const [listData, setListData] = useState(() => {
+		const saved = localStorage.getItem('listData');
+		return saved ? JSON.parse(saved) : [];
+	});
+
+	const [columns, setColumns] = useState(() => {
+		const saved = localStorage.getItem('kanbanColumns');
+		return saved
+			? JSON.parse(saved)
+			: {
+					VENCIDO: [],
+					HOY: [],
+					'POR VENCER': [],
+			  };
+	});
+
 	const [openEditDialog, setOpenEditDialog] = useState(false);
 	const [itemToEdit, setItemToEdit] = useState(null);
 
@@ -93,6 +115,34 @@ export const useReminders = () => {
 		const stored = localStorage.getItem('deletedItems');
 		return stored ? JSON.parse(stored) : [];
 	});
+
+	useEffect(() => {
+		if (Object.keys(columns).length > 0) {
+			try {
+				localStorage.setItem('kanbanColumns', JSON.stringify(columns));
+				console.log('Estado persistido:', columns);
+			} catch (error) {
+				console.error('Error al persistir estado:', error);
+			}
+		}
+	}, [columns]);
+
+	useEffect(() => {
+		const loadInitialState = () => {
+			try {
+				const savedColumns = localStorage.getItem('kanbanColumns');
+				if (savedColumns) {
+					const parsedColumns = JSON.parse(savedColumns);
+					setColumns(parsedColumns);
+					console.log('Columnas cargadas:', parsedColumns);
+				}
+			} catch (error) {
+				console.error('Error cargando estado inicial:', error);
+			}
+		};
+
+		loadInitialState();
+	}, []);
 
 	useEffect(() => {
 		localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
@@ -276,6 +326,64 @@ export const useReminders = () => {
 		localStorage.setItem('reminders', JSON.stringify(data));
 	}, []);
 
+	const saveStateToLocalStorage = (data) => {
+		try {
+			Object.entries(data).forEach(([key, value]) => {
+				localStorage.setItem(key, JSON.stringify(value));
+			});
+			console.log('Todo el estado guardado correctamente');
+		} catch (error) {
+			console.error('Error guardando en localStorage:', error);
+		}
+	};
+
+	const loadStateFromLocalStorage = () => {
+		try {
+			const columns = JSON.parse(localStorage.getItem('kanbanColumns')) || {
+				VENCIDO: [],
+				HOY: [],
+				'POR VENCER': [],
+			};
+			const completedList =
+				JSON.parse(localStorage.getItem('completedList')) || [];
+			const listData = JSON.parse(localStorage.getItem('listData')) || [];
+			const deletedItems =
+				JSON.parse(localStorage.getItem('deletedItems')) || [];
+
+			return {
+				columns,
+				completedList,
+				listData,
+				deletedItems,
+			};
+		} catch (error) {
+			console.error('Error al cargar datos:', error);
+			return {
+				columns: { VENCIDO: [], HOY: [], 'POR VENCER': [] },
+				completedList: [],
+				listData: [],
+				deletedItems: [],
+			};
+		}
+	};
+
+	useEffect(() => {
+		const savedState = loadStateFromLocalStorage();
+		setColumns(savedState.columns);
+		setCompletedList(savedState.completedList);
+		setListData(savedState.listData);
+		setDeletedItems(savedState.deletedItems);
+	}, []);
+
+	useEffect(() => {
+		saveStateToLocalStorage({
+			columns,
+			completedList,
+			listData,
+			deletedItems,
+		});
+	}, [columns, completedList, listData, deletedItems]);
+
 	const findReminderStatusById = (id) => {
 		for (const [status, list] of Object.entries(columns)) {
 			if (list.find((item) => item.id === id)) {
@@ -289,46 +397,57 @@ export const useReminders = () => {
 		const updatedColumns = { ...columns };
 		let movedItem;
 
-		// Encontrar y remover el recordatorio de su columna actual
+		// Encontrar y remover el recordatorio
 		Object.keys(updatedColumns).forEach((columnId) => {
-			const itemIndex = updatedColumns[columnId].findIndex(
-				(item) => item.id.toString() === reminderId.toString()
+			const columnItems = updatedColumns[columnId];
+			const itemIndex = columnItems.findIndex(
+				(item) => item.id.toString() === reminderId
 			);
+
 			if (itemIndex !== -1) {
-				[movedItem] = updatedColumns[columnId].splice(itemIndex, 1);
+				movedItem = columnItems[itemIndex];
+				updatedColumns[columnId] = columnItems.filter(
+					(_, index) => index !== itemIndex
+				);
 			}
 		});
 
-		if (movedItem && targetColumnId === 'HOY') {
-			// Actualizar la fecha al día de hoy
-			const today = new Date();
-			const formattedDate = `${String(today.getDate()).padStart(
-				2,
-				'0'
-			)}/${String(today.getMonth() + 1).padStart(
-				2,
-				'0'
-			)}/${today.getFullYear()}`;
-
-			// Mantener la hora original
-			const [_, originalTime] = movedItem.description.split(' - ');
-
-			// Actualizar la descripción con la nueva fecha pero manteniendo la hora
-			movedItem.description = `${formattedDate} - ${originalTime}`;
+		if (movedItem && targetColumnId) {
+			updatedColumns[targetColumnId] = [
+				...updatedColumns[targetColumnId],
+				movedItem,
+			];
+			setColumns(updatedColumns);
+			localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
 		}
-
-		// Agregar el recordatorio a la columna destino
-		if (!updatedColumns[targetColumnId]) {
-			updatedColumns[targetColumnId] = [];
-		}
-		updatedColumns[targetColumnId].push(movedItem);
-		updatedColumns[targetColumnId] = sortCardsByDate(
-			updatedColumns[targetColumnId]
-		);
-
-		setColumns(updatedColumns);
-		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
 	};
+
+	const checkLocalStorage = () => {
+		const saved = localStorage.getItem('kanbanColumns');
+		console.log(
+			'Estado actual en localStorage:',
+			saved ? JSON.parse(saved) : 'vacío'
+		);
+	};
+
+	useEffect(() => {
+		checkLocalStorage();
+
+		// Escuchar cambios en localStorage
+		const handleStorageChange = (e) => {
+			if (e.key === 'kanbanColumns') {
+				console.log('localStorage actualizado externamente');
+				checkLocalStorage();
+			}
+		};
+
+		window.addEventListener('storage', handleStorageChange);
+		return () => window.removeEventListener('storage', handleStorageChange);
+	}, []);
+
+	useEffect(() => {
+		console.log('Columns actualizadas:', columns);
+	}, [columns]);
 
 	const onDragEnd = (result) => {
 		const { source, destination } = result;
@@ -367,19 +486,17 @@ export const useReminders = () => {
 
 	// Función para guardar los cambios
 	const handleSaveEdit = () => {
-		if (!itemToEdit || !itemToEdit.id) return;
+		if (!itemToEdit) return;
 
-		const updatedList = listData.map((group) => {
-			if (group.FECHA === itemToEdit.FECHA) {
-				const updatedItems = group.LIST.map((item) =>
-					item.id === itemToEdit.id ? itemToEdit : item
-				);
-				return { ...group, LIST: updatedItems };
-			}
-			return group;
-		});
+		const updatedListData = listData.map((group) => ({
+			...group,
+			LIST: group.LIST.map((item) =>
+				item.id === itemToEdit.id ? itemToEdit : item
+			),
+		}));
 
-		setListData(updatedList);
+		setListData(updatedListData);
+		localStorage.setItem('listData', JSON.stringify(updatedListData));
 
 		// Aquí, en lugar de usar una propiedad fija, usa itemToEdit.columnId
 		const targetColumn = itemToEdit.columnId || 'POR VENCER';
@@ -403,9 +520,12 @@ export const useReminders = () => {
 
 		setColumns(updatedColumns);
 		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+		setOpenEditDialog(false);
+		setItemToEdit(null);
 
-		toast.success(`✅ Recordatorio actualizado en ${targetColumn}`);
+		toast.success('✔️ Recordatorio actualizado');
 	};
+
 	const handleDeleteAll = () => {
 		// Eliminamos todos los items que están en la sección "Listo" (es decir, en completedList)
 		const toDeleteIds = completedList.map((item) => item.id);
@@ -485,20 +605,21 @@ export const useReminders = () => {
 	};
 
 	const handleDragStart = (e, reminderId, columnId) => {
+		console.log('Iniciando drag:', reminderId, 'desde columna:', columnId);
 		e.dataTransfer.setData('reminderId', reminderId);
-		e.target.style.transform = 'scale(1.05)'; // Aumenta ligeramente el tamaño de la tarjeta
-		e.target.style.transition = 'transform 0.2s ease'; // Añade una transición suave
+		e.dataTransfer.setData('sourceColumnId', columnId);
 	};
 
 	const handleDragEnd = (e) => {
 		e.target.style.transform = '';
 	};
 
-	const handleDrop = (event, targetColumnId) => {
-		const reminderId = event.dataTransfer.getData('reminderId');
-		const sourceColumn = event.dataTransfer.getData('sourceColumn');
+	const handleDrop = (e, targetColumnId) => {
+		e.preventDefault();
+		const reminderId = e.dataTransfer.getData('reminderId');
+		console.log('Drop detectado:', reminderId, 'en columna:', targetColumnId);
 
-		if (sourceColumn !== targetColumnId) {
+		if (reminderId) {
 			moveReminder(reminderId, targetColumnId);
 		}
 	};
@@ -509,7 +630,7 @@ export const useReminders = () => {
 				...prev,
 				[columnId]: sortCardsByDate([...prev[columnId], reminder]),
 			};
-			localStorage.setItem('reminders', JSON.stringify(updated));
+			localStorage.setItem('kanbanColumns', JSON.stringify(updated));
 			return updated;
 		});
 	};

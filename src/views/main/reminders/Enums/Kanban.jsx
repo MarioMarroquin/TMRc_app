@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
 	Box,
 	Card,
@@ -45,6 +45,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		restoreReminderToSource,
 		handleCancelModal,
 		itemToEdit,
+		setColumns,
 	} = useReminders();
 
 	const [modalOpen, setModalOpen] = useState(false);
@@ -54,15 +55,39 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 	const [quickModalOpen, setQuickModalOpen] = useState(false);
 	const [quickModalColumn, setQuickModalColumn] = useState(null);
 
-	const handleOpenModal = (columnId, reminder = null) => {
-		setActiveColumn(columnId); // Establecemos la columna activa correctamente
+	useEffect(() => {
+		// Cargar estado del Kanban al montar
+		const savedColumns = localStorage.getItem('kanbanColumns');
+		if (savedColumns) {
+			try {
+				const parsed = JSON.parse(savedColumns);
+				setColumns(parsed);
+			} catch (error) {
+				console.error('Error al cargar estado del Kanban:', error);
+			}
+		}
+	}, []);
+
+	// Nuevo efecto para persistir cambios
+	useEffect(() => {
+		if (Object.keys(columns).length > 0) {
+			localStorage.setItem('kanbanColumns', JSON.stringify(columns));
+		}
+	}, [columns]);
+
+	const handleOpenModal = (columnId, reminder) => {
+		setActiveColumn(columnId);
 		if (reminder) {
+			// Extraer la fecha y hora de la descripción
+			const [date, time] = reminder.description?.split(' - ') || ['', ''];
 			setSelectedReminder({
 				...reminder,
 				columnId,
+				date,
+				time, // Aseguramos que la hora se incluya
 			});
 		} else {
-			setSelectedReminder(null); // Asegúrate de pasar null para limpiar los campos
+			setSelectedReminder(null);
 		}
 		setModalOpen(true);
 	};
@@ -72,8 +97,14 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		setQuickModalOpen(true);
 	};
 
+	const handleCloseQuickModal = () => {
+		setQuickModalOpen(false);
+		setQuickModalColumn(null);
+	};
+
 	const handleSaveQuickReminder = (columnId, newReminder) => {
 		addReminderToColumn(columnId, newReminder);
+		handleCloseQuickModal();
 	};
 
 	// const handleSaveReminder = (newReminder) => {
@@ -97,6 +128,8 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		const reminderId = e.dataTransfer.getData('reminderId');
 
 		if (reminderId) {
+			console.log('Iniciando drop de:', reminderId, 'a:', targetColumnId);
+
 			// Encontrar el recordatorio en cualquier columna
 			let movedItem;
 			Object.keys(columns).forEach((columnId) => {
@@ -116,11 +149,12 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 					title: movedItem.title,
 					date,
 					time,
-					type: movedItem.type, // <--- Esto es lo importante
+					type: movedItem.type,
 					description: movedItem.description,
 				});
 			} else {
 				moveReminder(reminderId, targetColumnId);
+				console.log('Movimiento completado:', reminderId, 'a', targetColumnId);
 			}
 		}
 	};
@@ -139,8 +173,10 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		setActiveColumn('POR VENCER');
 	};
 
-	const handleDragStart = (e, reminderId) => {
+	const handleDragStart = (e, reminderId, sourceColumnId) => {
+		console.log('Iniciando drag:', { reminderId, sourceColumnId });
 		e.dataTransfer.setData('reminderId', reminderId);
+		e.dataTransfer.setData('sourceColumnId', sourceColumnId);
 		e.target.style.transform = 'scale(1.02)';
 		e.target.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
 	};
@@ -156,6 +192,10 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		setModalOpen(false);
 		setSelectedReminder(null);
 	};
+
+	useEffect(() => {
+		console.log('Render actual de columnas:', columns);
+	}, [columns]);
 
 	return (
 		<>
@@ -206,8 +246,8 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 								alignItems: 'stretch',
 								borderRadius: 2,
 							}}
-							onDrop={(e) => handleDrop(e, columnId)} // Maneja el drop en la columna
-							onDragOver={(e) => e.preventDefault()} // Necesario para permitir el drop
+							onDrop={(e) => handleDrop(e, columnId)}
+							onDragOver={(e) => e.preventDefault()}
 						>
 							<Card
 								sx={{
@@ -281,7 +321,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 															}}
 															draggable
 															onDragStart={(e) =>
-																handleDragStart(e, reminder.id)
+																handleDragStart(e, reminder.id, columnId)
 															}
 															onDragEnd={handleDragEnd}
 															onDoubleClick={() =>
@@ -405,10 +445,9 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 
 			<QuickReminderModal
 				open={quickModalOpen}
-				onClose={() => setQuickModalOpen(false)}
+				onClose={handleCloseQuickModal}
 				onSave={handleSaveQuickReminder}
 				columnId={quickModalColumn}
-				reminder={itemToEdit}
 			/>
 		</>
 	);
