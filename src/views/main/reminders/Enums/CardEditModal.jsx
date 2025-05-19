@@ -10,7 +10,7 @@ import {
 	Select,
 	MenuItem,
 } from '@mui/material';
-import { addDays, format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
 
 const modalStyle = {
@@ -25,7 +25,7 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const QuickReminderModal = ({ open, columnId }) => {
+export const CardEditModal = ({ open, reminder, columnId }) => {
 	const {
 		selectedDate,
 		setSelectedDate,
@@ -35,15 +35,15 @@ export const QuickReminderModal = ({ open, columnId }) => {
 		setTitle,
 		availableDates,
 		availableTimes,
-		handleQuickReminderSave,
-		handleCloseQuickModal,
+		handleCardEditSave,
+		handleCloseModal,
 	} = useKanban();
 
 	return (
-		<Modal open={open} onClose={handleCloseQuickModal}>
+		<Modal open={open} onClose={handleCloseModal}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
-					Nuevo Recordatorio Personal
+					Editar Recordatorio
 				</Typography>
 
 				<FormControl fullWidth sx={{ mb: 2 }}>
@@ -87,11 +87,11 @@ export const QuickReminderModal = ({ open, columnId }) => {
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button variant='outlined' onClick={handleCloseQuickModal}>
+					<Button variant='outlined' onClick={handleCloseModal}>
 						Cancelar
 					</Button>
-					<Button variant='contained' onClick={() => handleQuickReminderSave()}>
-						Crear
+					<Button variant='contained' onClick={handleCardEditSave}>
+						Guardar
 					</Button>
 				</Box>
 			</Box>

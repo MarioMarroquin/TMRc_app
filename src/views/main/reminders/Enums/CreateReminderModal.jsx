@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // Añadir useEffect
 import {
 	Modal,
 	Box,
 	Typography,
 	Button,
 	TextField,
-	MenuItem,
-	Select,
-	InputLabel,
 	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from '@mui/material';
-import { addDays, format } from 'date-fns';
+import { format, addDays } from 'date-fns';
+import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
 
 const modalStyle = {
 	position: 'absolute',
@@ -24,60 +25,25 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
-	const today = new Date();
-	const availableDates = Array.from({ length: 8 }, (_, i) =>
-		format(addDays(today, i + 1), 'dd/MM/yyyy')
-	);
-	const availableTimes = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
-
-	const [selectedDate, setSelectedDate] = useState('');
-	const [selectedTime, setSelectedTime] = useState('');
-	const [title, setTitle] = useState('');
-	const [description, setDescription] = useState('');
-
-	useEffect(() => {
-		if (reminder) {
-			setTitle(reminder.title || '');
-			setSelectedDate(reminder.date || '');
-			setSelectedTime(reminder.time || '');
-			setDescription(reminder.description || '');
-		} else {
-			// Limpiar campos si no hay recordatorio
-			setTitle('');
-			setSelectedDate('');
-			setSelectedTime('');
-			setDescription('');
-		}
-	}, [reminder, open]);
-
-	const handleSave = () => {
-		const newReminder = {
-			id: reminder ? reminder.id : Date.now(),
-			date: selectedDate,
-			time: selectedTime,
-			title,
-			description: `${selectedDate} - ${selectedTime}`,
-			type: reminder?.type ?? 'personal',
-			columnId: reminder?.columnId,
-		};
-		onSave(newReminder);
-		handleClose();
-	};
-
-	const handleClose = () => {
-		setTitle('');
-		setSelectedDate('');
-		setSelectedTime('');
-		setDescription('');
-		onClose();
-	};
+export const CreateReminderModal = ({ open, columnId }) => {
+	const {
+		selectedDate,
+		setSelectedDate,
+		selectedTime,
+		setSelectedTime,
+		title,
+		setTitle,
+		availableDates,
+		availableTimes,
+		handleCreateReminderSave,
+		handleCloseModal,
+	} = useKanban();
 
 	return (
-		<Modal open={open} onClose={handleClose}>
+		<Modal open={open} onClose={handleCloseModal}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
-					{reminder ? 'Editar Recordatorio' : 'Nuevo Recordatorio'}
+					Nuevo Recordatorio Personal
 				</Typography>
 
 				<FormControl fullWidth sx={{ mb: 2 }}>
@@ -95,7 +61,7 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					</Select>
 				</FormControl>
 
-				<FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
+				<FormControl fullWidth sx={{ mb: 2 }}>
 					<InputLabel>Hora</InputLabel>
 					<Select
 						value={selectedTime}
@@ -117,15 +83,15 @@ export const CreateReminderModal = ({ open, onClose, onSave, reminder }) => {
 					minRows={3}
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
-					sx={{ mb: 2, mt: 2 }}
+					sx={{ mb: 2 }}
 				/>
 
-				<Box display='flex' justifyContent='flex-end' gap={1} mt={2}>
-					<Button onClick={handleClose} variant='outlined'>
+				<Box display='flex' justifyContent='flex-end' gap={1}>
+					<Button variant='outlined' onClick={handleCloseModal}>
 						Cancelar
 					</Button>
-					<Button onClick={handleSave} variant='contained'>
-						{reminder ? 'Guardar' : 'Crear'}
+					<Button variant='contained' onClick={handleCreateReminderSave}>
+						Crear
 					</Button>
 				</Box>
 			</Box>

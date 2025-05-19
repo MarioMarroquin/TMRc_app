@@ -11,11 +11,21 @@ const convertToDate = (dateString) => {
 	return new Date(`${year}-${month}-${day}`);
 };
 
-export const sortRemindersByDate = (reminders) => {
-	return reminders.sort((a, b) => {
-		const dateA = convertToDate(a.description);
-		const dateB = convertToDate(b.description);
-		return dateB - dateA;
+const sortRemindersByDate = (reminders) => {
+	return [...reminders].sort((a, b) => {
+		// Extraer las fechas de la descripción (formato dd/MM/yyyy)
+		const [dateA] = a.description?.split(' - ') || [''];
+		const [dateB] = b.description?.split(' - ') || [''];
+
+		// Convertir las fechas a objetos Date
+		const [dayA, monthA, yearA] = dateA.split('/').map(Number);
+		const [dayB, monthB, yearB] = dateB.split('/').map(Number);
+
+		const dateObjA = new Date(yearA, monthA - 1, dayA);
+		const dateObjB = new Date(yearB, monthB - 1, dayB);
+
+		// Ordenar de más reciente a más antiguo
+		return dateObjB - dateObjA;
 	});
 };
 
@@ -24,15 +34,6 @@ const extractDateFromDescription = (description) => {
 	const [dateStr] = description.split(' - ');
 	const [dd, mm, yyyy] = dateStr.split('/');
 	return new Date(`${yyyy}-${mm}-${dd}`);
-};
-
-const sortCardsByDate = (cards) => {
-	return [...cards].sort((a, b) => {
-		return (
-			extractDateFromDescription(b.description) -
-			extractDateFromDescription(a.description)
-		);
-	});
 };
 
 export const useReminders = () => {
@@ -170,13 +171,6 @@ export const useReminders = () => {
 			.filter((group) => group.LIST.length > 0);
 
 		setListData(sortRemindersByDate(filteredData)); // Aplicamos el orden después de filtrar los datos
-
-		const kanbanColumns = formatReminderDataForKanban(
-			reminderDataState,
-			completedIds,
-			deletedIds
-		);
-		setColumns(kanbanColumns);
 	}, [selectedView, completedList, deletedItems, reminderDataState]);
 
 	const ListoClick = (item, fechaOriginal) => {
@@ -261,57 +255,6 @@ export const useReminders = () => {
 		return `${dd}/${mm}/${yyyy}`;
 	};
 
-	const formatReminderDataForKanban = (
-		reminderData,
-		completedIds = [],
-		deletedIds = []
-	) => {
-		const columnsFormatted = {
-			VENCIDO: [],
-			HOY: [],
-			'POR VENCER': [],
-		};
-
-		// Helper para formatear fecha
-		const formatDate = (fechaStr) => {
-			const [year, month, day] = fechaStr.split('/');
-			return `${day}/${month}/${year}`;
-		};
-
-		// Mapea datos de cada sección (pasado, hoy, futuro)
-		['pasado', 'hoy', 'porVencer'].forEach((key) => {
-			(reminderData[key] || []).forEach((grupo) => {
-				const formattedDate = formatDate(grupo.FECHA);
-				grupo.LIST.forEach((item) => {
-					const hora = item.HORA || '08:00';
-					if (
-						!completedIds.includes(item.id) &&
-						!deletedIds.includes(item.id)
-					) {
-						columnsFormatted[
-							key === 'pasado'
-								? 'VENCIDO'
-								: key === 'hoy'
-								? 'HOY'
-								: 'POR VENCER'
-						].push({
-							id: item.FOLIO,
-							title: item.SERVICIO,
-							description: `${formattedDate} - ${hora}`,
-							type: item.type,
-						});
-					}
-				});
-			});
-		});
-
-		Object.keys(columnsFormatted).forEach((key) => {
-			columnsFormatted[key] = sortCardsByDate(columnsFormatted[key]);
-		});
-
-		return columnsFormatted;
-	};
-
 	useEffect(() => {
 		// Inicializamos los recordatorios con los datos de reminderData
 		const data = {
@@ -393,82 +336,6 @@ export const useReminders = () => {
 		return null;
 	};
 
-	const moveReminder = (reminderId, targetColumnId) => {
-		const updatedColumns = { ...columns };
-		let movedItem;
-
-		// Encontrar y remover el recordatorio
-		Object.keys(updatedColumns).forEach((columnId) => {
-			const columnItems = updatedColumns[columnId];
-			const itemIndex = columnItems.findIndex(
-				(item) => item.id.toString() === reminderId
-			);
-
-			if (itemIndex !== -1) {
-				movedItem = columnItems[itemIndex];
-				updatedColumns[columnId] = columnItems.filter(
-					(_, index) => index !== itemIndex
-				);
-			}
-		});
-
-		if (movedItem && targetColumnId) {
-			updatedColumns[targetColumnId] = [
-				...updatedColumns[targetColumnId],
-				movedItem,
-			];
-			setColumns(updatedColumns);
-			localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-		}
-	};
-
-	const checkLocalStorage = () => {
-		const saved = localStorage.getItem('kanbanColumns');
-		console.log(
-			'Estado actual en localStorage:',
-			saved ? JSON.parse(saved) : 'vacío'
-		);
-	};
-
-	useEffect(() => {
-		checkLocalStorage();
-
-		// Escuchar cambios en localStorage
-		const handleStorageChange = (e) => {
-			if (e.key === 'kanbanColumns') {
-				console.log('localStorage actualizado externamente');
-				checkLocalStorage();
-			}
-		};
-
-		window.addEventListener('storage', handleStorageChange);
-		return () => window.removeEventListener('storage', handleStorageChange);
-	}, []);
-
-	useEffect(() => {
-		console.log('Columns actualizadas:', columns);
-	}, [columns]);
-
-	const onDragEnd = (result) => {
-		const { source, destination } = result;
-
-		if (!destination) return;
-
-		if (
-			source.droppableId === destination.droppableId &&
-			source.index === destination.index
-		) {
-			return;
-		}
-
-		moveReminder(
-			source.droppableId,
-			destination.droppableId,
-			source.index,
-			destination.index
-		);
-	};
-
 	const handleEditClick = (item, fecha, columnId) => {
 		setItemToEdit({
 			...item,
@@ -476,54 +343,6 @@ export const useReminders = () => {
 			columnId: columnId, // Asegúrate de pasar la columna
 		});
 		setOpenEditDialog(true);
-	};
-
-	// Función para cerrar el diálogo sin guardar
-	const handleCancelEdit = () => {
-		setOpenEditDialog(false);
-		setItemToEdit(null);
-	};
-
-	// Función para guardar los cambios
-	const handleSaveEdit = () => {
-		if (!itemToEdit) return;
-
-		const updatedListData = listData.map((group) => ({
-			...group,
-			LIST: group.LIST.map((item) =>
-				item.id === itemToEdit.id ? itemToEdit : item
-			),
-		}));
-
-		setListData(updatedListData);
-		localStorage.setItem('listData', JSON.stringify(updatedListData));
-
-		// Aquí, en lugar de usar una propiedad fija, usa itemToEdit.columnId
-		const targetColumn = itemToEdit.columnId || 'POR VENCER';
-
-		// Quitar el recordatorio de todas las columnas
-		const updatedColumns = { ...columns };
-		Object.keys(updatedColumns).forEach((colId) => {
-			updatedColumns[colId] = updatedColumns[colId].filter(
-				(item) => item.id !== itemToEdit.id
-			);
-		});
-
-		// Insertar en la misma columna original
-		if (!updatedColumns[targetColumn]) {
-			updatedColumns[targetColumn] = [];
-		}
-		updatedColumns[targetColumn].push(itemToEdit); // No usar unshift si quieres mantener el orden
-		updatedColumns[targetColumn] = sortCardsByDate(
-			updatedColumns[targetColumn]
-		);
-
-		setColumns(updatedColumns);
-		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-		setOpenEditDialog(false);
-		setItemToEdit(null);
-
-		toast.success('✔️ Recordatorio actualizado');
 	};
 
 	const handleDeleteAll = () => {
@@ -604,26 +423,6 @@ export const useReminders = () => {
 		toast.error('🗑️ Recordatorio eliminado');
 	};
 
-	const handleDragStart = (e, reminderId, columnId) => {
-		console.log('Iniciando drag:', reminderId, 'desde columna:', columnId);
-		e.dataTransfer.setData('reminderId', reminderId);
-		e.dataTransfer.setData('sourceColumnId', columnId);
-	};
-
-	const handleDragEnd = (e) => {
-		e.target.style.transform = '';
-	};
-
-	const handleDrop = (e, targetColumnId) => {
-		e.preventDefault();
-		const reminderId = e.dataTransfer.getData('reminderId');
-		console.log('Drop detectado:', reminderId, 'en columna:', targetColumnId);
-
-		if (reminderId) {
-			moveReminder(reminderId, targetColumnId);
-		}
-	};
-
 	const addReminderToColumn = (columnId, reminder) => {
 		setColumns((prev) => {
 			const updated = {
@@ -693,78 +492,6 @@ export const useReminders = () => {
 		console.log('✅ Completado y movido:', reminder);
 	};
 
-	const handleCancelModal = () => {
-		if (tempRemovedItem && sourceColumnId) {
-			const updatedColumns = { ...columns };
-			// Restaurar el item a su columna original
-			if (!updatedColumns[sourceColumnId]) {
-				updatedColumns[sourceColumnId] = [];
-			}
-			updatedColumns[sourceColumnId].push(tempRemovedItem);
-			setColumns(updatedColumns);
-			localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-		}
-		setTempRemovedItem(null);
-		setSourceColumnId(null);
-	};
-
-	const handleSaveFromModal = (reminder) => {
-		const formattedDate = reminder.date.replace(/-/g, '/');
-
-		const newItem = {
-			id: reminder.id || Date.now(),
-			title: reminder.title,
-			description: `${formattedDate} - ${reminder.time}`,
-			type: reminder.type || 'personal',
-		};
-
-		const updatedColumns = { ...columns };
-
-		// Quitar el reminder de todas las columnas (para evitar duplicados)
-		Object.keys(updatedColumns).forEach((columnId) => {
-			updatedColumns[columnId] = updatedColumns[columnId].filter(
-				(item) => item.id !== newItem.id
-			);
-		});
-
-		const currentColumn = reminder.columnId;
-		const targetColumn = currentColumn || 'POR VENCER'; // Usa columna actual si existe
-
-		if (!updatedColumns[targetColumn]) {
-			updatedColumns[targetColumn] = [];
-		}
-
-		updatedColumns[targetColumn].unshift(newItem);
-		updatedColumns[targetColumn] = sortCardsByDate(
-			updatedColumns[targetColumn]
-		);
-
-		setColumns(updatedColumns);
-		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-		toast.success(`✅ Recordatorio guardado en ${targetColumn}`);
-	};
-
-	const saveReminderInOriginalColumn = (reminder, originalColumnId) => {
-		setColumns((prevColumns) => {
-			const updatedColumns = { ...prevColumns };
-
-			// Quitar el recordatorio de todas las columnas
-			for (const columnId in updatedColumns) {
-				updatedColumns[columnId] = updatedColumns[columnId].filter(
-					(item) => item.id !== reminder.id
-				);
-			}
-
-			// Agregar el recordatorio editado a su columna original
-			updatedColumns[originalColumnId] = [
-				...updatedColumns[originalColumnId],
-				reminder,
-			];
-
-			return updatedColumns;
-		});
-	};
-
 	return {
 		listData,
 		setListData,
@@ -774,18 +501,14 @@ export const useReminders = () => {
 		handleDeleteClick,
 		handleConfirmDelete,
 		handleCancelDelete,
+		handleEditClick,
 		openDialog,
 		selectedItem,
 		selectedView,
 		setSelectedView,
 		columns,
 		setColumns,
-		formatReminderDataForKanban,
 		getToday,
-		onDragEnd,
-		handleCancelEdit,
-		handleEditClick,
-		handleSaveEdit,
 		openEditDialog,
 		itemToEdit,
 		setItemToEdit,
@@ -800,17 +523,11 @@ export const useReminders = () => {
 		handleOpenDeleteAllDialog,
 		handleCloseDeleteAllDialog,
 		reminders,
-		moveReminder,
-		handleDragStart,
-		handleDragEnd,
-		handleDrop,
 		draggingColumnId,
 		addReminderToColumn,
 		deleteReminder,
 		completeReminder,
 		handleMarkAsCompleted,
-		handleSaveFromModal,
-		handleCancelModal,
-		saveReminderInOriginalColumn,
+		sortRemindersByDate,
 	};
 };
