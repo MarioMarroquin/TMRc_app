@@ -11,6 +11,14 @@ export const useKanban = () => {
 			'POR VENCER': [],
 		};
 
+		const formatDate = (dateString, hora) => {
+			const [year, month, day] = dateString.split('/');
+			return `${day.padStart(2, '0')}/${month.padStart(
+				2,
+				'0'
+			)}/${year} - ${hora}`;
+		};
+
 		// Procesar datos de "pasado" para la columna VENCIDO
 		if (reminderData.pasado) {
 			reminderData.pasado.forEach((group) => {
@@ -18,8 +26,7 @@ export const useKanban = () => {
 					initialColumns.VENCIDO.push({
 						id: item.id,
 						title: item.SERVICIO,
-						description: group.FECHA,
-						hora: item.HORA,
+						description: formatDate(group.FECHA, item.HORA),
 						type: item.type || 'lead',
 						empresa: item.EMPRESA,
 						cliente: item.CLIENTE,
@@ -37,8 +44,7 @@ export const useKanban = () => {
 					initialColumns.HOY.push({
 						id: item.id,
 						title: item.SERVICIO,
-						description: group.FECHA,
-						hora: item.HORA,
+						description: formatDate(group.FECHA, item.HORA),
 						type: item.type || 'lead',
 						empresa: item.EMPRESA,
 						cliente: item.CLIENTE,
@@ -49,12 +55,18 @@ export const useKanban = () => {
 			});
 		}
 
-		// Ordenar cada columna por fecha
+		// Ordenar cada columna por fecha (de más reciente a más antigua)
 		Object.keys(initialColumns).forEach((columnId) => {
 			initialColumns[columnId].sort((a, b) => {
-				const dateA = new Date(a.description);
-				const dateB = new Date(b.description);
-				return dateA - dateB;
+				const [dateA] = a.description.split(' - ');
+				const [dateB] = b.description.split(' - ');
+				const [dayA, monthA, yearA] = dateA.split('/');
+				const [dayB, monthB, yearB] = dateB.split('/');
+				// Invertimos el orden de la comparación para ordenar de más reciente a más antigua
+				return (
+					new Date(`${yearB}-${monthB}-${dayB}`) -
+					new Date(`${yearA}-${monthA}-${dayA}`)
+				);
 			});
 		});
 
@@ -233,6 +245,19 @@ export const useKanban = () => {
 		e.target.style.opacity = '';
 	};
 
+	const sortColumnByDate = (cards) => {
+		return cards.sort((a, b) => {
+			const [dateA] = a.description.split(' - ');
+			const [dateB] = b.description.split(' - ');
+			const [dayA, monthA, yearA] = dateA.split('/');
+			const [dayB, monthB, yearB] = dateB.split('/');
+			return (
+				new Date(`${yearB}-${monthB}-${dayB}`) -
+				new Date(`${yearA}-${monthA}-${dayA}`)
+			);
+		});
+	};
+
 	const handleDrop = (e, targetColumnId) => {
 		e.preventDefault();
 		const reminderId = e.dataTransfer.getData('reminderId');
@@ -246,13 +271,19 @@ export const useKanban = () => {
 			const reminder = sourceList.find((item) => item.id === reminderIdNum);
 
 			if (reminder) {
-				setColumns((prev) => ({
-					...prev,
-					[sourceColumnId]: prev[sourceColumnId].filter(
-						(item) => item.id !== reminderIdNum
-					),
-					[targetColumnId]: [...prev[targetColumnId], reminder],
-				}));
+				setColumns((prev) => {
+					const updatedColumns = {
+						...prev,
+						[sourceColumnId]: prev[sourceColumnId].filter(
+							(item) => item.id !== reminderIdNum
+						),
+						[targetColumnId]: sortColumnByDate([
+							...prev[targetColumnId],
+							reminder,
+						]),
+					};
+					return updatedColumns;
+				});
 
 				toast.success('✔️ Recordatorio movido exitosamente');
 			}
@@ -303,6 +334,7 @@ export const useKanban = () => {
 
 	return {
 		columns,
+		setColumns,
 		modalOpen,
 		quickModalOpen,
 		selectedReminder,

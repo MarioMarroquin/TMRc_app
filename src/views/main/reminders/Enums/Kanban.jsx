@@ -50,6 +50,15 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		deleteReminder,
 		handleSaveEdit,
 		resetKanbanData,
+		selectedDate,
+		setSelectedDate,
+		selectedTime,
+		setSelectedTime,
+		title,
+		setTitle,
+		availableDates,
+		availableTimes,
+		handleQuickReminderSave,
 	} = useKanban();
 
 	return (
@@ -305,8 +314,16 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 			<QuickReminderModal
 				open={quickModalOpen}
 				onClose={handleCloseQuickModal}
-				onSave={handleSaveQuickReminder}
 				columnId={quickModalColumn}
+				selectedDate={selectedDate}
+				setSelectedDate={setSelectedDate}
+				selectedTime={selectedTime}
+				setSelectedTime={setSelectedTime}
+				title={title}
+				setTitle={setTitle}
+				availableDates={availableDates}
+				availableTimes={availableTimes}
+				onSave={handleQuickReminderSave}
 			/>
 
 			<Button onClick={resetKanbanData} variant='contained' sx={{ mb: 2 }}>

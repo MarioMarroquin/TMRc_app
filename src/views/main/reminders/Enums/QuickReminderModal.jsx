@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
 	Modal,
 	Box,
@@ -10,8 +9,7 @@ import {
 	Select,
 	MenuItem,
 } from '@mui/material';
-import { addDays, format } from 'date-fns';
-import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
+import toast from 'react-hot-toast';
 
 const modalStyle = {
 	position: 'absolute',
@@ -25,22 +23,32 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const QuickReminderModal = ({ open, columnId }) => {
-	const {
-		selectedDate,
-		setSelectedDate,
-		selectedTime,
-		setSelectedTime,
-		title,
-		setTitle,
-		availableDates,
-		availableTimes,
-		handleQuickReminderSave,
-		handleCloseQuickModal,
-	} = useKanban();
+export const QuickReminderModal = ({
+	open,
+	columnId,
+	onClose,
+	selectedDate,
+	setSelectedDate,
+	selectedTime,
+	setSelectedTime,
+	title,
+	setTitle,
+	availableDates,
+	availableTimes,
+	onSave,
+}) => {
+	const handleCreate = () => {
+		// Validación de campos
+		if (!selectedDate || !selectedTime || !title.trim()) {
+			toast.error('Por favor completa todos los campos');
+			return;
+		}
+
+		onSave();
+	};
 
 	return (
-		<Modal open={open} onClose={handleCloseQuickModal}>
+		<Modal open={open} onClose={onClose}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
 					Nuevo Recordatorio Personal
@@ -87,10 +95,10 @@ export const QuickReminderModal = ({ open, columnId }) => {
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button variant='outlined' onClick={handleCloseQuickModal}>
+					<Button variant='outlined' onClick={onClose}>
 						Cancelar
 					</Button>
-					<Button variant='contained' onClick={() => handleQuickReminderSave()}>
+					<Button variant='contained' onClick={handleCreate}>
 						Crear
 					</Button>
 				</Box>
