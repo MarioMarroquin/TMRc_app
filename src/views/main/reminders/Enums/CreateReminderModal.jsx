@@ -10,8 +10,7 @@ import {
 	Select,
 	MenuItem,
 } from '@mui/material';
-import { format, addDays } from 'date-fns';
-import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
+import toast from 'react-hot-toast';
 
 const modalStyle = {
 	position: 'absolute',
@@ -25,26 +24,98 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const CreateReminderModal = ({ open, columnId }) => {
-	const {
-		selectedDate,
-		setSelectedDate,
-		selectedTime,
-		setSelectedTime,
-		title,
-		setTitle,
-		availableDates,
-		availableTimes,
-		handleCreateReminderSave,
-		handleCloseModal,
-	} = useKanban();
+export const CreateReminderModal = ({ open, onClose, columns, setColumns }) => {
+	const [selectedDate, setSelectedDate] = useState('');
+	const [selectedTime, setSelectedTime] = useState('');
+	const [title, setTitle] = useState('');
+	const [selectedSection, setSelectedSection] = useState('HOY');
+
+	// Generar fechas disponibles
+	const generateAvailableDates = () => {
+		const dates = [];
+		const today = new Date();
+		for (let i = 0; i < 7; i++) {
+			const date = new Date(today);
+			date.setDate(today.getDate() + i);
+			const formattedDate = date
+				.toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				})
+				.replace(/\//g, '/');
+			dates.push(formattedDate);
+		}
+		return dates;
+	};
+
+	// Generar horas disponibles
+	const generateAvailableTimes = () => {
+		const times = [];
+		for (let hour = 8; hour <= 18; hour++) {
+			times.push(`${hour.toString().padStart(2, '0')}:00`);
+			times.push(`${hour.toString().padStart(2, '0')}:30`);
+		}
+		return times;
+	};
+
+	const handleCreate = () => {
+		if (!selectedDate || !selectedTime || !title.trim()) {
+			toast.error('Por favor completa todos los campos');
+			return;
+		}
+
+		const newReminder = {
+			id: Date.now(),
+			title: title.trim(),
+			description: `${selectedDate} - ${selectedTime}`,
+			type: 'personal',
+		};
+
+		// Actualizar el estado de las columnas inmediatamente
+		setColumns((prev) => ({
+			...prev,
+			[selectedSection]: [...prev[selectedSection], newReminder],
+		}));
+
+		// Limpiar el formulario
+		setSelectedDate('');
+		setSelectedTime('');
+		setTitle('');
+		setSelectedSection('HOY');
+
+		// Cerrar el modal y mostrar mensaje de éxito
+		onClose();
+		toast.success('✔️ Recordatorio creado exitosamente');
+	};
+
+	const handleCancel = () => {
+		// Limpiar el formulario
+		setSelectedDate('');
+		setSelectedTime('');
+		setTitle('');
+		setSelectedSection('HOY');
+		onClose();
+	};
 
 	return (
-		<Modal open={open} onClose={handleCloseModal}>
+		<Modal open={open} onClose={handleCancel}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
 					Nuevo Recordatorio Personal
 				</Typography>
+
+				<FormControl fullWidth sx={{ mb: 2 }}>
+					<InputLabel>Sección</InputLabel>
+					<Select
+						value={selectedSection}
+						label='Sección'
+						onChange={(e) => setSelectedSection(e.target.value)}
+					>
+						<MenuItem value='HOY'>HOY</MenuItem>
+						<MenuItem value='POR VENCER'>POR VENCER</MenuItem>
+					</Select>
+				</FormControl>
 
 				<FormControl fullWidth sx={{ mb: 2 }}>
 					<InputLabel>Fecha</InputLabel>
@@ -53,7 +124,7 @@ export const CreateReminderModal = ({ open, columnId }) => {
 						label='Fecha'
 						onChange={(e) => setSelectedDate(e.target.value)}
 					>
-						{availableDates.map((date) => (
+						{generateAvailableDates().map((date) => (
 							<MenuItem key={date} value={date}>
 								{date}
 							</MenuItem>
@@ -68,7 +139,7 @@ export const CreateReminderModal = ({ open, columnId }) => {
 						label='Hora'
 						onChange={(e) => setSelectedTime(e.target.value)}
 					>
-						{availableTimes.map((time) => (
+						{generateAvailableTimes().map((time) => (
 							<MenuItem key={time} value={time}>
 								{time}
 							</MenuItem>
@@ -87,10 +158,10 @@ export const CreateReminderModal = ({ open, columnId }) => {
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button variant='outlined' onClick={handleCloseModal}>
+					<Button variant='outlined' onClick={handleCancel}>
 						Cancelar
 					</Button>
-					<Button variant='contained' onClick={handleCreateReminderSave}>
+					<Button variant='contained' onClick={handleCreate}>
 						Crear
 					</Button>
 				</Box>

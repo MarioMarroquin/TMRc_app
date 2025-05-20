@@ -10,8 +10,7 @@ import {
 	Select,
 	MenuItem,
 } from '@mui/material';
-import { format, addDays } from 'date-fns';
-import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
+import toast from 'react-hot-toast';
 
 const modalStyle = {
 	position: 'absolute',
@@ -25,22 +24,110 @@ const modalStyle = {
 	borderRadius: 2,
 };
 
-export const CardEditModal = ({ open, reminder, columnId }) => {
-	const {
-		selectedDate,
-		setSelectedDate,
-		selectedTime,
-		setSelectedTime,
-		title,
-		setTitle,
-		availableDates,
-		availableTimes,
-		handleCardEditSave,
-		handleCloseModal,
-	} = useKanban();
+export const CardEditModal = ({
+	open,
+	reminder,
+	columnId,
+	onClose,
+	setColumns,
+	tempRemovedItem,
+	sourceColumnId,
+	setTempRemovedItem,
+	setSourceColumnId,
+}) => {
+	const [editedReminder, setEditedReminder] = useState({
+		date: '',
+		time: '',
+		title: '',
+	});
+
+	useEffect(() => {
+		if (reminder) {
+			const [date, time] = reminder.description?.split(' - ') || ['', ''];
+			setEditedReminder({
+				date: date || '',
+				time: time || '',
+				title: reminder.title || '',
+			});
+		}
+	}, [reminder]);
+
+	const handleSave = () => {
+		if (
+			!editedReminder.date ||
+			!editedReminder.time ||
+			!editedReminder.title.trim()
+		) {
+			toast.error('Por favor completa todos los campos');
+			return;
+		}
+
+		const updatedReminder = {
+			...(tempRemovedItem || reminder), // Usar tempRemovedItem si existe
+			title: editedReminder.title.trim(),
+			description: `${editedReminder.date} - ${editedReminder.time}`,
+			type: reminder?.type || 'personal',
+		};
+
+		setColumns((prev) => ({
+			...prev,
+			[columnId]: [...prev[columnId], updatedReminder],
+		}));
+
+		// Limpiar estados temporales
+		setTempRemovedItem(null);
+		setSourceColumnId(null);
+
+		onClose();
+		toast.success('✔️ Recordatorio actualizado');
+	};
+
+	// Generar fechas disponibles (igual que en CreateReminderModal)
+	const generateAvailableDates = () => {
+		const dates = [];
+		const today = new Date();
+		for (let i = 0; i < 7; i++) {
+			const date = new Date(today);
+			date.setDate(today.getDate() + i);
+			const formattedDate = date
+				.toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				})
+				.replace(/\//g, '/');
+			dates.push(formattedDate);
+		}
+		return dates;
+	};
+
+	// Generar horas disponibles (igual que en CreateReminderModal)
+	const generateAvailableTimes = () => {
+		const times = [];
+		for (let hour = 8; hour <= 18; hour++) {
+			times.push(`${hour.toString().padStart(2, '0')}:00`);
+			times.push(`${hour.toString().padStart(2, '0')}:30`);
+		}
+		return times;
+	};
+
+	const handleCancel = () => {
+		// Si hay un recordatorio temporal removido, lo devolvemos a su columna original
+		if (tempRemovedItem && sourceColumnId) {
+			setColumns((prev) => ({
+				...prev,
+				[sourceColumnId]: [...prev[sourceColumnId], tempRemovedItem],
+			}));
+
+			// Limpiar estados temporales
+			setTempRemovedItem(null);
+			setSourceColumnId(null);
+		}
+		onClose();
+	};
 
 	return (
-		<Modal open={open} onClose={handleCloseModal}>
+		<Modal open={open} onClose={handleCancel}>
 			<Box sx={modalStyle}>
 				<Typography variant='h6' mb={2}>
 					Editar Recordatorio
@@ -49,11 +136,13 @@ export const CardEditModal = ({ open, reminder, columnId }) => {
 				<FormControl fullWidth sx={{ mb: 2 }}>
 					<InputLabel>Fecha</InputLabel>
 					<Select
-						value={selectedDate}
+						value={editedReminder.date}
 						label='Fecha'
-						onChange={(e) => setSelectedDate(e.target.value)}
+						onChange={(e) =>
+							setEditedReminder({ ...editedReminder, date: e.target.value })
+						}
 					>
-						{availableDates.map((date) => (
+						{generateAvailableDates().map((date) => (
 							<MenuItem key={date} value={date}>
 								{date}
 							</MenuItem>
@@ -64,11 +153,13 @@ export const CardEditModal = ({ open, reminder, columnId }) => {
 				<FormControl fullWidth sx={{ mb: 2 }}>
 					<InputLabel>Hora</InputLabel>
 					<Select
-						value={selectedTime}
+						value={editedReminder.time}
 						label='Hora'
-						onChange={(e) => setSelectedTime(e.target.value)}
+						onChange={(e) =>
+							setEditedReminder({ ...editedReminder, time: e.target.value })
+						}
 					>
-						{availableTimes.map((time) => (
+						{generateAvailableTimes().map((time) => (
 							<MenuItem key={time} value={time}>
 								{time}
 							</MenuItem>
@@ -81,16 +172,18 @@ export const CardEditModal = ({ open, reminder, columnId }) => {
 					fullWidth
 					multiline
 					minRows={3}
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
+					value={editedReminder.title}
+					onChange={(e) =>
+						setEditedReminder({ ...editedReminder, title: e.target.value })
+					}
 					sx={{ mb: 2 }}
 				/>
 
 				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button variant='outlined' onClick={handleCloseModal}>
+					<Button variant='outlined' onClick={handleCancel}>
 						Cancelar
 					</Button>
-					<Button variant='contained' onClick={handleCardEditSave}>
+					<Button variant='contained' onClick={handleSave}>
 						Guardar
 					</Button>
 				</Box>

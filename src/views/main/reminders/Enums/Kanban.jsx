@@ -33,6 +33,7 @@ const COLUMN_LABELS = {
 const Kanban = ({ handleMarkAsCompleted }) => {
 	const {
 		columns,
+		setColumns,
 		modalOpen,
 		quickModalOpen,
 		selectedReminder,
@@ -59,6 +60,11 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		availableDates,
 		availableTimes,
 		handleQuickReminderSave,
+		handleCardEditSave,
+		tempRemovedItem,
+		sourceColumnId,
+		setTempRemovedItem,
+		setSourceColumnId,
 	} = useKanban();
 
 	return (
@@ -82,6 +88,10 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 						<AddIcon fontSize='small' />
 					</IconButton>
 				</Tooltip>
+
+				<Button onClick={resetKanbanData} variant='contained' sx={{ mb: 2 }}>
+					Reiniciar Datos
+				</Button>
 			</Box>
 
 			{/* Contenedor Kanban con scroll y mayor espacio entre columnas */}
@@ -299,16 +309,20 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 			<CreateReminderModal
 				open={modalOpen && !selectedReminder}
 				onClose={handleCloseModal}
-				// onSave={}
-				columnId={activeColumn} // Agregar esta línea
+				columns={columns}
+				setColumns={setColumns} // Agregar esta línea
 			/>
 
 			<CardEditModal
 				open={modalOpen && selectedReminder}
 				onClose={handleCloseModal}
-				// onSave={}
 				reminder={itemToEdit}
 				columnId={activeColumn}
+				setColumns={setColumns}
+				tempRemovedItem={tempRemovedItem}
+				sourceColumnId={sourceColumnId}
+				setTempRemovedItem={setTempRemovedItem}
+				setSourceColumnId={setSourceColumnId}
 			/>
 
 			<QuickReminderModal
@@ -325,10 +339,6 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 				availableTimes={availableTimes}
 				onSave={handleQuickReminderSave}
 			/>
-
-			<Button onClick={resetKanbanData} variant='contained' sx={{ mb: 2 }}>
-				Reiniciar Datos
-			</Button>
 		</>
 	);
 };

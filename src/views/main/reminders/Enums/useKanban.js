@@ -150,29 +150,27 @@ export const useKanban = () => {
 		toast.success('✔️ Recordatorio creado');
 	};
 
-	const handleCardEditSave = () => {
+	const handleCardEditSave = (editedReminder) => {
 		if (!itemToEdit) return;
 
 		const updatedReminder = {
 			...itemToEdit,
-			description: `${selectedDate} - ${selectedTime}`,
-			title: title,
+			title: editedReminder.title,
+			empresa: editedReminder.empresa,
+			cliente: editedReminder.cliente,
+			contact: editedReminder.contact,
+			folio: editedReminder.folio,
+			description: `${editedReminder.date} - ${editedReminder.time}`,
+			type: editedReminder.type,
 		};
 
 		setColumns((prev) => {
 			const newColumns = { ...prev };
-			const targetColumn = activeColumn || 'POR VENCER';
+			const targetColumn = activeColumn;
 
-			if (sourceColumnId) {
-				newColumns[sourceColumnId] = newColumns[sourceColumnId].filter(
-					(item) => item.id !== itemToEdit.id
-				);
-			}
-
-			if (!newColumns[targetColumn]) {
-				newColumns[targetColumn] = [];
-			}
-			newColumns[targetColumn].push(updatedReminder);
+			newColumns[targetColumn] = newColumns[targetColumn].map((item) =>
+				item.id === itemToEdit.id ? updatedReminder : item
+			);
 
 			return newColumns;
 		});
@@ -209,8 +207,11 @@ export const useKanban = () => {
 		setModalOpen(false);
 		setSelectedReminder(null);
 		setItemToEdit(null);
-		setTempRemovedItem(null);
-		setSourceColumnId(null);
+		// Solo limpiar estos estados si no se está guardando
+		if (!modalOpen) {
+			setTempRemovedItem(null);
+			setSourceColumnId(null);
+		}
 		resetForm();
 	};
 
@@ -221,11 +222,15 @@ export const useKanban = () => {
 	};
 
 	const handleOpenModal = (columnId, reminder = null) => {
-		setSelectedReminder(reminder);
 		setActiveColumn(columnId);
+		setSelectedReminder(reminder);
 		setModalOpen(true);
 		if (reminder) {
 			setItemToEdit(reminder);
+			const [date, time] = reminder.description.split(' - ');
+			setSelectedDate(date);
+			setSelectedTime(time);
+			setTitle(reminder.title);
 		}
 	};
 
@@ -271,19 +276,53 @@ export const useKanban = () => {
 			const reminder = sourceList.find((item) => item.id === reminderIdNum);
 
 			if (reminder) {
-				setColumns((prev) => {
-					const updatedColumns = {
+				// Si la columna destino es "POR VENCER", abrimos el modal de edición
+				if (targetColumnId === 'POR VENCER') {
+					setItemToEdit(reminder);
+					setActiveColumn(targetColumnId);
+					setSelectedReminder(reminder);
+					setModalOpen(true);
+
+					// Guardamos temporalmente la información de origen
+					setSourceColumnId(sourceColumnId);
+					setTempRemovedItem(reminder);
+
+					// Eliminamos el recordatorio de la columna origen
+					setColumns((prev) => ({
 						...prev,
 						[sourceColumnId]: prev[sourceColumnId].filter(
 							(item) => item.id !== reminderIdNum
 						),
-						[targetColumnId]: sortColumnByDate([
-							...prev[targetColumnId],
-							reminder,
-						]),
-					};
-					return updatedColumns;
-				});
+					}));
+
+					return; // Detenemos aquí la ejecución
+				}
+
+				// Para otras columnas, mantenemos el comportamiento original
+				const today = new Date();
+				const dd = String(today.getDate()).padStart(2, '0');
+				const mm = String(today.getMonth() + 1).padStart(2, '0');
+				const yyyy = today.getFullYear();
+				const currentDate = `${dd}/${mm}/${yyyy}`;
+
+				const updatedReminder = {
+					...reminder,
+					description:
+						targetColumnId === 'HOY'
+							? `${currentDate} - ${reminder.description.split(' - ')[1]}`
+							: reminder.description,
+				};
+
+				setColumns((prev) => ({
+					...prev,
+					[sourceColumnId]: prev[sourceColumnId].filter(
+						(item) => item.id !== reminderIdNum
+					),
+					[targetColumnId]: sortColumnByDate([
+						...prev[targetColumnId],
+						updatedReminder,
+					]),
+				}));
 
 				toast.success('✔️ Recordatorio movido exitosamente');
 			}
@@ -362,5 +401,9 @@ export const useKanban = () => {
 		handleCreateReminderSave,
 		handleCardEditSave,
 		handleQuickReminderSave,
+		tempRemovedItem,
+		sourceColumnId,
+		setTempRemovedItem,
+		setSourceColumnId,
 	};
 };
