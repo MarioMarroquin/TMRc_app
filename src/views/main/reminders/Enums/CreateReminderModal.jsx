@@ -30,6 +30,15 @@ export const CreateReminderModal = ({ open, onClose, columns, setColumns }) => {
 	const [title, setTitle] = useState('');
 	const [selectedSection, setSelectedSection] = useState('HOY');
 
+	const menuProps = {
+		PaperProps: {
+			style: {
+				maxHeight: 200, // ajusta este valor según necesites
+				overflow: 'auto',
+			},
+		},
+	};
+
 	// Generar fechas disponibles
 	const generateAvailableDates = () => {
 		const dates = [];
@@ -138,6 +147,7 @@ export const CreateReminderModal = ({ open, onClose, columns, setColumns }) => {
 						value={selectedTime}
 						label='Hora'
 						onChange={(e) => setSelectedTime(e.target.value)}
+						MenuProps={menuProps}
 					>
 						{generateAvailableTimes().map((time) => (
 							<MenuItem key={time} value={time}>

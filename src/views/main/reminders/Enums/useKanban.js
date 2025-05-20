@@ -108,6 +108,24 @@ export const useKanban = () => {
 			localStorage.setItem('kanbanColumns', JSON.stringify(columns));
 		}
 	}, [columns]);
+	useEffect(() => {
+		const handleKanbanUpdate = () => {
+			const saved = localStorage.getItem('kanbanColumns');
+			if (saved) {
+				try {
+					setColumns(JSON.parse(saved));
+				} catch (error) {
+					console.error('Error updating kanban:', error);
+				}
+			}
+		};
+
+		window.addEventListener('kanbanUpdate', handleKanbanUpdate);
+
+		return () => {
+			window.removeEventListener('kanbanUpdate', handleKanbanUpdate);
+		};
+	}, []);
 
 	// Generación de fechas y horas disponibles
 	const generateAvailableDates = () => {

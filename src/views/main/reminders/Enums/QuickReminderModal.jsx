@@ -47,6 +47,16 @@ export const QuickReminderModal = ({
 		onSave();
 	};
 
+	// Agrega esta constante al inicio de cada archivo de modal
+	const menuProps = {
+		PaperProps: {
+			style: {
+				maxHeight: 200, // ajusta este valor según necesites
+				overflow: 'auto',
+			},
+		},
+	};
+
 	return (
 		<Modal open={open} onClose={onClose}>
 			<Box sx={modalStyle}>
@@ -75,6 +85,7 @@ export const QuickReminderModal = ({
 						value={selectedTime}
 						label='Hora'
 						onChange={(e) => setSelectedTime(e.target.value)}
+						MenuProps={menuProps}
 					>
 						{availableTimes.map((time) => (
 							<MenuItem key={time} value={time}>

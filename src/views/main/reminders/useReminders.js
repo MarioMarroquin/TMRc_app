@@ -361,36 +361,76 @@ export const useReminders = () => {
 		toast.success('🗑️ Todos los recordatorios completados han sido eliminados');
 	};
 
-	const handleUndoCompleted = (item) => {
-		// 1. Quitar de completados
-		const updatedCompleted = completedList.filter((r) => r.id !== item.id);
-		setCompletedList(updatedCompleted);
-		localStorage.setItem('kanbanCompleted', JSON.stringify(updatedCompleted));
+	const handleUndoCompleted = (reminder) => {
+		// Eliminar de la lista de completados
+		setCompletedList((prev) => prev.filter((item) => item.id !== reminder.id));
 
-		// 2. Restaurar en su columna original, o "HOY" si no existe
-		const originalColumn = item.originalColumn || 'HOY';
+		// Función auxiliar para formatear la fecha
+		const formatDate = (dateStr) => {
+			const today = new Date();
+			const year = today.getFullYear();
+			const month = String(today.getMonth() + 1).padStart(2, '0');
+			const day = String(today.getDate()).padStart(2, '0');
 
-		const updatedColumns = {
-			...columns,
-			[originalColumn]: [...(columns[originalColumn] || []), item],
+			return {
+				listFormat: `${year}/${month}/${day}`, // Formato YYYY/MM/DD para la lista
+				kanbanFormat: `${day}/${month}/${year}`, // Formato DD/MM/YYYY para el kanban
+			};
 		};
-		setColumns(updatedColumns);
-		localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
 
-		// 3. Volver a insertar en listData (si aplica)
-		const fecha = item.FECHA || 'SinFecha';
-		const updatedList = [...listData];
-		const existingFecha = updatedList.find((f) => f.FECHA === fecha);
+		const dates = formatDate();
 
-		if (existingFecha) {
-			existingFecha.LIST.push(item);
-		} else {
-			updatedList.push({ FECHA: fecha, LIST: [item] });
+		// Crear el objeto para la lista principal
+		const newListItem = {
+			FECHA: dates.listFormat,
+			LIST: [
+				{
+					id: reminder.id,
+					FOLIO: reminder.FOLIO,
+					SERVICIO: reminder.SERVICIO,
+					EMPRESA: reminder.EMPRESA,
+					CLIENTE: reminder.CLIENTE,
+					CONTACT: reminder.CONTACT,
+					HORA: reminder.HORA || '12:00',
+					type: reminder.type || 'lead',
+				},
+			],
+		};
+
+		// Actualizar listData
+		setListData((prev) => [...prev, newListItem]);
+
+		// Preparar el recordatorio para el Kanban
+		const kanbanItem = {
+			id: reminder.id,
+			title: reminder.SERVICIO,
+			description: `${dates.kanbanFormat} - ${reminder.HORA || '12:00'}`,
+			type: reminder.type || 'lead',
+			empresa: reminder.EMPRESA,
+			cliente: reminder.CLIENTE,
+			contact: reminder.CONTACT,
+			folio: reminder.FOLIO,
+		};
+
+		// Actualizar el Kanban
+		const storedColumns = localStorage.getItem('kanbanColumns');
+		if (storedColumns) {
+			try {
+				const columns = JSON.parse(storedColumns);
+
+				// Determinar en qué columna debe ir (por defecto va a HOY)
+				let targetColumn = 'HOY';
+
+				columns[targetColumn] = [...columns[targetColumn], kanbanItem];
+				localStorage.setItem('kanbanColumns', JSON.stringify(columns));
+
+				window.dispatchEvent(new Event('kanbanUpdate'));
+			} catch (error) {
+				console.error('Error updating kanban on undo:', error);
+			}
 		}
-		setListData(updatedList);
-		localStorage.setItem('listData', JSON.stringify(updatedList));
 
-		console.log('🔁 Deshecho y movido a:', originalColumn, item);
+		toast.success('✔️ Recordatorio restaurado');
 	};
 
 	const handleDeleteCompletedClick = (item) => {
@@ -461,35 +501,53 @@ export const useReminders = () => {
 		toast.success('✔️ Marcado como hecho');
 	};
 
-	const handleMarkAsCompleted = (reminder, fecha) => {
-		// 1. Eliminar de listData (lista de recordatorios)
-		const updatedList = listData
-			.map((item) => ({
-				...item,
-				LIST: item.LIST.filter((sub) => sub.id !== reminder.id),
-			}))
-			.filter((item) => item.LIST.length > 0); // Limpia fechas vacías
+	const handleMarkAsCompleted = (reminder) => {
+		// Crear el objeto completado con todos los campos necesarios
+		const completedReminder = {
+			id: reminder.id,
+			FOLIO: reminder.folio,
+			SERVICIO: reminder.title, // En Kanban el servicio está en title
+			EMPRESA: reminder.empresa,
+			CLIENTE: reminder.cliente,
+			CONTACT: reminder.contact,
+			HORA: reminder.description.split(' - ')[1], // Extraemos la hora
+			completedDate: new Date().toISOString(),
+			type: reminder.type,
+		};
 
-		setListData(updatedList);
-		localStorage.setItem('listData', JSON.stringify(updatedList));
+		// Actualizar completedList
+		setCompletedList((prev) => [...prev, completedReminder]);
 
-		// 2. Eliminar del Kanban
-		const newColumns = { ...columns };
-		Object.keys(newColumns).forEach((colId) => {
-			newColumns[colId] = newColumns[colId].filter(
-				(item) => item.id !== reminder.id
-			);
+		// Remover de listData
+		setListData((prevListData) => {
+			return prevListData
+				.map((group) => ({
+					...group,
+					LIST: group.LIST.filter((item) => item.id !== reminder.id),
+				}))
+				.filter((group) => group.LIST.length > 0);
 		});
-		setColumns(newColumns);
-		localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 
-		// 3. Agregar a completedList
-		const updatedCompleted = [...completedList, reminder];
-		setCompletedList(updatedCompleted);
-		localStorage.setItem('kanbanCompleted', JSON.stringify(updatedCompleted));
+		// Remover del Kanban
+		const storedColumns = localStorage.getItem('kanbanColumns');
+		if (storedColumns) {
+			const columns = JSON.parse(storedColumns);
+			let updated = false;
 
-		// Log para verificar
-		console.log('✅ Completado y movido:', reminder);
+			Object.keys(columns).forEach((columnId) => {
+				columns[columnId] = columns[columnId].filter(
+					(item) => item.id !== reminder.id
+				);
+				updated = true;
+			});
+
+			if (updated) {
+				localStorage.setItem('kanbanColumns', JSON.stringify(columns));
+				window.dispatchEvent(new Event('kanbanUpdate'));
+			}
+		}
+
+		toast.success('✔️ Recordatorio completado');
 	};
 
 	return {

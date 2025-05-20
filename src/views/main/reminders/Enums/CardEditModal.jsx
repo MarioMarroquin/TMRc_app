@@ -82,6 +82,15 @@ export const CardEditModal = ({
 		toast.success('✔️ Recordatorio actualizado');
 	};
 
+	const menuProps = {
+		PaperProps: {
+			style: {
+				maxHeight: 200, // ajusta este valor según necesites
+				overflow: 'auto',
+			},
+		},
+	};
+
 	// Generar fechas disponibles (igual que en CreateReminderModal)
 	const generateAvailableDates = () => {
 		const dates = [];
@@ -158,6 +167,7 @@ export const CardEditModal = ({
 						onChange={(e) =>
 							setEditedReminder({ ...editedReminder, time: e.target.value })
 						}
+						MenuProps={menuProps}
 					>
 						{generateAvailableTimes().map((time) => (
 							<MenuItem key={time} value={time}>
