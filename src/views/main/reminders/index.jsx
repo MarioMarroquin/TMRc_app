@@ -61,6 +61,20 @@ const Reminders = () => {
 		handleMarkAsCompleted,
 	} = useReminders();
 
+	useEffect(() => {
+		const handleListDataUpdate = (event) => {
+			if (event.detail) {
+				setListData(event.detail);
+			}
+		};
+
+		window.addEventListener('listDataUpdate', handleListDataUpdate);
+
+		return () => {
+			window.removeEventListener('listDataUpdate', handleListDataUpdate);
+		};
+	}, [setListData]);
+
 	const [showList, setShowList] = useState(
 		!!JSON.parse(localStorage.getItem('showList')) || false
 	);
@@ -185,6 +199,7 @@ const Reminders = () => {
 						handleConfirmDelete={handleConfirmDelete}
 						handleCancelDelete={handleCancelDelete}
 						openDialog={openDialog}
+						openEditDialog={openEditDialog}
 						selectedItem={selectedItem}
 						handleEditClick={handleEditClick}
 					/>

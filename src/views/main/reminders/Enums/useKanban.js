@@ -348,11 +348,43 @@ export const useKanban = () => {
 	};
 
 	const deleteReminder = (id, columnId) => {
-		setColumns((prev) => ({
-			...prev,
-			[columnId]: prev[columnId].filter((item) => item.id !== id),
-		}));
-		toast.error('🗑️ Recordatorio eliminado');
+		try {
+			// Eliminar del Kanban
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				newColumns[columnId] = newColumns[columnId].filter(
+					(item) => item.id !== id
+				);
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				return newColumns;
+			});
+
+			// Eliminar de la lista (listData)
+			const listDataString = localStorage.getItem('listData');
+			if (listDataString) {
+				const listData = JSON.parse(listDataString);
+				const updatedListData = listData
+					.map((group) => ({
+						...group,
+						LIST: group.LIST.filter((item) => item.id !== id),
+					}))
+					.filter((group) => group.LIST.length > 0);
+
+				// Actualizar localStorage y emitir evento con los datos actualizados
+				localStorage.setItem('listData', JSON.stringify(updatedListData));
+
+				// Crear y disparar el evento con los datos actualizados directamente
+				const event = new CustomEvent('listDataUpdate', {
+					detail: updatedListData,
+				});
+				window.dispatchEvent(event);
+			}
+
+			toast.error('🗑️ Recordatorio eliminado');
+		} catch (error) {
+			console.error('Error al eliminar el recordatorio:', error);
+			toast.error('Error al eliminar el recordatorio');
+		}
 	};
 
 	const moveReminder = (reminderId, targetColumnId) => {

@@ -226,28 +226,43 @@ export const useReminders = () => {
 	};
 
 	const handleConfirmDelete = () => {
-		if (!selectedItem) return;
+		try {
+			if (!selectedItem) return;
 
-		// Obtener eliminados actuales
-		const deletedLocal = JSON.parse(localStorage.getItem('deletedItems')) || [];
+			// Eliminar de la lista
+			setListData((prevData) => {
+				const newData = prevData
+					.map((group) => ({
+						...group,
+						LIST: group.LIST.filter((item) => item.id !== selectedItem.id),
+					}))
+					.filter((group) => group.LIST.length > 0);
 
-		// Agregar el item a los eliminados
-		const updatedDeleted = [...deletedLocal, selectedItem.id];
-		localStorage.setItem('deletedItems', JSON.stringify(updatedDeleted));
+				// Actualizar localStorage
+				localStorage.setItem('listData', JSON.stringify(newData));
+				return newData;
+			});
 
-		// Eliminar el item de listData
-		setListData((prevData) =>
-			prevData
-				.map((group) => ({
-					...group,
-					LIST: group.LIST.filter((item) => item.id !== selectedItem.id),
-				}))
-				.filter((group) => group.LIST.length > 0)
-		);
+			// Eliminar del Kanban
+			const kanbanDataString = localStorage.getItem('kanbanColumns');
+			if (kanbanDataString) {
+				const kanbanData = JSON.parse(kanbanDataString);
+				Object.keys(kanbanData).forEach((columnId) => {
+					kanbanData[columnId] = kanbanData[columnId].filter(
+						(item) => item.id !== selectedItem.id
+					);
+				});
+				localStorage.setItem('kanbanColumns', JSON.stringify(kanbanData));
+				// Disparar evento para actualizar el Kanban
+				window.dispatchEvent(new Event('kanbanUpdate'));
+			}
 
-		setOpenDialog(false);
-		setSelectedItem(null);
-		toast.error(' 🗑️ Recordatorio eliminado');
+			toast.error('🗑️ Recordatorio eliminado');
+			setOpenDialog(false);
+		} catch (error) {
+			console.error('Error al eliminar el recordatorio:', error);
+			toast.error('Error al eliminar el recordatorio');
+		}
 	};
 
 	const handleCancelDelete = () => {
