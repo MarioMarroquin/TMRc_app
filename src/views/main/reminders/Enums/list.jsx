@@ -130,7 +130,14 @@ const ListReminder = ({
 													boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
 												},
 											}}
-											onDoubleClick={() => handleEditClick(item, item.FECHA)}
+											onDoubleClick={() => {
+												// Aquí configuramos el itemToEdit con todos los datos necesarios
+												const editData = {
+													...subItem,
+													FECHA: item.FECHA,
+												};
+												handleEditClick(editData, item.FECHA);
+											}}
 										>
 											<Grid
 												container

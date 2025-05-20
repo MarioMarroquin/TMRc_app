@@ -358,11 +358,18 @@ export const useReminders = () => {
 		return null;
 	};
 
-	const handleEditClick = (item, fecha, columnId) => {
+	const handleEditClick = (item, fecha) => {
+		// Aseguramos que todos los campos necesarios estén presentes
 		setItemToEdit({
-			...item,
+			id: item.id,
+			FOLIO: item.FOLIO || '',
+			SERVICIO: item.SERVICIO || '',
+			EMPRESA: item.EMPRESA || '',
+			CLIENTE: item.CLIENTE || '',
+			CONTACT: item.CONTACT || '',
+			HORA: item.HORA || '',
 			FECHA: fecha,
-			columnId: columnId, // Asegúrate de pasar la columna
+			type: item.type || 'lead',
 		});
 		setOpenEditDialog(true);
 	};
