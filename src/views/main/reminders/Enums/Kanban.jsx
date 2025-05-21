@@ -24,6 +24,9 @@ import { QuickReminderModal } from '@views/main/reminders/Enums/QuickReminderMod
 import { CardEditModal } from '@views/main/reminders/Enums/CardEditModal';
 import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
 import ButtonAddReminder from './ButtonAddReminder';
+import toast from 'react-hot-toast';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { useResetData } from '@views/main/reminders/useResetData.js';
 
 const COLUMN_LABELS = {
 	VENCIDO: 'VENCIDO',
@@ -31,7 +34,13 @@ const COLUMN_LABELS = {
 	'POR VENCER': 'POR VENCER',
 };
 
-const Kanban = ({ handleMarkAsCompleted }) => {
+const Kanban = ({
+	handleMarkAsCompleted,
+	setListData,
+	setDeletedItems,
+	deletedItems,
+	setCompletedList,
+}) => {
 	const {
 		columns,
 		setColumns,
@@ -49,7 +58,6 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		handleOpenQuickModal,
 		handleCloseQuickModal,
 		handleSaveQuickReminder,
-		deleteReminder,
 		handleSaveEdit,
 		resetKanbanData,
 		selectedDate,
@@ -68,6 +76,87 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 		setSourceColumnId,
 	} = useKanban();
 
+	const { resetAllData } = useResetData(
+		setListData,
+		setCompletedList,
+		setDeletedItems,
+		setColumns
+	);
+
+	const deleteReminder = (id, columnId) => {
+		try {
+			// 1. Eliminar del Kanban
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				newColumns[columnId] = newColumns[columnId].filter(
+					(item) => item.id !== id
+				);
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				return newColumns;
+			});
+
+			// 2. Eliminar de listData y actualizar deletedItems
+			setListData((prevData) => {
+				const newData = prevData
+					.map((group) => ({
+						...group,
+						LIST: group.LIST.filter((item) => item.id !== id),
+					}))
+					.filter((group) => group.LIST.length > 0);
+				localStorage.setItem('listData', JSON.stringify(newData));
+				return newData;
+			});
+
+			// 3. Actualizar deletedItems
+			setDeletedItems((prev) => {
+				const newDeletedItems = [...prev, id];
+				localStorage.setItem('deletedItems', JSON.stringify(newDeletedItems));
+				return newDeletedItems;
+			});
+
+			// 4. Disparar eventos de actualización
+			window.dispatchEvent(new Event('listDataUpdate'));
+			window.dispatchEvent(new Event('kanbanUpdate'));
+
+			toast.error('🗑️ Recordatorio eliminado');
+		} catch (error) {
+			console.error('Error al eliminar el recordatorio:', error);
+			toast.error('Error al eliminar el recordatorio');
+		}
+	};
+
+	useEffect(() => {
+		const loadInitialState = () => {
+			try {
+				const savedColumns = localStorage.getItem('kanbanColumns');
+				const deletedItemsLocal = localStorage.getItem('deletedItems');
+				const deletedIds = deletedItemsLocal
+					? JSON.parse(deletedItemsLocal)
+					: [];
+
+				if (savedColumns) {
+					const parsedColumns = JSON.parse(savedColumns);
+					// Filtrar elementos eliminados de cada columna
+					const filteredColumns = Object.keys(parsedColumns).reduce(
+						(acc, columnId) => {
+							acc[columnId] = parsedColumns[columnId].filter(
+								(item) => !deletedIds.includes(item.id)
+							);
+							return acc;
+						},
+						{}
+					);
+
+					setColumns(filteredColumns);
+				}
+			} catch (error) {
+				console.error('Error cargando estado inicial:', error);
+			}
+		};
+
+		loadInitialState();
+	}, []);
+
 	return (
 		<>
 			<Box
@@ -81,7 +170,19 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 				</Box>
 
 				<Box display='flex' gap={2} alignItems='center'>
-					<Button onClick={resetKanbanData} variant='contained' sx={{ mb: 2 }}>
+					<Button
+						onClick={resetAllData}
+						variant='contained'
+						color='warning'
+						startIcon={<RestartAltIcon />}
+						sx={{
+							mb: 2,
+							transition: 'transform 0.2s',
+							'&:hover': {
+								transform: 'scale(1.05)',
+							},
+						}}
+					>
 						Reiniciar Datos
 					</Button>
 
@@ -223,14 +324,10 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 																	onClick={() => {
 																		if (
 																			confirm(
-																				'¿Quieres que este elemento se elimine por completo?'
+																				'¿Quieres eliminar este recordatorio?'
 																			)
 																		) {
 																			deleteReminder(reminder.id, columnId);
-																			console.log(
-																				'kanban eliminado',
-																				reminder.id
-																			);
 																		}
 																	}}
 																	sx={{
@@ -293,7 +390,7 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 																	right: 1,
 																}}
 															>
-																<Tooltip title='Hecho'>
+																<Tooltip title='Listo'>
 																	<IconButton
 																		size='small'
 																		color='success'

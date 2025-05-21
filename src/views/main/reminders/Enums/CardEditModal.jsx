@@ -71,10 +71,17 @@ export const CardEditModal = ({
 
 		setColumns((prev) => {
 			const newColumns = { ...prev };
-			// Encuentra y reemplaza el recordatorio existente
-			newColumns[columnId] = newColumns[columnId].map((item) =>
-				item.id === updatedReminder.id ? updatedReminder : item
-			);
+			// Añadir el recordatorio actualizado a la columna destino
+			if (
+				!newColumns[columnId].some((item) => item.id === updatedReminder.id)
+			) {
+				newColumns[columnId] = [...newColumns[columnId], updatedReminder];
+			} else {
+				// Si ya existe, actualízalo
+				newColumns[columnId] = newColumns[columnId].map((item) =>
+					item.id === updatedReminder.id ? updatedReminder : item
+				);
+			}
 			return newColumns;
 		});
 

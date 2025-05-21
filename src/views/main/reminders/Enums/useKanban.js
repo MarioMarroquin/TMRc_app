@@ -55,6 +55,23 @@ export const useKanban = () => {
 			});
 		}
 
+		if (reminderData.porVencer) {
+			reminderData.porVencer.forEach((group) => {
+				group.LIST.forEach((item) => {
+					initialColumns['POR VENCER'].push({
+						id: item.id,
+						title: item.SERVICIO,
+						description: formatDate(group.FECHA, item.HORA),
+						type: item.type || 'lead',
+						empresa: item.EMPRESA,
+						cliente: item.CLIENTE,
+						contact: item.CONTACT,
+						folio: item.FOLIO,
+					});
+				});
+			});
+		}
+
 		// Ordenar cada columna por fecha (de más reciente a más antigua)
 		Object.keys(initialColumns).forEach((columnId) => {
 			initialColumns[columnId].sort((a, b) => {
@@ -75,16 +92,14 @@ export const useKanban = () => {
 
 	// Estados
 	const [columns, setColumns] = useState(() => {
-		const saved = localStorage.getItem('kanbanColumns');
-		if (saved) {
-			try {
-				return JSON.parse(saved);
-			} catch (error) {
-				console.error('Error parsing saved kanban data:', error);
-				return transformReminderDataToKanban();
-			}
-		}
-		return transformReminderDataToKanban();
+		const savedColumns = localStorage.getItem('kanbanColumns');
+		return savedColumns
+			? JSON.parse(savedColumns)
+			: {
+					VENCIDO: [],
+					HOY: [],
+					'POR VENCER': [],
+			  };
 	});
 
 	// Estados para modales
@@ -310,7 +325,7 @@ export const useKanban = () => {
 						),
 					}));
 
-					return; // Detenemos aquí la ejecución
+					return;
 				}
 
 				// Para otras columnas, mantenemos el comportamiento original
@@ -346,36 +361,40 @@ export const useKanban = () => {
 
 	const deleteReminder = (id, columnId) => {
 		try {
-			// Eliminar del Kanban
+			// Actualizar columnas
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
-				newColumns[columnId] = newColumns[columnId].filter(
-					(item) => item.id !== id
-				);
+				Object.keys(newColumns).forEach((colId) => {
+					newColumns[colId] = newColumns[colId].filter(
+						(item) => item.id !== id
+					);
+				});
 				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
 			});
 
-			// Eliminar de la lista (listData)
-			const listDataString = localStorage.getItem('listData');
-			if (listDataString) {
-				const listData = JSON.parse(listDataString);
-				const updatedListData = listData
+			// Actualizar listData
+			setListData((prevData) => {
+				const newData = prevData
 					.map((group) => ({
 						...group,
 						LIST: group.LIST.filter((item) => item.id !== id),
 					}))
 					.filter((group) => group.LIST.length > 0);
+				localStorage.setItem('listData', JSON.stringify(newData));
+				return newData;
+			});
 
-				// Actualizar localStorage y emitir evento con los datos actualizados
-				localStorage.setItem('listData', JSON.stringify(updatedListData));
+			// Actualizar deletedItems
+			setDeletedItems((prev) => {
+				const newDeletedItems = [...prev, id];
+				localStorage.setItem('deletedItems', JSON.stringify(newDeletedItems));
+				return newDeletedItems;
+			});
 
-				// Crear y disparar el evento con los datos actualizados directamente
-				const event = new CustomEvent('listDataUpdate', {
-					detail: updatedListData,
-				});
-				window.dispatchEvent(event);
-			}
+			// Disparar eventos
+			window.dispatchEvent(new Event('listDataUpdate'));
+			window.dispatchEvent(new Event('kanbanUpdate'));
 
 			toast.error('🗑️ Recordatorio eliminado');
 		} catch (error) {

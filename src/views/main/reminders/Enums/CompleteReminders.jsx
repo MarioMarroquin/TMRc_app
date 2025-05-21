@@ -21,6 +21,11 @@ const CompleteList = ({
 	openCompletedDeleteDialog,
 	selectedCompletedItem,
 }) => {
+	const handleUndoClick = (rowData) => {
+		console.log('Recordatorio a deshacer:', rowData); // Para debug
+		handleUndoCompleted(rowData);
+	};
+
 	// Columnas para el DataGrid
 	const columns = [
 		{ field: 'FOLIO', headerName: 'Folio', flex: 1 },
@@ -38,7 +43,7 @@ const CompleteList = ({
 						variant='contained'
 						size='small'
 						startIcon={<UndoIcon />}
-						onClick={() => handleUndoCompleted(params.row)}
+						onClick={() => handleUndoClick(params.row)}
 						sx={{
 							minWidth: 'auto',
 							fontSize: '0.7rem',

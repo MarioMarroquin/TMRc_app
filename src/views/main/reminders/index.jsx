@@ -61,6 +61,17 @@ const Reminders = () => {
 		handleMarkAsCompleted,
 	} = useReminders();
 
+	const [columns, setColumns] = useState(() => {
+		const saved = localStorage.getItem('kanbanColumns');
+		return saved
+			? JSON.parse(saved)
+			: {
+					VENCIDO: [],
+					HOY: [],
+					'POR VENCER': [],
+			  };
+	});
+
 	useEffect(() => {
 		const handleListDataUpdate = (event) => {
 			if (event.detail) {
@@ -68,12 +79,20 @@ const Reminders = () => {
 			}
 		};
 
+		const handleKanbanUpdate = (event) => {
+			if (event.detail) {
+				setColumns(event.detail);
+			}
+		};
+
 		window.addEventListener('listDataUpdate', handleListDataUpdate);
+		window.addEventListener('kanbanUpdate', handleKanbanUpdate);
 
 		return () => {
 			window.removeEventListener('listDataUpdate', handleListDataUpdate);
+			window.removeEventListener('kanbanUpdate', handleKanbanUpdate);
 		};
-	}, [setListData]);
+	}, []);
 
 	const [showList, setShowList] = useState(
 		!!JSON.parse(localStorage.getItem('showList')) || false
@@ -111,6 +130,28 @@ const Reminders = () => {
 		}
 	}, [selectedView, showList]);
 
+	const [deletedItems, setDeletedItems] = useState(() => {
+		const stored = localStorage.getItem('deletedItems');
+		return stored ? JSON.parse(stored) : [];
+	});
+
+	useEffect(() => {
+		localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+	}, [deletedItems]);
+
+	useEffect(() => {
+		if (listData) {
+			const filteredData = listData
+				.map((group) => ({
+					...group,
+					LIST: group.LIST.filter((item) => !deletedItems.includes(item.id)),
+				}))
+				.filter((group) => group.LIST.length > 0);
+
+			setListData(filteredData);
+		}
+	}, [showList]);
+
 	return (
 		<Container sx={{ paddingTop: '5px' }}>
 			<Grid
@@ -137,6 +178,12 @@ const Reminders = () => {
 									label='Vencido'
 								/>
 								<FormControlLabel value='hoy' control={<Radio />} label='Hoy' />
+								<FormControlLabel
+									value='porVencer'
+									control={<Radio />}
+									label='Por Vencer'
+								/>
+
 								<FormControlLabel
 									value='Listo'
 									control={<Radio />}
@@ -179,7 +226,15 @@ const Reminders = () => {
 
 			<Fade in={!showList} timeout={150} unmountOnExit>
 				<div>
-					<Kanban handleMarkAsCompleted={handleMarkAsCompleted} />
+					<Kanban
+						handleMarkAsCompleted={handleMarkAsCompleted}
+						setListData={setListData}
+						setDeletedItems={setDeletedItems}
+						deletedItems={deletedItems}
+						setCompletedList={setCompletedList}
+						columns={columns}
+						setColumns={setColumns}
+					/>
 				</div>
 			</Fade>
 
@@ -202,6 +257,10 @@ const Reminders = () => {
 						openEditDialog={openEditDialog}
 						selectedItem={selectedItem}
 						handleEditClick={handleEditClick}
+						deletedItems={deletedItems} // Añade esto
+						setDeletedItems={setDeletedItems}
+						columns={columns}
+						setcolumns={setColumns}
 					/>
 				</div>
 			</Fade>

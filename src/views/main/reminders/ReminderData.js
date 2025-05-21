@@ -148,4 +148,21 @@ export const reminderData = {
 			],
 		},
 	],
+	porVencer: [
+		{
+			FECHA: '2025/04/25',
+			LIST: [
+				{
+					id: 12,
+					FOLIO: '999888777',
+					SERVICIO: 'MANTENIMIENTO',
+					EMPRESA: 'TECHSERV',
+					CLIENTE: 'MARÍA LÓPEZ',
+					CONTACT: 'WHATSAPP',
+					HORA: '15:00',
+					type: 'lead',
+				},
+			],
+		},
+	],
 };
