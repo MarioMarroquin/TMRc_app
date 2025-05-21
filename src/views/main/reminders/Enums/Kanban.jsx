@@ -25,8 +25,6 @@ import { CardEditModal } from '@views/main/reminders/Enums/CardEditModal';
 import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
 import ButtonAddReminder from './ButtonAddReminder';
 import toast from 'react-hot-toast';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import { useResetData } from '@views/main/reminders/useResetData.js';
 
 const COLUMN_LABELS = {
 	VENCIDO: 'VENCIDO',
@@ -75,13 +73,6 @@ const Kanban = ({
 		setTempRemovedItem,
 		setSourceColumnId,
 	} = useKanban();
-
-	const { resetAllData } = useResetData(
-		setListData,
-		setCompletedList,
-		setDeletedItems,
-		setColumns
-	);
 
 	const deleteReminder = (id, columnId) => {
 		try {
@@ -170,22 +161,6 @@ const Kanban = ({
 				</Box>
 
 				<Box display='flex' gap={2} alignItems='center'>
-					<Button
-						onClick={resetAllData}
-						variant='contained'
-						color='warning'
-						startIcon={<RestartAltIcon />}
-						sx={{
-							mb: 2,
-							transition: 'transform 0.2s',
-							'&:hover': {
-								transform: 'scale(1.05)',
-							},
-						}}
-					>
-						Reiniciar Datos
-					</Button>
-
 					<Tooltip title='Agregar nuevo recordatorio'>
 						<IconButton
 							size='small'

@@ -19,7 +19,6 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { useListPersistence } from './useListPersistence';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
-import { useResetData } from '@views/main/reminders/useResetData.js';
 
 const formatearFecha = (fechaStr) => {
 	if (!fechaStr) return 'N/A';
@@ -52,67 +51,47 @@ const ListReminder = ({
 }) => {
 	// Estado local para controlar si los datos ya fueron inicializados
 	const [isInitialized, setIsInitialized] = useState(false);
-	const { resetAllData } = useResetData(
-		setListData,
-		setCompletedList,
-		setDeletedItems
-	);
 
-	// Función para resetear datos
-	const resetListData = useCallback(() => {
-		try {
-			if (
-				window.confirm(
-					'¿Estás seguro de que quieres resetear todos los datos? Esta acción no se puede deshacer.'
-				)
-			) {
-				// Resetear estados
-				setListData(reminderData);
-				setCompletedList([]);
-				if (typeof setDeletedItems === 'function') {
-					setDeletedItems([]);
-				}
-
-				// Limpiar localStorage
-				localStorage.clear(); // Limpia
-
-				toast.success('✔️ Datos restablecidos correctamente');
-			}
-		} catch (error) {
-			console.error('Error al resetear datos:', error);
-			toast.error('Error al resetear los datos');
-		}
-	}, [setListData, setCompletedList, setDeletedItems]);
-
-	const filteredData = useMemo(() => {
-		if (!listData) return [];
-
-		// Ordenar por fecha
-		return [...listData].sort((a, b) => {
-			const dateA = new Date(a.FECHA.replace(/\//g, '-'));
-			const dateB = new Date(b.FECHA.replace(/\//g, '-'));
-			return dateA - dateB;
-		});
-	}, [listData]);
-
-	// Remover cualquier useEffect que esté causando el ciclo infinito
 	useEffect(() => {
-		const handleListDataUpdate = () => {
-			const storedData = localStorage.getItem('listData');
-			if (storedData) {
+		// Este efecto solo se ejecuta una vez al montar el componente
+		if (!isInitialized) {
+			const storedListData = localStorage.getItem('listData');
+			const storedCompletedList = localStorage.getItem('completedList');
+			const storedDeletedItems = localStorage.getItem('deletedItems');
+
+			if (storedListData) {
 				try {
-					setListData(JSON.parse(storedData));
+					const parsedData = JSON.parse(storedListData);
+					if (!Array.isArray(listData) || listData.length === 0) {
+						setListData(parsedData);
+					}
 				} catch (error) {
 					console.error('Error parsing listData:', error);
 				}
 			}
-		};
 
-		window.addEventListener('listDataUpdate', handleListDataUpdate);
-		return () => {
-			window.removeEventListener('listDataUpdate', handleListDataUpdate);
-		};
-	}, []); // Solo se ejecuta una vez al montar el componente
+			if (storedCompletedList) {
+				try {
+					const parsedCompleted = JSON.parse(storedCompletedList);
+					if (!Array.isArray(completedList) || completedList.length === 0) {
+						setCompletedList(parsedCompleted);
+					}
+				} catch (error) {
+					console.error('Error parsing completedList:', error);
+				}
+			}
+
+			if (storedDeletedItems && typeof setDeletedItems === 'function') {
+				try {
+					setDeletedItems(JSON.parse(storedDeletedItems));
+				} catch (error) {
+					console.error('Error parsing deletedItems:', error);
+				}
+			}
+
+			setIsInitialized(true);
+		}
+	}, []); // Solo se ejecuta al montar el componente
 
 	const { updateListData, updateCompletedList } = useListPersistence(
 		listData,
@@ -159,68 +138,46 @@ const ListReminder = ({
 	);
 
 	useEffect(() => {
-		if (!isInitialized) {
-			const storedListData = localStorage.getItem('listData');
-			const storedCompletedList = localStorage.getItem('completedList');
-			const storedDeletedItems = localStorage.getItem('deletedItems');
-
-			if (storedListData) {
+		const handleListDataUpdate = () => {
+			const storedData = localStorage.getItem('listData');
+			if (storedData && isInitialized) {
 				try {
-					setListData(JSON.parse(storedListData));
+					const parsedData = JSON.parse(storedData);
+					if (JSON.stringify(parsedData) !== JSON.stringify(listData)) {
+						setListData(parsedData);
+					}
 				} catch (error) {
 					console.error('Error parsing listData:', error);
 				}
 			}
+		};
 
-			if (storedCompletedList) {
-				try {
-					setCompletedList(JSON.parse(storedCompletedList));
-				} catch (error) {
-					console.error('Error parsing completedList:', error);
-				}
-			}
-
-			if (storedDeletedItems && typeof setDeletedItems === 'function') {
-				try {
-					setDeletedItems(JSON.parse(storedDeletedItems));
-				} catch (error) {
-					console.error('Error parsing deletedItems:', error);
-				}
-			}
-
-			setIsInitialized(true);
-		}
-	}, [isInitialized, setListData, setCompletedList, setDeletedItems]);
+		window.addEventListener('listDataUpdate', handleListDataUpdate);
+		return () => {
+			window.removeEventListener('listDataUpdate', handleListDataUpdate);
+		};
+	}, [isInitialized]); // Solo depende de isInitialized
 
 	useEffect(() => {
-		if (isInitialized) {
+		if (isInitialized && listData) {
 			localStorage.setItem('listData', JSON.stringify(listData));
-			localStorage.setItem('completedList', JSON.stringify(completedList));
-			if (deletedItems) {
-				localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
-			}
 		}
-	}, [listData, completedList, deletedItems, isInitialized]);
+	}, [listData, isInitialized]);
+
+	const filteredData = useMemo(() => {
+		if (!listData) return [];
+		return [...listData].sort((a, b) => {
+			const dateA = new Date(a.FECHA.replace(/\//g, '-'));
+			const dateB = new Date(b.FECHA.replace(/\//g, '-'));
+			return dateA - dateB;
+		});
+	}, [listData]);
 
 	return (
 		<>
 			{/* Agregar el botón de reseteo en la parte superior */}
 			<Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
 				<Typography variant='h6'>Lista de Recordatorios</Typography>
-				<Button
-					variant='contained'
-					color='warning'
-					onClick={resetAllData}
-					startIcon={<RestartAltIcon />}
-					sx={{
-						transition: 'transform 0.2s',
-						'&:hover': {
-							transform: 'scale(1.05)',
-						},
-					}}
-				>
-					Resetear Datos
-				</Button>
 			</Box>
 
 			<Grid container spacing={20} sx={{ flexDirection: 'column-reverse' }}>
