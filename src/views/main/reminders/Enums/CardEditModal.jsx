@@ -63,16 +63,20 @@ export const CardEditModal = ({
 		}
 
 		const updatedReminder = {
-			...(tempRemovedItem || reminder), // Usar tempRemovedItem si existe
+			...(tempRemovedItem || reminder),
 			title: editedReminder.title.trim(),
 			description: `${editedReminder.date} - ${editedReminder.time}`,
 			type: reminder?.type || 'personal',
 		};
 
-		setColumns((prev) => ({
-			...prev,
-			[columnId]: [...prev[columnId], updatedReminder],
-		}));
+		setColumns((prev) => {
+			const newColumns = { ...prev };
+			// Encuentra y reemplaza el recordatorio existente
+			newColumns[columnId] = newColumns[columnId].map((item) =>
+				item.id === updatedReminder.id ? updatedReminder : item
+			);
+			return newColumns;
+		});
 
 		// Limpiar estados temporales
 		setTempRemovedItem(null);

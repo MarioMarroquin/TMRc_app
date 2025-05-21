@@ -184,12 +184,9 @@ export const useKanban = () => {
 
 		setColumns((prev) => {
 			const newColumns = { ...prev };
-			const targetColumn = activeColumn;
-
-			newColumns[targetColumn] = newColumns[targetColumn].map((item) =>
+			newColumns[activeColumn] = newColumns[activeColumn].map((item) =>
 				item.id === itemToEdit.id ? updatedReminder : item
 			);
-
 			return newColumns;
 		});
 

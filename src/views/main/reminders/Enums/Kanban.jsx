@@ -23,6 +23,7 @@ import { CreateReminderModal } from '@views/main/reminders/Enums/CreateReminderM
 import { QuickReminderModal } from '@views/main/reminders/Enums/QuickReminderModal.jsx';
 import { CardEditModal } from '@views/main/reminders/Enums/CardEditModal';
 import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
+import ButtonAddReminder from './ButtonAddReminder';
 
 const COLUMN_LABELS = {
 	VENCIDO: 'VENCIDO',
@@ -69,29 +70,40 @@ const Kanban = ({ handleMarkAsCompleted }) => {
 
 	return (
 		<>
-			<Box display='flex' justifyContent='flex-start' p={1}>
-				<Tooltip title='Agregar nuevo recordatorio'>
-					<IconButton
-						size='small'
-						onClick={() => handleOpenModal('POR VENCER')} // Cambiar 'HOY' por 'POR VENCER'
-						sx={{
-							backgroundColor: 'black',
-							color: 'white',
-							p: 7,
-							transition: 'transform 0.2s ease',
-							'&:hover': {
-								transform: 'scale(1.1)',
-								backgroundColor: 'black',
-							},
-						}}
-					>
-						<AddIcon fontSize='small' />
-					</IconButton>
-				</Tooltip>
+			<Box
+				display='flex'
+				justifyContent='space-between'
+				alignItems='center'
+				p={1}
+			>
+				<Box>
+					<ButtonAddReminder />
+				</Box>
 
-				<Button onClick={resetKanbanData} variant='contained' sx={{ mb: 2 }}>
-					Reiniciar Datos
-				</Button>
+				<Box display='flex' gap={2} alignItems='center'>
+					<Button onClick={resetKanbanData} variant='contained' sx={{ mb: 2 }}>
+						Reiniciar Datos
+					</Button>
+
+					<Tooltip title='Agregar nuevo recordatorio'>
+						<IconButton
+							size='small'
+							onClick={() => handleOpenModal('POR VENCER')}
+							sx={{
+								backgroundColor: 'black',
+								color: 'white',
+								p: 7,
+								transition: 'transform 0.2s ease',
+								'&:hover': {
+									transform: 'scale(1.1)',
+									backgroundColor: 'black',
+								},
+							}}
+						>
+							<AddIcon fontSize='small' />
+						</IconButton>
+					</Tooltip>
+				</Box>
 			</Box>
 
 			{/* Contenedor Kanban con scroll y mayor espacio entre columnas */}
