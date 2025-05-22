@@ -23,6 +23,8 @@ import { CardEditModal } from './CardEditModal';
 import { useKanban } from './useKanban';
 import ButtonAddReminder from './ButtonAddReminder';
 import toast from 'react-hot-toast';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { useResetData } from '@views/main/reminders/useResetData.js';
 
 const COLUMN_LABELS = {
 	VENCIDO: 'VENCIDO',
@@ -61,7 +63,18 @@ const Kanban = ({
 		setSourceColumnId,
 	} = useKanban();
 
+<<<<<<< HEAD
 	const deleteReminder = async (id, columnId) => {
+=======
+	const { resetAllData } = useResetData(
+		setListData,
+		setCompletedList,
+		setDeletedItems,
+		setColumns
+	);
+
+	const deleteReminder = (id, columnId) => {
+>>>>>>> parent of 3a9f7c4 (feat: try to reset dat for working but it doesn't)
 		try {
 			if (!window.confirm('¿Estás seguro de eliminar este recordatorio?')) {
 				return;
@@ -192,6 +205,22 @@ const Kanban = ({
 				</Box>
 
 				<Box display='flex' gap={2} alignItems='center'>
+					<Button
+						onClick={resetAllData}
+						variant='contained'
+						color='warning'
+						startIcon={<RestartAltIcon />}
+						sx={{
+							mb: 2,
+							transition: 'transform 0.2s',
+							'&:hover': {
+								transform: 'scale(1.05)',
+							},
+						}}
+					>
+						Reiniciar Datos
+					</Button>
+
 					<Tooltip title='Agregar nuevo recordatorio'>
 						<IconButton
 							size='small'

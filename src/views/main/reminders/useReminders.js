@@ -331,69 +331,16 @@ export const useReminders = () => {
 		localStorage.setItem('reminders', JSON.stringify(data));
 	}, []);
 
-	const saveStateToLocalStorage = useCallback((data) => {
+	const saveStateToLocalStorage = (data) => {
 		try {
-			// Comparar con el estado actual en localStorage antes de guardar
-			const currentState = {
-				columns: localStorage.getItem('kanbanColumns'),
-				completedList: localStorage.getItem('completedList'),
-				listData: localStorage.getItem('listData'),
-				deletedItems: localStorage.getItem('deletedItems'),
-			};
-
-			const newState = {
-				columns: JSON.stringify(data.columns),
-				completedList: JSON.stringify(data.completedList),
-				listData: JSON.stringify(data.listData),
-				deletedItems: JSON.stringify(data.deletedItems),
-			};
-
-			// Solo guardar los valores que han cambiado
-			if (currentState.columns !== newState.columns) {
-				localStorage.setItem('kanbanColumns', newState.columns);
-			}
-			if (currentState.completedList !== newState.completedList) {
-				localStorage.setItem('completedList', newState.completedList);
-			}
-			if (currentState.listData !== newState.listData) {
-				localStorage.setItem('listData', newState.listData);
-			}
-			if (currentState.deletedItems !== newState.deletedItems) {
-				localStorage.setItem('deletedItems', newState.deletedItems);
-			}
+			Object.entries(data).forEach(([key, value]) => {
+				localStorage.setItem(key, JSON.stringify(value));
+			});
+			console.log('Todo el estado guardado correctamente');
 		} catch (error) {
 			console.error('Error guardando en localStorage:', error);
 		}
-	}, []);
-
-	// Modifica el useEffect que causa el loop
-	useEffect(() => {
-		const shouldUpdate =
-			JSON.stringify({
-				columns,
-				completedList,
-				listData,
-				deletedItems,
-			}) !== localStorage.getItem('lastSavedState');
-
-		if (shouldUpdate) {
-			saveStateToLocalStorage({
-				columns,
-				completedList,
-				listData,
-				deletedItems,
-			});
-			localStorage.setItem(
-				'lastSavedState',
-				JSON.stringify({
-					columns,
-					completedList,
-					listData,
-					deletedItems,
-				})
-			);
-		}
-	}, [columns, completedList, listData, deletedItems, saveStateToLocalStorage]);
+	};
 
 	const loadStateFromLocalStorage = () => {
 		try {
@@ -714,85 +661,39 @@ export const useReminders = () => {
 	};
 
 	useEffect(() => {
-		const handleKanbanUpdate = (event) => {
+		const handleKanbanUpdate = () => {
 			try {
-				// Obtener los datos del evento si están disponibles, sino usar localStorage
-				let kanbanData = event.detail;
+				const kanbanData = JSON.parse(localStorage.getItem('kanbanColumns'));
+				const listDataString = localStorage.getItem('listData');
 
-				if (!kanbanData) {
-					const storedData = localStorage.getItem('kanbanColumns');
-					if (!storedData) return;
-					kanbanData = JSON.parse(storedData);
-				}
+				if (kanbanData && listDataString) {
+					const currentListData = JSON.parse(listDataString);
 
-				// Verificar que kanbanData tenga la estructura esperada
-				if (!kanbanData || typeof kanbanData !== 'object') {
-					console.warn('Datos de Kanban inválidos');
-					return;
-				}
+					// Obtener todos los IDs del Kanban, incluyendo POR VENCER
+					const kanbanIds = new Set([
+						...kanbanData.VENCIDO.map((item) => item.id),
+						...kanbanData.HOY.map((item) => item.id),
+						...kanbanData['POR VENCER'].map((item) => item.id),
+					]);
 
-				// Función auxiliar para mapear items de manera segura
-				const mapItems = (items = []) => {
-					if (!Array.isArray(items)) return [];
-
-					return items
-						.map((item) => ({
-							id: item?.id || Date.now(),
-							SERVICIO: item?.title || '',
-							EMPRESA: item?.empresa || '',
-							CLIENTE: item?.cliente || '',
-							CONTACT: item?.contact || '',
-							FOLIO: item?.folio || '',
-							FECHA: item?.FECHA || new Date().toLocaleDateString(),
-							HORA: item?.HORA || '00:00',
-							type: item?.type || 'lead',
+					const updatedListData = currentListData
+						.map((group) => ({
+							...group,
+							LIST: group.LIST.filter((item) => kanbanIds.has(item.id)),
 						}))
-						.filter((item) => item.id); // Filtrar items sin ID
-				};
+						.filter((group) => group.LIST.length > 0);
 
-				// Crear nuevo listData con validaciones
-				const newListData = {
-					pasado: [
-						{
-							FECHA: new Date().toLocaleDateString(),
-							LIST: mapItems(kanbanData.VENCIDO),
-						},
-					],
-					hoy: [
-						{
-							FECHA: new Date().toLocaleDateString(),
-							LIST: mapItems(kanbanData.HOY),
-						},
-					],
-					porVencer: [
-						{
-							FECHA: new Date().toLocaleDateString(),
-							LIST: mapItems(kanbanData['POR VENCER']),
-						},
-					],
-				};
-
-				// Filtrar grupos vacíos
-				Object.keys(newListData).forEach((key) => {
-					newListData[key] = newListData[key].filter(
-						(group) => Array.isArray(group.LIST) && group.LIST.length > 0
-					);
-				});
-
-				// Solo actualizar si hay datos válidos
-				if (Object.values(newListData).some((arr) => arr.length > 0)) {
-					setListData(newListData);
-					localStorage.setItem('listData', JSON.stringify(newListData));
+					setListData(updatedListData);
+					localStorage.setItem('listData', JSON.stringify(updatedListData));
 				}
 			} catch (error) {
 				console.error('Error en la sincronización Kanban-Lista:', error);
-				// No lanzar error al usuario, manejar silenciosamente
 			}
 		};
 
 		window.addEventListener('kanbanUpdate', handleKanbanUpdate);
 		return () => window.removeEventListener('kanbanUpdate', handleKanbanUpdate);
-	}, [setListData]);
+	}, []);
 
 	return {
 		listData,

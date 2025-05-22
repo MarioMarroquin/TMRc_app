@@ -89,40 +89,42 @@ export const useResetData = (
 				// Limpiar localStorage primero
 				localStorage.clear();
 
-				// Crear copia profunda de los datos originales
-				const originalListData = JSON.parse(JSON.stringify(reminderData));
-				const kanbanData = transformReminderDataToKanban();
-
-				// Resetear estados
+				// Resetear lista de completados y eliminados
 				setCompletedList([]);
 				if (typeof setDeletedItems === 'function') {
 					setDeletedItems([]);
 				}
+
+				// Crear copia profunda de los datos originales
+				const originalListData = JSON.parse(JSON.stringify(reminderData));
 
 				// Resetear la lista
 				setListData(originalListData);
 
 				// Resetear el Kanban
 				if (typeof setColumns === 'function') {
+					const kanbanData = transformReminderDataToKanban();
 					setColumns(kanbanData);
 				}
 
-				// Guardar en localStorage
+				// Guardar los estados iniciales en localStorage
 				localStorage.setItem('listData', JSON.stringify(originalListData));
 				localStorage.setItem('completedList', JSON.stringify([]));
 				localStorage.setItem('deletedItems', JSON.stringify([]));
-				localStorage.setItem('kanbanColumns', JSON.stringify(kanbanData));
+				localStorage.setItem(
+					'kanbanColumns',
+					JSON.stringify(transformReminderDataToKanban())
+				);
 
-				// Disparar eventos con la estructura correcta
+				// Forzar actualización en todos los componentes
 				window.dispatchEvent(
 					new CustomEvent('listDataUpdate', {
 						detail: originalListData,
 					})
 				);
-
 				window.dispatchEvent(
 					new CustomEvent('kanbanUpdate', {
-						detail: kanbanData,
+						detail: transformReminderDataToKanban(),
 					})
 				);
 
