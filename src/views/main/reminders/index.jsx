@@ -152,6 +152,22 @@ const Reminders = () => {
 		}
 	}, [showList]);
 
+	useEffect(() => {
+		const initializeData = () => {
+			try {
+				const savedColumns = localStorage.getItem('kanbanColumns');
+				if (!savedColumns) {
+					const defaultData = transformReminderDataToKanban();
+					localStorage.setItem('kanbanColumns', JSON.stringify(defaultData));
+				}
+			} catch (error) {
+				console.error('Error initializing data:', error);
+			}
+		};
+
+		initializeData();
+	}, []);
+
 	return (
 		<Container sx={{ paddingTop: '5px' }}>
 			<Grid

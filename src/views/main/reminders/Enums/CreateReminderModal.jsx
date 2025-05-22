@@ -77,7 +77,7 @@ export const CreateReminderModal = ({ open, onClose, columns, setColumns }) => {
 		const newReminder = {
 			id: Date.now(),
 			title: title.trim(),
-			description: `${selectedDate} - ${selectedTime}`,
+			description: `${selectedDate} - ${selectedTime}`, // Ya está en el formato correcto
 			type: 'personal',
 		};
 

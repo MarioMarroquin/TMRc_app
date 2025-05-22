@@ -4,6 +4,16 @@ import { format, addDays } from 'date-fns';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
 
 export const useKanban = () => {
+	const formatDate = (dateString, hora) => {
+		if (!dateString) return '';
+		const [year, month, day] = dateString.split('/');
+		const formattedDate = `${day.padStart(2, '0')}/${month.padStart(
+			2,
+			'0'
+		)}/${year}`;
+		return hora ? `${formattedDate} - ${hora}` : formattedDate;
+	};
+
 	const transformReminderDataToKanban = () => {
 		const initialColumns = {
 			VENCIDO: [],
@@ -11,98 +21,74 @@ export const useKanban = () => {
 			'POR VENCER': [],
 		};
 
-		const formatDate = (dateString, hora) => {
-			const [year, month, day] = dateString.split('/');
-			return `${day.padStart(2, '0')}/${month.padStart(
-				2,
-				'0'
-			)}/${year} - ${hora}`;
-		};
-
-		// Procesar datos de "pasado" para la columna VENCIDO
-		if (reminderData.pasado) {
-			reminderData.pasado.forEach((group) => {
-				group.LIST.forEach((item) => {
-					initialColumns.VENCIDO.push({
-						id: item.id,
-						title: item.SERVICIO,
-						description: formatDate(group.FECHA, item.HORA),
-						type: item.type || 'lead',
-						empresa: item.EMPRESA,
-						cliente: item.CLIENTE,
-						contact: item.CONTACT,
-						folio: item.FOLIO,
-					});
+		reminderData.pasado?.forEach((group) => {
+			group.LIST.forEach((item) => {
+				initialColumns.VENCIDO.push({
+					id: item.id,
+					title: item.SERVICIO,
+					description: formatDate(group.FECHA, item.HORA),
+					type: item.type || 'lead',
+					empresa: item.EMPRESA,
+					cliente: item.CLIENTE,
+					contact: item.CONTACT,
+					folio: item.FOLIO,
 				});
 			});
-		}
+		});
 
-		// Procesar datos de "hoy" para la columna HOY
-		if (reminderData.hoy) {
-			reminderData.hoy.forEach((group) => {
-				group.LIST.forEach((item) => {
-					initialColumns.HOY.push({
-						id: item.id,
-						title: item.SERVICIO,
-						description: formatDate(group.FECHA, item.HORA),
-						type: item.type || 'lead',
-						empresa: item.EMPRESA,
-						cliente: item.CLIENTE,
-						contact: item.CONTACT,
-						folio: item.FOLIO,
-					});
+		reminderData.hoy?.forEach((group) => {
+			group.LIST.forEach((item) => {
+				initialColumns.HOY.push({
+					id: item.id,
+					title: item.SERVICIO,
+					description: formatDate(group.FECHA, item.HORA),
+					type: item.type || 'lead',
+					empresa: item.EMPRESA,
+					cliente: item.CLIENTE,
+					contact: item.CONTACT,
+					folio: item.FOLIO,
 				});
 			});
-		}
+		});
 
-		if (reminderData.porVencer) {
-			reminderData.porVencer.forEach((group) => {
-				group.LIST.forEach((item) => {
-					initialColumns['POR VENCER'].push({
-						id: item.id,
-						title: item.SERVICIO,
-						description: formatDate(group.FECHA, item.HORA),
-						type: item.type || 'lead',
-						empresa: item.EMPRESA,
-						cliente: item.CLIENTE,
-						contact: item.CONTACT,
-						folio: item.FOLIO,
-					});
+		reminderData.porVencer?.forEach((group) => {
+			group.LIST.forEach((item) => {
+				initialColumns['POR VENCER'].push({
+					id: item.id,
+					title: item.SERVICIO,
+					description: formatDate(group.FECHA, item.HORA),
+					type: item.type || 'lead',
+					empresa: item.EMPRESA,
+					cliente: item.CLIENTE,
+					contact: item.CONTACT,
+					folio: item.FOLIO,
 				});
-			});
-		}
-
-		// Ordenar cada columna por fecha (de más reciente a más antigua)
-		Object.keys(initialColumns).forEach((columnId) => {
-			initialColumns[columnId].sort((a, b) => {
-				const [dateA] = a.description.split(' - ');
-				const [dateB] = b.description.split(' - ');
-				const [dayA, monthA, yearA] = dateA.split('/');
-				const [dayB, monthB, yearB] = dateB.split('/');
-				// Invertimos el orden de la comparación para ordenar de más reciente a más antigua
-				return (
-					new Date(`${yearB}-${monthB}-${dayB}`) -
-					new Date(`${yearA}-${monthA}-${dayA}`)
-				);
 			});
 		});
 
 		return initialColumns;
 	};
 
-	// Estados
-	const [columns, setColumns] = useState(() => {
-		const savedColumns = localStorage.getItem('kanbanColumns');
-		return savedColumns
-			? JSON.parse(savedColumns)
-			: {
-					VENCIDO: [],
-					HOY: [],
-					'POR VENCER': [],
-			  };
-	});
+	const getInitialData = () => {
+		try {
+			const savedColumns = localStorage.getItem('kanbanColumns');
+			if (savedColumns) {
+				const parsedColumns = JSON.parse(savedColumns);
+				const hasData = Object.values(parsedColumns).some(
+					(column) => column.length > 0
+				);
+				if (hasData) {
+					return parsedColumns;
+				}
+			}
+			return transformReminderDataToKanban();
+		} catch (error) {
+			console.error('Error loading kanban data:', error);
+			return transformReminderDataToKanban();
+		}
+	};
 
-	// Estados para modales
+	const [columns, setColumns] = useState(getInitialData);
 	const [modalOpen, setModalOpen] = useState(false);
 	const [quickModalOpen, setQuickModalOpen] = useState(false);
 	const [selectedReminder, setSelectedReminder] = useState(null);
@@ -111,36 +97,50 @@ export const useKanban = () => {
 	const [itemToEdit, setItemToEdit] = useState(null);
 	const [tempRemovedItem, setTempRemovedItem] = useState(null);
 	const [sourceColumnId, setSourceColumnId] = useState(null);
-
-	// Estados para formularios
 	const [selectedDate, setSelectedDate] = useState('');
 	const [selectedTime, setSelectedTime] = useState('');
 	const [title, setTitle] = useState('');
 
-	// Efecto para persistir en localStorage
 	useEffect(() => {
-		if (Object.keys(columns).length > 0) {
+		if (columns && Object.keys(columns).length > 0) {
 			localStorage.setItem('kanbanColumns', JSON.stringify(columns));
 		}
 	}, [columns]);
+
 	useEffect(() => {
-		const handleKanbanUpdate = () => {
-			const saved = localStorage.getItem('kanbanColumns');
-			if (saved) {
-				try {
-					setColumns(JSON.parse(saved));
-				} catch (error) {
-					console.error('Error updating kanban:', error);
-				}
+		const handleStorageChange = (e) => {
+			if (e.key === 'kanbanColumns') {
+				const newData = JSON.parse(e.newValue);
+				setColumns(newData);
 			}
 		};
 
-		window.addEventListener('kanbanUpdate', handleKanbanUpdate);
-
-		return () => {
-			window.removeEventListener('kanbanUpdate', handleKanbanUpdate);
-		};
+		window.addEventListener('storage', handleStorageChange);
+		return () => window.removeEventListener('storage', handleStorageChange);
 	}, []);
+
+	const sortColumnByDate = (cards) => {
+		return [...cards].sort((a, b) => {
+			try {
+				// Extraer fechas y horas
+				const [dateStrA, timeA = '00:00'] = a.description.split(' - ');
+				const [dateStrB, timeB = '00:00'] = b.description.split(' - ');
+
+				// Convertir dd/mm/yyyy a objetos Date
+				const [dayA, monthA, yearA] = dateStrA.split('/');
+				const [dayB, monthB, yearB] = dateStrB.split('/');
+
+				const dateA = new Date(`${yearA}-${monthA}-${dayA}T${timeA}`);
+				const dateB = new Date(`${yearB}-${monthB}-${dayB}T${timeB}`);
+
+				// Ordenar de más reciente a más antiguo (orden descendente)
+				return dateB.getTime() - dateA.getTime();
+			} catch (error) {
+				console.error('Error en ordenamiento:', error);
+				return 0;
+			}
+		});
+	};
 
 	// Generación de fechas y horas disponibles
 	const generateAvailableDates = () => {
@@ -174,10 +174,13 @@ export const useKanban = () => {
 			type: 'personal',
 		};
 
-		setColumns((prev) => ({
-			...prev,
-			[activeColumn]: [...prev[activeColumn], newReminder],
-		}));
+		setColumns((prev) => {
+			const updatedColumn = [...prev[activeColumn], newReminder];
+			return {
+				...prev,
+				[activeColumn]: sortColumnByDate(updatedColumn),
+			};
+		});
 
 		handleCloseModal();
 		toast.success('✔️ Recordatorio creado');
@@ -186,22 +189,53 @@ export const useKanban = () => {
 	const handleCardEditSave = (editedReminder) => {
 		if (!itemToEdit) return;
 
+		// Crear el recordatorio actualizado
 		const updatedReminder = {
 			...itemToEdit,
 			title: editedReminder.title,
-			empresa: editedReminder.empresa,
-			cliente: editedReminder.cliente,
-			contact: editedReminder.contact,
-			folio: editedReminder.folio,
 			description: `${editedReminder.date} - ${editedReminder.time}`,
 			type: editedReminder.type,
 		};
 
 		setColumns((prev) => {
 			const newColumns = { ...prev };
-			newColumns[activeColumn] = newColumns[activeColumn].map((item) =>
-				item.id === itemToEdit.id ? updatedReminder : item
-			);
+
+			// Para la columna POR VENCER, aplicamos ordenamiento especial
+			if (activeColumn === 'POR VENCER') {
+				// Remover la card antigua
+				const otherCards = newColumns['POR VENCER'].filter(
+					(item) => item.id !== itemToEdit.id
+				);
+
+				// Añadir la nueva card y ordenar todo el array
+				const allCards = [...otherCards, updatedReminder];
+				newColumns['POR VENCER'] = allCards.sort((a, b) => {
+					try {
+						// Extraer fechas y horas
+						const [dateA] = a.description.split(' - ');
+						const [dateB] = b.description.split(' - ');
+
+						// Convertir dd/mm/yyyy a objetos Date para comparación
+						const [dayA, monthA, yearA] = dateA.split('/');
+						const [dayB, monthB, yearB] = dateB.split('/');
+
+						const dateObjA = new Date(yearA, monthA - 1, dayA);
+						const dateObjB = new Date(yearB, monthB - 1, dayB);
+
+						// Ordenar de más reciente a más antiguo
+						return dateObjB - dateObjA;
+					} catch (error) {
+						console.error('Error en ordenamiento:', error);
+						return 0;
+					}
+				});
+			} else {
+				// Para otras columnas, mantener el comportamiento normal
+				newColumns[activeColumn] = newColumns[activeColumn].map((item) =>
+					item.id === itemToEdit.id ? updatedReminder : item
+				);
+			}
+
 			return newColumns;
 		});
 
@@ -210,17 +244,25 @@ export const useKanban = () => {
 	};
 
 	const handleQuickReminderSave = () => {
+		const today = new Date();
+		const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(
+			today.getMonth() + 1
+		).padStart(2, '0')}/${today.getFullYear()}`;
+
 		const newReminder = {
 			id: Date.now(),
 			title,
-			description: `${selectedDate} - ${selectedTime}`,
+			description: `${formattedDate} - ${selectedTime}`,
 			type: 'personal',
 		};
 
-		setColumns((prev) => ({
-			...prev,
-			[quickModalColumn]: [...prev[quickModalColumn], newReminder],
-		}));
+		setColumns((prev) => {
+			const updatedColumn = [...prev[quickModalColumn], newReminder];
+			return {
+				...prev,
+				[quickModalColumn]: sortColumnByDate(updatedColumn),
+			};
+		});
 
 		handleCloseQuickModal();
 		toast.success('✔️ Recordatorio rápido creado');
@@ -253,14 +295,18 @@ export const useKanban = () => {
 
 	const handleOpenModal = (columnId, reminder = null) => {
 		setActiveColumn(columnId);
-		setSelectedReminder(reminder);
-		setModalOpen(true);
 		if (reminder) {
+			// Si es una edición (doble clic), solo abrimos el modal de edición
 			setItemToEdit(reminder);
 			const [date, time] = reminder.description.split(' - ');
 			setSelectedDate(date);
 			setSelectedTime(time);
 			setTitle(reminder.title);
+			setModalOpen(false); // Aseguramos que el modal de creación esté cerrado
+		} else {
+			// Si es creación nueva
+			setModalOpen(true);
+			setItemToEdit(null); // Aseguramos que no haya item en edición
 		}
 	};
 
@@ -280,19 +326,6 @@ export const useKanban = () => {
 		e.target.style.opacity = '';
 	};
 
-	const sortColumnByDate = (cards) => {
-		return cards.sort((a, b) => {
-			const [dateA] = a.description.split(' - ');
-			const [dateB] = b.description.split(' - ');
-			const [dayA, monthA, yearA] = dateA.split('/');
-			const [dayB, monthB, yearB] = dateB.split('/');
-			return (
-				new Date(`${yearB}-${monthB}-${dayB}`) -
-				new Date(`${yearA}-${monthA}-${dayA}`)
-			);
-		});
-	};
-
 	const handleDrop = (e, targetColumnId) => {
 		e.preventDefault();
 		const reminderId = e.dataTransfer.getData('reminderId');
@@ -306,40 +339,38 @@ export const useKanban = () => {
 			const reminder = sourceList.find((item) => item.id === reminderIdNum);
 
 			if (reminder) {
-				// Si la columna destino es "POR VENCER", abrimos el modal de edición
 				if (targetColumnId === 'POR VENCER') {
 					setItemToEdit(reminder);
 					setActiveColumn(targetColumnId);
 					setSelectedReminder(reminder);
 					setModalOpen(true);
-
-					// Guardamos temporalmente la información de origen
 					setSourceColumnId(sourceColumnId);
-					setTempRemovedItem(reminder);
 
-					// Eliminamos el recordatorio de la columna origen
+					// Remover de la columna origen
 					setColumns((prev) => ({
 						...prev,
 						[sourceColumnId]: prev[sourceColumnId].filter(
 							(item) => item.id !== reminderIdNum
 						),
 					}));
-
 					return;
 				}
 
-				// Para otras columnas, mantenemos el comportamiento original
+				// Para otras columnas
 				const today = new Date();
-				const dd = String(today.getDate()).padStart(2, '0');
-				const mm = String(today.getMonth() + 1).padStart(2, '0');
-				const yyyy = today.getFullYear();
-				const currentDate = `${dd}/${mm}/${yyyy}`;
+				const formattedDate = `${String(today.getDate()).padStart(
+					2,
+					'0'
+				)}/${String(today.getMonth() + 1).padStart(
+					2,
+					'0'
+				)}/${today.getFullYear()}`;
 
 				const updatedReminder = {
 					...reminder,
 					description:
 						targetColumnId === 'HOY'
-							? `${currentDate} - ${reminder.description.split(' - ')[1]}`
+							? `${formattedDate} - ${reminder.description.split(' - ')[1]}`
 							: reminder.description,
 				};
 
@@ -357,6 +388,14 @@ export const useKanban = () => {
 				toast.success('✔️ Recordatorio movido exitosamente');
 			}
 		}
+	};
+
+	const getCurrentDate = () => {
+		const today = new Date();
+		const dd = String(today.getDate()).padStart(2, '0');
+		const mm = String(today.getMonth() + 1).padStart(2, '0');
+		const yyyy = today.getFullYear();
+		return `${dd}/${mm}/${yyyy}`;
 	};
 
 	const deleteReminder = (id, columnId) => {

@@ -12,17 +12,15 @@ import {
 	Divider,
 	Fade,
 	Chip,
-	Button,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import { CreateReminderModal } from '@views/main/reminders/Enums/CreateReminderModal.jsx';
-import { QuickReminderModal } from '@views/main/reminders/Enums/QuickReminderModal.jsx';
-import { CardEditModal } from '@views/main/reminders/Enums/CardEditModal';
-import { useKanban } from '@views/main/reminders/Enums/useKanban.js';
+import { CreateReminderModal } from './CreateReminderModal';
+import QuickReminderModal from '@views/main/reminders/Enums/QuickReminderModal.jsx';
+import { CardEditModal } from './CardEditModal';
+import { useKanban } from './useKanban';
 import ButtonAddReminder from './ButtonAddReminder';
 import toast from 'react-hot-toast';
 
@@ -55,17 +53,6 @@ const Kanban = ({
 		handleCloseModal,
 		handleOpenQuickModal,
 		handleCloseQuickModal,
-		handleSaveQuickReminder,
-		handleSaveEdit,
-		resetKanbanData,
-		selectedDate,
-		setSelectedDate,
-		selectedTime,
-		setSelectedTime,
-		title,
-		setTitle,
-		availableDates,
-		availableTimes,
 		handleQuickReminderSave,
 		handleCardEditSave,
 		tempRemovedItem,
@@ -74,19 +61,26 @@ const Kanban = ({
 		setSourceColumnId,
 	} = useKanban();
 
-	const deleteReminder = (id, columnId) => {
+	const deleteReminder = async (id, columnId) => {
 		try {
-			// 1. Eliminar del Kanban
+			if (!window.confirm('¿Estás seguro de eliminar este recordatorio?')) {
+				return;
+			}
+
+			// 1. Encontrar el recordatorio a eliminar
+			const reminderToDelete = columns[columnId].find((item) => item.id === id);
+			if (!reminderToDelete) return;
+
+			// 2. Actualizar el estado de columns
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
 				newColumns[columnId] = newColumns[columnId].filter(
 					(item) => item.id !== id
 				);
-				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
 			});
 
-			// 2. Eliminar de listData y actualizar deletedItems
+			// 3. Actualizar listData
 			setListData((prevData) => {
 				const newData = prevData
 					.map((group) => ({
@@ -94,59 +88,96 @@ const Kanban = ({
 						LIST: group.LIST.filter((item) => item.id !== id),
 					}))
 					.filter((group) => group.LIST.length > 0);
-				localStorage.setItem('listData', JSON.stringify(newData));
 				return newData;
 			});
 
-			// 3. Actualizar deletedItems
-			setDeletedItems((prev) => {
-				const newDeletedItems = [...prev, id];
-				localStorage.setItem('deletedItems', JSON.stringify(newDeletedItems));
-				return newDeletedItems;
-			});
+			// 4. Actualizar deletedItems
+			setDeletedItems((prev) => [...prev, id]);
 
-			// 4. Disparar eventos de actualización
-			window.dispatchEvent(new Event('listDataUpdate'));
-			window.dispatchEvent(new Event('kanbanUpdate'));
+			// 5. Guardar en localStorage
+			const updatedColumns = { ...columns };
+			updatedColumns[columnId] = updatedColumns[columnId].filter(
+				(item) => item.id !== id
+			);
+			localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
 
-			toast.error('🗑️ Recordatorio eliminado');
+			// 6. Notificar al usuario
+			toast.success('🗑️ Recordatorio eliminado');
 		} catch (error) {
 			console.error('Error al eliminar el recordatorio:', error);
 			toast.error('Error al eliminar el recordatorio');
 		}
 	};
 
+	const handleComplete = async (reminder, columnId) => {
+		try {
+			// 1. Añadir a la lista de completados
+			const completedItem = {
+				...reminder,
+				completedDate: new Date().toISOString(),
+			};
+
+			setCompletedList((prev) => [...prev, completedItem]);
+
+			// 2. Eliminar de las columnas del Kanban
+			setColumns((prev) => {
+				const newColumns = { ...prev };
+				newColumns[columnId] = newColumns[columnId].filter(
+					(item) => item.id !== reminder.id
+				);
+				return newColumns;
+			});
+
+			// 3. Actualizar listData
+			setListData((prev) =>
+				prev
+					.map((group) => ({
+						...group,
+						LIST: group.LIST.filter((item) => item.id !== reminder.id),
+					}))
+					.filter((group) => group.LIST.length > 0)
+			);
+
+			// 4. Actualizar localStorage
+			localStorage.setItem(
+				'completedList',
+				JSON.stringify([...completedList, completedItem])
+			);
+
+			// 5. Notificar éxito
+			toast.success('✔️ Recordatorio completado');
+		} catch (error) {
+			console.error('Error al completar el recordatorio:', error);
+			toast.error('Error al completar el recordatorio');
+		}
+	};
+
+	// Efecto para restaurar datos al montar
 	useEffect(() => {
-		const loadInitialState = () => {
+		const restoreData = () => {
 			try {
 				const savedColumns = localStorage.getItem('kanbanColumns');
-				const deletedItemsLocal = localStorage.getItem('deletedItems');
-				const deletedIds = deletedItemsLocal
-					? JSON.parse(deletedItemsLocal)
-					: [];
-
 				if (savedColumns) {
 					const parsedColumns = JSON.parse(savedColumns);
-					// Filtrar elementos eliminados de cada columna
+					// Filtrar items eliminados y completados
 					const filteredColumns = Object.keys(parsedColumns).reduce(
 						(acc, columnId) => {
 							acc[columnId] = parsedColumns[columnId].filter(
-								(item) => !deletedIds.includes(item.id)
+								(item) => !deletedItems.includes(item.id)
 							);
 							return acc;
 						},
 						{}
 					);
-
 					setColumns(filteredColumns);
 				}
 			} catch (error) {
-				console.error('Error cargando estado inicial:', error);
+				console.error('Error restoring kanban data:', error);
 			}
 		};
 
-		loadInitialState();
-	}, []);
+		restoreData();
+	}, [deletedItems]);
 
 	return (
 		<>
@@ -182,10 +213,9 @@ const Kanban = ({
 				</Box>
 			</Box>
 
-			{/* Contenedor Kanban con scroll y mayor espacio entre columnas */}
 			<Box
 				display='flex'
-				gap={3} // Espacio mayor entre las columnas
+				gap={3}
 				sx={{
 					maxHeight: '80vh',
 					overflowY: 'auto',
@@ -193,7 +223,6 @@ const Kanban = ({
 				}}
 			>
 				<Grid container spacing={40}>
-					{/* Espacio entre los grids */}
 					{Object.keys(columns).map((columnId) => (
 						<Grid
 							key={columnId}
@@ -288,34 +317,11 @@ const Kanban = ({
 															handleOpenModal(columnId, reminder)
 														}
 													>
-														<Tooltip
-															title='Haz double click para editar o manten presionado para arrastrar'
-															arrow
-														>
-															<Tooltip title='Eliminar'>
-																<IconButton
-																	size='small'
-																	color='error'
-																	onClick={() => {
-																		if (
-																			confirm(
-																				'¿Quieres eliminar este recordatorio?'
-																			)
-																		) {
-																			deleteReminder(reminder.id, columnId);
-																		}
-																	}}
-																	sx={{
-																		position: 'absolute',
-																		top: 0,
-																		right: 1,
-																		zIndex: 2,
-																	}}
-																>
-																	<CloseIcon fontSize='small' />
-																</IconButton>
-															</Tooltip>
-															<Stack direction='row' spacing={1} mb={1}>
+														<Stack spacing={1}>
+															<Box
+																display='flex'
+																justifyContent='space-between'
+															>
 																<Chip
 																	label={
 																		reminder.type === 'lead'
@@ -330,54 +336,46 @@ const Kanban = ({
 																	size='small'
 																	sx={{ fontWeight: 'bold' }}
 																/>
-															</Stack>
+																<Box>
+																	<Tooltip title='Completar'>
+																		<IconButton
+																			size='small'
+																			color='success'
+																			onClick={() =>
+																				handleComplete(reminder, columnId)
+																			}
+																		>
+																			<CheckIcon fontSize='small' />
+																		</IconButton>
+																	</Tooltip>
+																	<Tooltip title='Eliminar'>
+																		<IconButton
+																			size='small'
+																			color='error'
+																			onClick={() =>
+																				deleteReminder(reminder.id, columnId)
+																			}
+																		>
+																			<CloseIcon fontSize='small' />
+																		</IconButton>
+																	</Tooltip>
+																</Box>
+															</Box>
+
 															<Typography
-																variant='caption'
-																sx={{
-																	display: 'block',
-																	whiteSpace: 'nowrap',
-																	overflow: 'hidden',
-																	textOverflow: 'ellipsis',
-																	maxWidth: '100%', // Asegura que el texto no se expanda
-																}}
+																variant='subtitle2'
+																sx={{ whiteSpace: 'pre-wrap' }}
 															>
 																{reminder.title}
 															</Typography>
-															<Divider sx={{ my: 10 }} />
+															<Divider />
 															<Typography
 																variant='caption'
 																color='textSecondary'
 															>
 																📅 {reminder.description}
 															</Typography>
-															<Typography
-																variant='caption'
-																color='textSecondary'
-															>
-																{reminder.hora}
-															</Typography>
-															<Stack
-																direction='row'
-																spacing={1}
-																sx={{
-																	position: 'absolute',
-																	bottom: 1,
-																	right: 1,
-																}}
-															>
-																<Tooltip title='Listo'>
-																	<IconButton
-																		size='small'
-																		color='success'
-																		onClick={() =>
-																			handleMarkAsCompleted(reminder)
-																		}
-																	>
-																		<CheckIcon fontSize='small' />
-																	</IconButton>
-																</Tooltip>
-															</Stack>
-														</Tooltip>
+														</Stack>
 													</Card>
 												</Fade>
 											))}
@@ -391,37 +389,30 @@ const Kanban = ({
 			</Box>
 
 			<CreateReminderModal
-				open={modalOpen && !selectedReminder}
+				open={modalOpen && !itemToEdit} // Añade la condición !itemToEdit
 				onClose={handleCloseModal}
 				columns={columns}
-				setColumns={setColumns} // Agregar esta línea
+				setColumns={setColumns}
+			/>
+
+			<QuickReminderModal
+				open={quickModalOpen}
+				columnId={quickModalColumn}
+				onClose={handleCloseQuickModal}
+				onSave={handleQuickReminderSave}
 			/>
 
 			<CardEditModal
-				open={modalOpen && selectedReminder}
-				onClose={handleCloseModal}
+				open={!!itemToEdit}
 				reminder={itemToEdit}
 				columnId={activeColumn}
+				onClose={handleCloseModal}
+				onSave={handleCardEditSave}
 				setColumns={setColumns}
 				tempRemovedItem={tempRemovedItem}
 				sourceColumnId={sourceColumnId}
 				setTempRemovedItem={setTempRemovedItem}
 				setSourceColumnId={setSourceColumnId}
-			/>
-
-			<QuickReminderModal
-				open={quickModalOpen}
-				onClose={handleCloseQuickModal}
-				columnId={quickModalColumn}
-				selectedDate={selectedDate}
-				setSelectedDate={setSelectedDate}
-				selectedTime={selectedTime}
-				setSelectedTime={setSelectedTime}
-				title={title}
-				setTitle={setTitle}
-				availableDates={availableDates}
-				availableTimes={availableTimes}
-				onSave={handleQuickReminderSave}
 			/>
 		</>
 	);

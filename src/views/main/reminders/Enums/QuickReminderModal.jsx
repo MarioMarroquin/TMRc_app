@@ -1,9 +1,12 @@
+import React, { useState } from 'react';
 import {
-	Modal,
-	Box,
-	Typography,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
 	Button,
 	TextField,
+	Stack,
 	FormControl,
 	InputLabel,
 	Select,
@@ -11,109 +14,88 @@ import {
 } from '@mui/material';
 import toast from 'react-hot-toast';
 
-const modalStyle = {
-	position: 'absolute',
-	top: '50%',
-	left: '50%',
-	transform: 'translate(-50%, -50%)',
-	width: 400,
-	bgcolor: 'background.paper',
-	boxShadow: 24,
-	p: 4,
-	borderRadius: 2,
-};
+const QuickReminderModal = ({ open, columnId, onClose, onSave }) => {
+	const [title, setTitle] = useState('');
+	const [selectedTime, setSelectedTime] = useState('12:00');
+	const [type, setType] = useState('personal');
+	const [empresa, setEmpresa] = useState('');
+	const [cliente, setCliente] = useState('');
 
-export const QuickReminderModal = ({
-	open,
-	columnId,
-	onClose,
-	selectedDate,
-	setSelectedDate,
-	selectedTime,
-	setSelectedTime,
-	title,
-	setTitle,
-	availableDates,
-	availableTimes,
-	onSave,
-}) => {
-	const handleCreate = () => {
-		// Validación de campos
-		if (!selectedDate || !selectedTime || !title.trim()) {
-			toast.error('Por favor completa todos los campos');
+	const handleSubmit = (e) => {
+		e.preventDefault();
+
+		if (!title.trim() || !selectedTime) {
+			toast.error('Por favor completa todos los campos requeridos');
 			return;
 		}
 
-		onSave();
+		const today = new Date();
+		const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(
+			today.getMonth() + 1
+		).padStart(2, '0')}/${today.getFullYear()}`;
+
+		const newReminder = {
+			id: Date.now(),
+			title: title.trim(),
+			description: `${formattedDate} - ${selectedTime}`,
+			type: 'personal',
+		};
+
+		onSave(columnId, newReminder);
+		handleClose();
 	};
 
-	// Agrega esta constante al inicio de cada archivo de modal
-	const menuProps = {
-		PaperProps: {
-			style: {
-				maxHeight: 200, // ajusta este valor según necesites
-				overflow: 'auto',
-			},
-		},
+	const handleClose = () => {
+		setTitle('');
+		setSelectedTime('12:00');
+		onClose();
+	};
+
+	const handleTimeChange = (e) => {
+		const value = e.target.value;
+		setSelectedTime(value);
 	};
 
 	return (
-		<Modal open={open} onClose={onClose}>
-			<Box sx={modalStyle}>
-				<Typography variant='h6' mb={2}>
-					Nuevo Recordatorio Personal
-				</Typography>
+		<Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
+			<form onSubmit={handleSubmit}>
+				<DialogTitle>Agregar Recordatorio Rápido</DialogTitle>
+				<DialogContent>
+					<Stack spacing={2} sx={{ mt: 1 }}>
+						<TextField
+							autoFocus
+							label='Nota'
+							fullWidth
+							value={title}
+							onChange={(e) => setTitle(e.target.value)}
+							required
+						/>
 
-				<FormControl fullWidth sx={{ mb: 2 }}>
-					<InputLabel>Fecha</InputLabel>
-					<Select
-						value={selectedDate}
-						label='Fecha'
-						onChange={(e) => setSelectedDate(e.target.value)}
-					>
-						{availableDates.map((date) => (
-							<MenuItem key={date} value={date}>
-								{date}
-							</MenuItem>
-						))}
-					</Select>
-				</FormControl>
-
-				<FormControl fullWidth sx={{ mb: 2 }}>
-					<InputLabel>Hora</InputLabel>
-					<Select
-						value={selectedTime}
-						label='Hora'
-						onChange={(e) => setSelectedTime(e.target.value)}
-						MenuProps={menuProps}
-					>
-						{availableTimes.map((time) => (
-							<MenuItem key={time} value={time}>
-								{time}
-							</MenuItem>
-						))}
-					</Select>
-				</FormControl>
-
-				<TextField
-					label='Nota'
-					fullWidth
-					multiline
-					minRows={3}
-					value={title}
-					onChange={(e) => setTitle(e.target.value)}
-					sx={{ mb: 2 }}
-				/>
-
-				<Box display='flex' justifyContent='flex-end' gap={1}>
-					<Button variant='outlined' onClick={onClose}>
-						Cancelar
+						<TextField
+							label='Hora'
+							type='time'
+							value={selectedTime}
+							onChange={(e) => setSelectedTime(e.target.value)}
+							fullWidth
+							InputLabelProps={{
+								shrink: true,
+							}}
+							inputProps={{
+								step: 300, // 5 min
+							}}
+							required
+						/>
+					</Stack>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleClose}>Cancelar</Button>
+					<Button type='submit' variant='contained'>
+						Guardar
 					</Button>
-					<Button variant='contained' onClick={handleCreate}>
-						Crear
-					</Button>
-				</Box>
-			</Box>
-		</Modal>
+				</DialogActions>
+			</form>
+		</Dialog>
 	);
 };
+
+export default QuickReminderModal;

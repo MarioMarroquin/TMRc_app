@@ -29,7 +29,7 @@ export const CardEditModal = ({
 	reminder,
 	columnId,
 	onClose,
-	setColumns,
+	onSave,
 	tempRemovedItem,
 	sourceColumnId,
 	setTempRemovedItem,
@@ -40,6 +40,35 @@ export const CardEditModal = ({
 		time: '',
 		title: '',
 	});
+
+	// Generar fechas disponibles
+	const generateAvailableDates = () => {
+		const dates = [];
+		const today = new Date();
+		for (let i = 0; i < 7; i++) {
+			const date = new Date(today);
+			date.setDate(today.getDate() + i);
+			const formattedDate = date
+				.toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				})
+				.replace(/\//g, '/');
+			dates.push(formattedDate);
+		}
+		return dates;
+	};
+
+	// Generar horas disponibles
+	const generateAvailableTimes = () => {
+		const times = [];
+		for (let hour = 8; hour <= 18; hour++) {
+			times.push(`${hour.toString().padStart(2, '0')}:00`);
+			times.push(`${hour.toString().padStart(2, '0')}:30`);
+		}
+		return times;
+	};
 
 	useEffect(() => {
 		if (reminder) {
@@ -62,88 +91,29 @@ export const CardEditModal = ({
 			return;
 		}
 
-		const updatedReminder = {
-			...(tempRemovedItem || reminder),
-			title: editedReminder.title.trim(),
-			description: `${editedReminder.date} - ${editedReminder.time}`,
-			type: reminder?.type || 'personal',
-		};
-
-		setColumns((prev) => {
-			const newColumns = { ...prev };
-			// Añadir el recordatorio actualizado a la columna destino
-			if (
-				!newColumns[columnId].some((item) => item.id === updatedReminder.id)
-			) {
-				newColumns[columnId] = [...newColumns[columnId], updatedReminder];
-			} else {
-				// Si ya existe, actualízalo
-				newColumns[columnId] = newColumns[columnId].map((item) =>
-					item.id === updatedReminder.id ? updatedReminder : item
-				);
-			}
-			return newColumns;
-		});
+		onSave(editedReminder);
 
 		// Limpiar estados temporales
-		setTempRemovedItem(null);
-		setSourceColumnId(null);
-
-		onClose();
-		toast.success('✔️ Recordatorio actualizado');
-	};
-
-	const menuProps = {
-		PaperProps: {
-			style: {
-				maxHeight: 200, // ajusta este valor según necesites
-				overflow: 'auto',
-			},
-		},
-	};
-
-	// Generar fechas disponibles (igual que en CreateReminderModal)
-	const generateAvailableDates = () => {
-		const dates = [];
-		const today = new Date();
-		for (let i = 0; i < 7; i++) {
-			const date = new Date(today);
-			date.setDate(today.getDate() + i);
-			const formattedDate = date
-				.toLocaleDateString('es-ES', {
-					day: '2-digit',
-					month: '2-digit',
-					year: 'numeric',
-				})
-				.replace(/\//g, '/');
-			dates.push(formattedDate);
-		}
-		return dates;
-	};
-
-	// Generar horas disponibles (igual que en CreateReminderModal)
-	const generateAvailableTimes = () => {
-		const times = [];
-		for (let hour = 8; hour <= 18; hour++) {
-			times.push(`${hour.toString().padStart(2, '0')}:00`);
-			times.push(`${hour.toString().padStart(2, '0')}:30`);
-		}
-		return times;
+		if (setTempRemovedItem) setTempRemovedItem(null);
+		if (setSourceColumnId) setSourceColumnId(null);
 	};
 
 	const handleCancel = () => {
 		// Si hay un recordatorio temporal removido, lo devolvemos a su columna original
 		if (tempRemovedItem && sourceColumnId) {
-			setColumns((prev) => ({
-				...prev,
-				[sourceColumnId]: [...prev[sourceColumnId], tempRemovedItem],
-			}));
-
-			// Limpiar estados temporales
-			setTempRemovedItem(null);
-			setSourceColumnId(null);
+			onClose(true); // Pasar true para indicar que es una cancelación
+		} else {
+			onClose(false);
 		}
-		onClose();
+	};
+
+	const menuProps = {
+		PaperProps: {
+			style: {
+				maxHeight: 200,
+				overflow: 'auto',
+			},
+		},
 	};
 
 	return (

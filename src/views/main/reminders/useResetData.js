@@ -134,5 +134,17 @@ export const useResetData = (
 		}
 	};
 
+	const resetKanbanData = () => {
+		try {
+			const defaultData = transformReminderDataToKanban();
+			setColumns(defaultData);
+			localStorage.setItem('kanbanColumns', JSON.stringify(defaultData));
+			toast.success('✔️ Datos del Kanban restablecidos');
+		} catch (error) {
+			console.error('Error resetting kanban data:', error);
+			toast.error('Error al restablecer los datos del Kanban');
+		}
+	};
+
 	return { resetAllData };
 };
