@@ -37,6 +37,8 @@ const Kanban = ({
 	setDeletedItems,
 	deletedItems,
 	setCompletedList,
+	completedList,
+	selectedView,
 }) => {
 	const {
 		columns,
@@ -72,16 +74,17 @@ const Kanban = ({
 			const reminderToDelete = columns[columnId].find((item) => item.id === id);
 			if (!reminderToDelete) return;
 
-			// 2. Actualizar el estado de columns
+			// 2. Actualizar el estado de columns (Kanban)
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
 				newColumns[columnId] = newColumns[columnId].filter(
 					(item) => item.id !== id
 				);
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
 			});
 
-			// 3. Actualizar listData
+			// 3. Actualizar listData (List)
 			setListData((prevData) => {
 				const newData = prevData
 					.map((group) => ({
@@ -89,21 +92,18 @@ const Kanban = ({
 						LIST: group.LIST.filter((item) => item.id !== id),
 					}))
 					.filter((group) => group.LIST.length > 0);
+				localStorage.setItem('listData', JSON.stringify(newData));
 				return newData;
 			});
 
 			// 4. Actualizar deletedItems
-			setDeletedItems((prev) => [...prev, id]);
+			setDeletedItems((prev) => {
+				const newDeletedItems = [...prev, id];
+				localStorage.setItem('deletedItems', JSON.stringify(newDeletedItems));
+				return newDeletedItems;
+			});
 
-			// 5. Guardar en localStorage
-			const updatedColumns = { ...columns };
-			updatedColumns[columnId] = updatedColumns[columnId].filter(
-				(item) => item.id !== id
-			);
-			localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-
-			// 6. Notificar al usuario
-			toast.success('🗑️ Recordatorio eliminado');
+			toast.error('🗑️ Recordatorio eliminado');
 		} catch (error) {
 			console.error('Error al eliminar el recordatorio:', error);
 			toast.error('Error al eliminar el recordatorio');
@@ -121,15 +121,28 @@ const Kanban = ({
 
 	const handleComplete = async (reminder, columnId) => {
 		try {
-			// 1. Crear el item completado manteniendo toda la información original
+			// 1. Crear el item completado con el formato correcto para CompleteReminders
 			const completedItem = {
-				...reminder,
+				id: reminder.id,
+				FOLIO: reminder.folio,
+				SERVICIO: reminder.title,
+				EMPRESA: reminder.empresa,
+				CLIENTE: reminder.cliente,
+				CONTACT: reminder.contact,
+				FECHA: reminder.description.split(' - ')[0],
 				completedDate: new Date().toISOString(),
-				originalColumn: columnId, // Guardamos la columna original
+				// Incluir campos adicionales si son necesarios
+				type: reminder.type,
+				description: reminder.description,
 			};
 
-			// 2. Actualizar la lista de completados
-			setCompletedList((prev) => [...(prev || []), completedItem]);
+			// 2. Actualizar completedList
+			setCompletedList((prev) => {
+				const newCompletedList = [...(prev || []), completedItem];
+				// Persistir en localStorage
+				localStorage.setItem('completedList', JSON.stringify(newCompletedList));
+				return newCompletedList;
+			});
 
 			// 3. Eliminar de las columnas del Kanban
 			setColumns((prev) => {
@@ -137,18 +150,28 @@ const Kanban = ({
 				newColumns[columnId] = newColumns[columnId].filter(
 					(item) => item.id !== reminder.id
 				);
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
 			});
 
-			// 4. Actualizar listData manteniendo la estructura de grupos
+			// 4. Eliminar de listData
 			setListData((prev) => {
-				return prev
+				const newListData = prev
 					.map((group) => ({
 						...group,
 						LIST: group.LIST.filter((item) => item.id !== reminder.id),
 					}))
 					.filter((group) => group.LIST.length > 0);
+				localStorage.setItem('listData', JSON.stringify(newListData));
+				return newListData;
 			});
+
+			// 5. Notificar actualización
+			window.dispatchEvent(
+				new CustomEvent('completedListUpdate', {
+					detail: completedItem,
+				})
+			);
 
 			toast.success('✔️ Recordatorio completado');
 		} catch (error) {

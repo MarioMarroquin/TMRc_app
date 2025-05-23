@@ -173,7 +173,7 @@ export const useReminders = () => {
 
 	const ListoClick = (item, fechaOriginal) => {
 		try {
-			// Actualizar listData
+			// 1. Actualizar listData
 			const updatedListData = listData
 				.map((group) => ({
 					...group,
@@ -181,11 +181,7 @@ export const useReminders = () => {
 				}))
 				.filter((group) => group.LIST.length > 0);
 
-			const fecha =
-				fechaOriginal ||
-				item.FECHA ||
-				new Date().toISOString().split('T')[0].replace(/-/g, '/');
-
+			// 2. Crear el item completado con todos los campos necesarios
 			const completedItem = {
 				id: item.id,
 				FOLIO: item.FOLIO,
@@ -194,22 +190,23 @@ export const useReminders = () => {
 				CLIENTE: item.CLIENTE,
 				CONTACT: item.CONTACT,
 				HORA: item.HORA,
-				FECHA: fecha, // Usar la fecha procesada
+				FECHA: fechaOriginal || item.FECHA,
 				type: item.type || 'lead',
 				completedDate: new Date().toISOString(),
 			};
 
-			console.log('Elemento completado:', completedItem); // Para debug
-
+			// 3. Actualizar estados y localStorage
 			setListData(updatedListData);
 			setCompletedList((prev) => [...prev, completedItem]);
+
+			// 4. Actualizar localStorage
 			localStorage.setItem('listData', JSON.stringify(updatedListData));
 			localStorage.setItem(
 				'completedList',
 				JSON.stringify([...completedList, completedItem])
 			);
 
-			// Actualizar Kanban
+			// 5. También actualizar el Kanban
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
 				Object.keys(newColumns).forEach((columnId) => {
@@ -217,7 +214,6 @@ export const useReminders = () => {
 						(kanbanItem) => kanbanItem.id !== item.id
 					);
 				});
-				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
 			});
 
@@ -230,7 +226,11 @@ export const useReminders = () => {
 
 	const handleDeleteClick = (item) => {
 		try {
-			// Actualizar listData excluyendo el elemento eliminado
+			if (!window.confirm('¿Estás seguro de eliminar este recordatorio?')) {
+				return;
+			}
+
+			// 1. Actualizar listData
 			setListData((prevData) => {
 				const newData = prevData
 					.map((group) => ({
@@ -238,21 +238,37 @@ export const useReminders = () => {
 						LIST: group.LIST.filter((i) => i.id !== item.id),
 					}))
 					.filter((group) => group.LIST.length > 0);
-
 				localStorage.setItem('listData', JSON.stringify(newData));
 				return newData;
 			});
 
-			// Actualizar deletedItems
+			// 2. Actualizar Kanban - Este es el cambio principal
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				// Eliminar el item de todas las columnas del Kanban
+				Object.keys(newColumns).forEach((columnId) => {
+					newColumns[columnId] = newColumns[columnId].filter(
+						(kanbanItem) => kanbanItem.id !== item.id
+					);
+				});
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				return newColumns;
+			});
+
+			// 3. Actualizar deletedItems
 			setDeletedItems((prev) => {
 				const newDeletedItems = [...prev, item.id];
 				localStorage.setItem('deletedItems', JSON.stringify(newDeletedItems));
 				return newDeletedItems;
 			});
 
-			// Disparar eventos de actualización
-			window.dispatchEvent(new Event('listDataUpdate'));
-			window.dispatchEvent(new Event('kanbanUpdate'));
+			// 4. Disparar eventos de actualización
+			window.dispatchEvent(
+				new CustomEvent('listDataUpdate', { detail: listData })
+			);
+			window.dispatchEvent(
+				new CustomEvent('kanbanUpdate', { detail: columns })
+			);
 
 			toast.error('🗑️ Recordatorio eliminado');
 		} catch (error) {
@@ -558,107 +574,141 @@ export const useReminders = () => {
 		}
 	};
 
-	const handleUndoCompleted = (reminder) => {
-		try {
-			console.log('Recordatorio a restaurar:', reminder);
+	const handleUndoCompleted = useCallback(
+		(item) => {
+			try {
+				// 1. Validar que tengamos todos los datos necesarios
+				if (!item || !item.FECHA) {
+					throw new Error('Datos del recordatorio incompletos');
+				}
 
-			// Convertir fechas a formato correcto si es necesario
-			const fecha =
-				reminder.FECHA ||
-				new Date().toISOString().split('T')[0].replace(/-/g, '/');
-			const [year, month, day] = fecha.includes('-')
-				? fecha.split('-')
-				: fecha.split('/');
-
-			// 1. Restaurar en listData
-			const newListItem = {
-				id: reminder.id,
-				FOLIO: reminder.FOLIO,
-				SERVICIO: reminder.SERVICIO,
-				EMPRESA: reminder.EMPRESA,
-				CLIENTE: reminder.CLIENTE,
-				CONTACT: reminder.CONTACT,
-				HORA: reminder.HORA || '12:00',
-				type: reminder.type || 'lead',
-			};
-
-			// Actualizar listData
-			setListData((prevData) => {
-				const newData = [...prevData];
-				const existingGroupIndex = newData.findIndex(
-					(group) => group.FECHA === fecha
+				// 2. Remover de completedList
+				const newCompletedList = completedList.filter(
+					(completedItem) => completedItem.id !== item.id
 				);
+				setCompletedList(newCompletedList);
 
-				if (existingGroupIndex !== -1) {
-					newData[existingGroupIndex].LIST.push(newListItem);
-				} else {
-					newData.push({
-						FECHA: fecha,
-						LIST: [newListItem],
-					});
+				// 3. Determinar la columna apropiada basada en la fecha
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+
+				// Asegurarnos de que la fecha esté en el formato correcto (dd/mm/yyyy)
+				let day, month, year;
+				try {
+					// Intentar obtener las partes de la fecha
+					if (item.FECHA.includes('-')) {
+						[year, month, day] = item.FECHA.split('-');
+					} else {
+						[day, month, year] = item.FECHA.split('/');
+					}
+
+					// Asegurarse de que los valores sean números
+					day = parseInt(day, 10);
+					month = parseInt(month, 10);
+					year = parseInt(year, 10);
+
+					// Validar que los valores sean razonables
+					if (isNaN(day) || isNaN(month) || isNaN(year)) {
+						throw new Error('Formato de fecha inválido');
+					}
+				} catch (error) {
+					console.error('Error parsing date:', error);
+					// Si hay un error con la fecha, colocarlo en POR VENCER por defecto
+					day = today.getDate();
+					month = today.getMonth() + 1;
+					year = today.getFullYear();
 				}
 
-				localStorage.setItem('listData', JSON.stringify(newData));
-				return newData;
-			});
+				const itemDate = new Date(year, month - 1, day);
+				itemDate.setHours(0, 0, 0, 0);
 
-			// 2. Restaurar en Kanban
-			const kanbanItem = {
-				id: reminder.id,
-				title: reminder.SERVICIO,
-				description: `${day.padStart(2, '0')}/${month.padStart(
-					2,
-					'0'
-				)}/${year} - ${reminder.HORA || '12:00'}`,
-				type: reminder.type || 'lead',
-				empresa: reminder.EMPRESA,
-				cliente: reminder.CLIENTE,
-				contact: reminder.CONTACT,
-				folio: reminder.FOLIO,
-			};
+				let targetColumn = 'POR VENCER';
+				if (itemDate < today) {
+					targetColumn = 'VENCIDO';
+				} else if (itemDate.getTime() === today.getTime()) {
+					targetColumn = 'HOY';
+				}
 
-			// Determinar la columna correcta para Kanban
-			const today = new Date();
-			const reminderDate = new Date(year, month - 1, day);
-			let targetColumn = 'HOY';
+				// 4. Preparar el item para Kanban
+				const kanbanItem = {
+					id: item.id,
+					title: item.SERVICIO || 'Sin título',
+					description: `${day.toString().padStart(2, '0')}/${month
+						.toString()
+						.padStart(2, '0')}/${year}${item.HORA ? ` - ${item.HORA}` : ''}`,
+					type: item.type || 'lead',
+					empresa: item.EMPRESA || '',
+					cliente: item.CLIENTE || '',
+					contact: item.CONTACT || '',
+					folio: item.FOLIO || '',
+					FECHA: `${day.toString().padStart(2, '0')}/${month
+						.toString()
+						.padStart(2, '0')}/${year}`,
+				};
 
-			if (reminderDate < today) {
-				targetColumn = 'VENCIDO';
-			} else if (reminderDate > today) {
-				targetColumn = 'POR VENCER';
+				// 5. Actualizar Kanban
+				setColumns((prevColumns) => {
+					const newColumns = { ...prevColumns };
+					if (!newColumns[targetColumn]) {
+						newColumns[targetColumn] = [];
+					}
+					newColumns[targetColumn] = [...newColumns[targetColumn], kanbanItem];
+					localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+					return newColumns;
+				});
+
+				// 6. Actualizar listData
+				const listItem = {
+					id: item.id,
+					FOLIO: item.FOLIO || '',
+					SERVICIO: item.SERVICIO || 'Sin título',
+					EMPRESA: item.EMPRESA || '',
+					CLIENTE: item.CLIENTE || '',
+					CONTACT: item.CONTACT || '',
+					HORA: item.HORA || '',
+					type: item.type || 'lead',
+				};
+
+				setListData((prevListData) => {
+					const formattedDate = `${day.toString().padStart(2, '0')}/${month
+						.toString()
+						.padStart(2, '0')}/${year}`;
+					const existingGroupIndex = prevListData.findIndex(
+						(group) => group.FECHA === formattedDate
+					);
+
+					let newListData;
+					if (existingGroupIndex >= 0) {
+						newListData = [...prevListData];
+						newListData[existingGroupIndex] = {
+							...newListData[existingGroupIndex],
+							LIST: [...newListData[existingGroupIndex].LIST, listItem],
+						};
+					} else {
+						newListData = [
+							...prevListData,
+							{
+								FECHA: formattedDate,
+								LIST: [listItem],
+							},
+						];
+					}
+
+					localStorage.setItem('listData', JSON.stringify(newListData));
+					return newListData;
+				});
+
+				// 7. Actualizar localStorage para completedList
+				localStorage.setItem('completedList', JSON.stringify(newCompletedList));
+
+				toast.success('✔️ Recordatorio restaurado');
+			} catch (error) {
+				console.error('Error al deshacer completado:', error);
+				toast.error('Error al restaurar el recordatorio');
 			}
-
-			// Actualizar columns (Kanban)
-			setColumns((prevColumns) => {
-				const newColumns = { ...prevColumns };
-				if (!newColumns[targetColumn]) {
-					newColumns[targetColumn] = [];
-				}
-				newColumns[targetColumn] = [...newColumns[targetColumn], kanbanItem];
-				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
-				return newColumns;
-			});
-
-			// 3. Eliminar de completedList
-			const updatedCompletedList = completedList.filter(
-				(item) => item.id !== reminder.id
-			);
-			setCompletedList(updatedCompletedList);
-			localStorage.setItem(
-				'completedList',
-				JSON.stringify(updatedCompletedList)
-			);
-
-			// 4. Disparar eventos de actualización
-			window.dispatchEvent(new Event('listDataUpdate'));
-			window.dispatchEvent(new Event('kanbanUpdate'));
-
-			toast.success('✔️ Recordatorio restaurado');
-		} catch (error) {
-			console.error('Error al restaurar el recordatorio:', error);
-			toast.error('Error al restaurar el recordatorio');
-		}
-	};
+		},
+		[completedList, setCompletedList, setColumns, setListData]
+	);
 
 	useEffect(() => {
 		const handleKanbanUpdate = () => {

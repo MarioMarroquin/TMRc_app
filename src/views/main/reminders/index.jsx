@@ -240,17 +240,43 @@ const Reminders = () => {
 				</Grid>
 			</Grid>
 
-			<Fade in={!showList} timeout={150} unmountOnExit>
-				<div>
-					<Kanban
-						handleMarkAsCompleted={handleMarkAsCompleted}
-						setListData={setListData}
-						setDeletedItems={setDeletedItems}
-						deletedItems={deletedItems}
+			<Fade
+				in={showList && selectedView === 'Listo'}
+				timeout={200}
+				unmountOnExit
+			>
+				<div style={{ textAlign: 'center' }}>
+					<CompleteList
+						completedList={completedList}
 						setCompletedList={setCompletedList}
+						handleUndoCompleted={handleUndoCompleted}
+						handleDeleteCompletedClick={handleDeleteCompletedClick}
+						handleConfirmCompletedDelete={handleConfirmCompletedDelete}
+						handleCancelCompletedDelete={handleCancelCompletedDelete}
+						openCompletedDeleteDialog={openCompletedDeleteDialog}
+						selectedCompletedItem={selectedCompletedItem}
 						columns={columns}
 						setColumns={setColumns}
+						setListData={setListData}
+						listData={listData}
 					/>
+					{completedList.length > 0 && (
+						<Button
+							variant='contained'
+							color='error'
+							onClick={handleOpenDeleteAllDialog}
+							size='small'
+							sx={{
+								mt: 2,
+								padding: '4px 12px',
+								fontSize: '0.75rem',
+								mx: 'auto',
+								display: 'block',
+							}}
+						>
+							Eliminar Todos
+						</Button>
+					)}
 				</div>
 			</Fade>
 
@@ -280,39 +306,19 @@ const Reminders = () => {
 					/>
 				</div>
 			</Fade>
-
-			<Fade
-				in={showList && selectedView === 'Listo'}
-				timeout={200}
-				unmountOnExit
-			>
-				<div style={{ textAlign: 'center' }}>
-					<CompleteList
-						CompleteList={completedList}
-						handleUndoCompleted={handleUndoCompleted}
-						handleDeleteCompletedClick={handleDeleteCompletedClick}
-						handleConfirmCompletedDelete={handleConfirmCompletedDelete}
-						handleCancelCompletedDelete={handleCancelCompletedDelete}
-						openCompletedDeleteDialog={openCompletedDeleteDialog}
-						selectedCompletedItem={selectedCompletedItem}
+			<Fade in={!showList} timeout={150} unmountOnExit>
+				<div>
+					<Kanban
+						handleMarkAsCompleted={handleMarkAsCompleted}
+						setListData={setListData}
+						setDeletedItems={setDeletedItems}
+						deletedItems={deletedItems}
+						setCompletedList={setCompletedList}
+						completedList={completedList}
+						selectedView={selectedView}
+						columns={columns} // Asegúrate de pasar columns
+						setColumns={setColumns} // Asegúrate de pasar setColumns
 					/>
-					{completedList.length > 0 && (
-						<Button
-							variant='contained'
-							color='error'
-							onClick={handleOpenDeleteAllDialog}
-							size='small'
-							sx={{
-								mt: 2,
-								padding: '4px 12px',
-								fontSize: '0.75rem',
-								mx: 'auto',
-								display: 'block',
-							}}
-						>
-							Eliminar Todos
-						</Button>
-					)}
 				</div>
 			</Fade>
 

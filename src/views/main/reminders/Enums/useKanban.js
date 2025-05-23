@@ -190,57 +190,44 @@ export const useKanban = () => {
 	const handleCardEditSave = (editedReminder) => {
 		if (!itemToEdit) return;
 
-		// Crear el recordatorio actualizado manteniendo el tipo original
 		const updatedReminder = {
 			...itemToEdit,
 			title: editedReminder.title,
 			description: `${editedReminder.date} - ${editedReminder.time}`,
-			// Mantener el tipo original, si no existe usar 'lead' como valor por defecto
-			type: itemToEdit.type || 'lead', // Esta es la línea clave
+			type: itemToEdit.type || 'lead',
 		};
 
 		setColumns((prev) => {
 			const newColumns = { ...prev };
 
-			// Para la columna POR VENCER, aplicamos ordenamiento especial
-			if (activeColumn === 'POR VENCER') {
-				// Remover la card antigua
-				const otherCards = newColumns['POR VENCER'].filter(
-					(item) => item.id !== itemToEdit.id
-				);
-
-				// Añadir la nueva card y ordenar todo el array
-				const allCards = [...otherCards, updatedReminder];
-				newColumns['POR VENCER'] = allCards.sort((a, b) => {
-					try {
-						// Extraer fechas y horas
-						const [dateA] = a.description.split(' - ');
-						const [dateB] = b.description.split(' - ');
-
-						// Convertir dd/mm/yyyy a objetos Date para comparación
-						const [dayA, monthA, yearA] = dateA.split('/');
-						const [dayB, monthB, yearB] = dateB.split('/');
-
-						const dateObjA = new Date(yearA, monthA - 1, dayA);
-						const dateObjB = new Date(yearB, monthB - 1, dayB);
-
-						// Ordenar de más reciente a más antiguo
-						return dateObjB - dateObjA;
-					} catch (error) {
-						console.error('Error en ordenamiento:', error);
-						return 0;
+			// Si hay un sourceColumnId, significa que viene de un arrastre a POR VENCER
+			if (sourceColumnId && tempRemovedItem) {
+				// Añadir a POR VENCER con los cambios
+				newColumns['POR VENCER'] = [
+					...newColumns['POR VENCER'],
+					updatedReminder,
+				];
+				// Ordenar la columna POR VENCER
+				newColumns['POR VENCER'] = sortColumnByDate(newColumns['POR VENCER']);
+			} else {
+				// Caso de edición normal (doble clic) - mantener en la misma columna
+				Object.keys(newColumns).forEach((columnId) => {
+					if (newColumns[columnId].some((item) => item.id === itemToEdit.id)) {
+						newColumns[columnId] = newColumns[columnId].map((item) =>
+							item.id === itemToEdit.id ? updatedReminder : item
+						);
+						// Ordenar la columna actual
+						newColumns[columnId] = sortColumnByDate(newColumns[columnId]);
 					}
 				});
-			} else {
-				// Para otras columnas, mantener el comportamiento normal
-				newColumns[activeColumn] = newColumns[activeColumn].map((item) =>
-					item.id === itemToEdit.id ? updatedReminder : item
-				);
 			}
 
 			return newColumns;
 		});
 
+		// Limpiar estados temporales
+		setTempRemovedItem(null);
+		setSourceColumnId(null);
 		handleCloseModal();
 		toast.success('✔️ Recordatorio actualizado');
 	};
@@ -289,16 +276,29 @@ export const useKanban = () => {
 		setTitle('');
 	};
 
-	const handleCloseModal = () => {
+	const handleCloseModal = (isCancelled = false) => {
+		if (isCancelled && tempRemovedItem && sourceColumnId) {
+			// Si se cancela y hay un item temporal, restaurarlo a su columna original
+			setColumns((prev) => {
+				const newColumns = { ...prev };
+				// Devolver el item a su columna original
+				newColumns[sourceColumnId] = [
+					...newColumns[sourceColumnId],
+					tempRemovedItem,
+				];
+				// Mantener el orden en la columna original
+				newColumns[sourceColumnId] = sortColumnByDate(
+					newColumns[sourceColumnId]
+				);
+				return newColumns;
+			});
+		}
+
 		setModalOpen(false);
 		setSelectedReminder(null);
 		setItemToEdit(null);
-		// Solo limpiar estos estados si no se está guardando
-		if (!modalOpen) {
-			setTempRemovedItem(null);
-			setSourceColumnId(null);
-		}
-		resetForm();
+		setTempRemovedItem(null);
+		setSourceColumnId(null);
 	};
 
 	const handleCloseQuickModal = () => {
@@ -351,55 +351,86 @@ export const useKanban = () => {
 			if (!sourceList) return;
 
 			const reminder = sourceList.find((item) => item.id === reminderIdNum);
+			if (!reminder) return;
 
-			if (reminder) {
-				if (targetColumnId === 'POR VENCER') {
-					setItemToEdit(reminder);
-					setActiveColumn(targetColumnId);
-					setSelectedReminder(reminder);
-					setModalOpen(true);
-					setSourceColumnId(sourceColumnId);
-
-					// Remover de la columna origen
-					setColumns((prev) => ({
-						...prev,
-						[sourceColumnId]: prev[sourceColumnId].filter(
-							(item) => item.id !== reminderIdNum
-						),
-					}));
-					return;
-				}
-
-				// Para otras columnas
-				const today = new Date();
-				const formattedDate = `${String(today.getDate()).padStart(
-					2,
-					'0'
-				)}/${String(today.getMonth() + 1).padStart(
-					2,
-					'0'
-				)}/${today.getFullYear()}`;
-
-				const updatedReminder = {
-					...reminder,
-					description:
-						targetColumnId === 'HOY'
-							? `${formattedDate} - ${reminder.description.split(' - ')[1]}`
-							: reminder.description,
-				};
+			// Si la columna destino es POR VENCER, mantenemos la lógica del modal
+			if (targetColumnId === 'POR VENCER') {
+				setTempRemovedItem(reminder);
+				setSourceColumnId(sourceColumnId);
 
 				setColumns((prev) => ({
 					...prev,
 					[sourceColumnId]: prev[sourceColumnId].filter(
 						(item) => item.id !== reminderIdNum
 					),
-					[targetColumnId]: sortColumnByDate([
-						...prev[targetColumnId],
-						updatedReminder,
-					]),
 				}));
 
-				toast.success('✔️ Recordatorio movido exitosamente');
+				setItemToEdit(reminder);
+				const [date, time] = reminder.description.split(' - ');
+				handleOpenModal(targetColumnId, {
+					...reminder,
+					date,
+					time,
+				});
+			}
+			// Nueva lógica para el grid HOY
+			else if (targetColumnId === 'HOY') {
+				// Obtener la fecha actual en formato dd/mm/yyyy
+				const today = new Date();
+				const formattedToday = today
+					.toLocaleDateString('es-ES', {
+						day: '2-digit',
+						month: '2-digit',
+						year: 'numeric',
+					})
+					.replace(/\//g, '/');
+
+				// Mantener la hora original del recordatorio
+				const [_, originalTime] = reminder.description.split(' - ');
+
+				// Crear el recordatorio actualizado con la fecha de hoy
+				const updatedReminder = {
+					...reminder,
+					description: `${formattedToday} - ${originalTime || '00:00'}`,
+				};
+
+				setColumns((prev) => {
+					const newColumns = { ...prev };
+					// Remover de la columna origen
+					newColumns[sourceColumnId] = newColumns[sourceColumnId].filter(
+						(item) => item.id !== reminderIdNum
+					);
+					// Añadir a HOY con la fecha actualizada
+					newColumns[targetColumnId] = [
+						...newColumns[targetColumnId],
+						updatedReminder,
+					];
+					// Ordenar la columna HOY
+					newColumns[targetColumnId] = sortColumnByDate(
+						newColumns[targetColumnId]
+					);
+					return newColumns;
+				});
+
+				// Notificar el cambio de fecha
+				toast.success('📅 Fecha actualizada a hoy');
+			}
+			// Mantener el comportamiento normal para otras columnas
+			else {
+				setColumns((prev) => {
+					const newColumns = { ...prev };
+					newColumns[sourceColumnId] = newColumns[sourceColumnId].filter(
+						(item) => item.id !== reminderIdNum
+					);
+					newColumns[targetColumnId] = [
+						...newColumns[targetColumnId],
+						reminder,
+					];
+					newColumns[targetColumnId] = sortColumnByDate(
+						newColumns[targetColumnId]
+					);
+					return newColumns;
+				});
 			}
 		}
 	};

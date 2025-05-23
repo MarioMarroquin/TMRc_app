@@ -1,4 +1,3 @@
-import React from 'react';
 import {
 	Button,
 	Dialog,
@@ -16,16 +15,14 @@ import toast from 'react-hot-toast';
 const CompleteList = ({
 	completedList,
 	setCompletedList,
-	listData,
-	setListData,
-	columns: kanbanColumns, // Renombramos la prop
-	setColumns,
 	handleUndoCompleted,
 	handleDeleteCompletedClick,
 	handleConfirmCompletedDelete,
 	handleCancelCompletedDelete,
 	openCompletedDeleteDialog,
 	selectedCompletedItem,
+	columns,
+	setColumns,
 }) => {
 	const handleUndoClick = (rowData) => {
 		try {
@@ -35,12 +32,45 @@ const CompleteList = ({
 			);
 			setCompletedList(newCompletedList);
 
-			// 2. Restaurar a listData
-			const itemToRestore = {
-				...rowData,
-				completedDate: undefined,
+			// 2. Determinar la columna apropiada basada en la fecha
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+
+			const itemDate = new Date(rowData.FECHA.split('/').reverse().join('-'));
+			itemDate.setHours(0, 0, 0, 0);
+
+			let targetColumn = 'POR VENCER';
+			if (itemDate < today) {
+				targetColumn = 'VENCIDO';
+			} else if (itemDate.getTime() === today.getTime()) {
+				targetColumn = 'HOY';
+			}
+
+			// 3. Preparar el item para Kanban
+			const kanbanItem = {
+				id: rowData.id,
+				title: rowData.SERVICIO,
+				description: rowData.FECHA + (rowData.HORA ? ` - ${rowData.HORA}` : ''),
+				type: rowData.type || 'lead',
+				empresa: rowData.EMPRESA,
+				cliente: rowData.CLIENTE,
+				contact: rowData.CONTACT,
+				folio: rowData.FOLIO,
 			};
 
+			// 4. Preparar el item para List
+			const listItem = {
+				id: rowData.id,
+				FOLIO: rowData.FOLIO,
+				SERVICIO: rowData.SERVICIO,
+				EMPRESA: rowData.EMPRESA,
+				CLIENTE: rowData.CLIENTE,
+				CONTACT: rowData.CONTACT,
+				HORA: rowData.HORA,
+				type: rowData.type || 'lead',
+			};
+
+			// 5. Actualizar listData
 			setListData((prevListData) => {
 				const existingGroup = prevListData.find(
 					(group) => group.FECHA === rowData.FECHA
@@ -49,27 +79,34 @@ const CompleteList = ({
 				if (existingGroup) {
 					return prevListData.map((group) =>
 						group.FECHA === rowData.FECHA
-							? { ...group, LIST: [...group.LIST, itemToRestore] }
+							? { ...group, LIST: [...group.LIST, listItem] }
 							: group
 					);
 				} else {
-					return [
-						...prevListData,
-						{ FECHA: rowData.FECHA, LIST: [itemToRestore] },
-					];
+					return [...prevListData, { FECHA: rowData.FECHA, LIST: [listItem] }];
 				}
 			});
 
-			// 3. Restaurar a la columna correspondiente en Kanban
+			// 6. Actualizar Kanban
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
-				const firstColumnId = Object.keys(newColumns)[0];
-				newColumns[firstColumnId] = [
-					...(newColumns[firstColumnId] || []),
-					itemToRestore,
+				newColumns[targetColumn] = [
+					...(newColumns[targetColumn] || []),
+					kanbanItem,
 				];
 				return newColumns;
 			});
+
+			// 7. Actualizar localStorage
+			localStorage.setItem('completedList', JSON.stringify(newCompletedList));
+
+			// 8. Disparar eventos de actualización
+			window.dispatchEvent(
+				new CustomEvent('listDataUpdate', { detail: listData })
+			);
+			window.dispatchEvent(
+				new CustomEvent('kanbanUpdate', { detail: columns })
+			);
 
 			toast.success('✔️ Recordatorio restaurado');
 		} catch (error) {
@@ -86,6 +123,17 @@ const CompleteList = ({
 		{ field: 'CLIENTE', headerName: 'Cliente', flex: 1.5 },
 		{ field: 'CONTACT', headerName: 'Contacto', flex: 1.5 },
 		{
+			field: 'completedDate',
+			headerName: 'Fecha Completado',
+			flex: 1.5,
+			valueFormatter: (params) => {
+				if (!params.value) return '';
+				return new Date(params.value).toLocaleString('es-ES');
+			},
+		},
+		{
+			field: 'actions',
+			headerName: 'Acciones',
 			flex: 1.5,
 			sortable: false,
 			filterable: false,
@@ -95,7 +143,7 @@ const CompleteList = ({
 						variant='contained'
 						size='small'
 						startIcon={<UndoIcon />}
-						onClick={() => handleUndoClick(params.row)}
+						onClick={() => handleUndoCompleted(params.row)} // Usar el prop en lugar de handleUndoClick
 						sx={{
 							minWidth: 'auto',
 							fontSize: '0.7rem',
@@ -104,6 +152,7 @@ const CompleteList = ({
 					>
 						Deshacer
 					</Button>
+
 					<Button
 						variant='contained'
 						color='error'
@@ -123,26 +172,21 @@ const CompleteList = ({
 		},
 	];
 
-	const rows =
-		completedList?.map((item, index) => ({
-			...item,
-			id: item.id || `${item.FOLIO}-${index}`,
-		})) || [];
-
 	return (
 		<>
 			<Box sx={{ height: 590, width: '100%' }}>
 				<DataGrid
-					rows={rows}
+					rows={completedList || []}
 					columns={gridColumns}
 					pageSize={5}
 					rowsPerPageOptions={[5, 10, 20]}
 					disableSelectionOnClick
 					initialState={{
 						sorting: {
-							sortModel: [{ field: 'FECHA', sort: 'asc' }],
+							sortModel: [{ field: 'completedDate', sort: 'desc' }],
 						},
 					}}
+					getRowId={(row) => row.id} // Asegura que cada fila tenga un ID único
 				/>
 			</Box>
 

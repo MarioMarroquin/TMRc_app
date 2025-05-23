@@ -113,25 +113,43 @@ const ListReminder = ({
 	);
 
 	const handleComplete = (item) => {
-		// Eliminar de listData
-		const newListData = listData
-			.map((group) => ({
-				...group,
-				LIST: group.LIST.filter((listItem) => listItem.id !== item.id),
-			}))
-			.filter((group) => group.LIST.length > 0);
+		try {
+			// 1. Eliminar de listData
+			const newListData = listData
+				.map((group) => ({
+					...group,
+					LIST: group.LIST.filter((listItem) => listItem.id !== item.id),
+				}))
+				.filter((group) => group.LIST.length > 0);
 
-		// Añadir a completedList
-		const newCompletedList = [
-			...completedList,
-			{
+			// 2. Crear el item completado
+			const completedItem = {
 				...item,
 				completedDate: new Date().toISOString(),
-			},
-		];
+			};
 
-		updateListData(newListData);
-		updateCompletedList(newCompletedList);
+			// 3. Añadir a completedList
+			setCompletedList((prev) => [...prev, completedItem]);
+
+			// 4. Actualizar el estado
+			updateListData(newListData);
+
+			// 5. Actualizar Kanban
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				Object.keys(newColumns).forEach((columnId) => {
+					newColumns[columnId] = newColumns[columnId].filter(
+						(kanbanItem) => kanbanItem.id !== item.id
+					);
+				});
+				return newColumns;
+			});
+
+			toast.success('✔️ Recordatorio completado');
+		} catch (error) {
+			console.error('Error al completar el recordatorio:', error);
+			toast.error('Error al completar el recordatorio');
+		}
 	};
 
 	const NoDataMessage = () => (
