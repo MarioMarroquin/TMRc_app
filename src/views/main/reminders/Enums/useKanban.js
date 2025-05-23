@@ -122,19 +122,20 @@ export const useKanban = () => {
 	const sortColumnByDate = (cards) => {
 		return [...cards].sort((a, b) => {
 			try {
-				// Extraer fechas y horas
-				const [dateStrA, timeA = '00:00'] = a.description.split(' - ');
-				const [dateStrB, timeB = '00:00'] = b.description.split(' - ');
+				// Extraer fechas de la descripción (formato dd/mm/yyyy - HH:mm)
+				const [dateStrA] = a.description.split(' - ');
+				const [dateStrB] = b.description.split(' - ');
 
-				// Convertir dd/mm/yyyy a objetos Date
+				// Convertir dd/mm/yyyy a yyyy/mm/dd para comparación correcta
 				const [dayA, monthA, yearA] = dateStrA.split('/');
 				const [dayB, monthB, yearB] = dateStrB.split('/');
 
-				const dateA = new Date(`${yearA}-${monthA}-${dayA}T${timeA}`);
-				const dateB = new Date(`${yearB}-${monthB}-${dayB}T${timeB}`);
+				// Crear objetos Date
+				const dateA = new Date(yearA, monthA - 1, dayA);
+				const dateB = new Date(yearB, monthB - 1, dayB);
 
 				// Ordenar de más reciente a más antiguo (orden descendente)
-				return dateB.getTime() - dateA.getTime();
+				return dateB - dateA;
 			} catch (error) {
 				console.error('Error en ordenamiento:', error);
 				return 0;
@@ -189,12 +190,13 @@ export const useKanban = () => {
 	const handleCardEditSave = (editedReminder) => {
 		if (!itemToEdit) return;
 
-		// Crear el recordatorio actualizado
+		// Crear el recordatorio actualizado manteniendo el tipo original
 		const updatedReminder = {
 			...itemToEdit,
 			title: editedReminder.title,
 			description: `${editedReminder.date} - ${editedReminder.time}`,
-			type: editedReminder.type,
+			// Mantener el tipo original, si no existe usar 'lead' como valor por defecto
+			type: itemToEdit.type || 'lead', // Esta es la línea clave
 		};
 
 		setColumns((prev) => {
@@ -243,29 +245,41 @@ export const useKanban = () => {
 		toast.success('✔️ Recordatorio actualizado');
 	};
 
-	const handleQuickReminderSave = () => {
-		const today = new Date();
-		const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(
-			today.getMonth() + 1
-		).padStart(2, '0')}/${today.getFullYear()}`;
-
-		const newReminder = {
-			id: Date.now(),
-			title,
-			description: `${formattedDate} - ${selectedTime}`,
-			type: 'personal',
-		};
-
-		setColumns((prev) => {
-			const updatedColumn = [...prev[quickModalColumn], newReminder];
-			return {
-				...prev,
-				[quickModalColumn]: sortColumnByDate(updatedColumn),
+	const handleQuickReminderSave = (columnId, reminder) => {
+		try {
+			const newReminder = {
+				...reminder,
+				id: Date.now(),
+				type: 'personal', // Asegurarse de que sea 'personal'
 			};
-		});
 
-		handleCloseQuickModal();
-		toast.success('✔️ Recordatorio rápido creado');
+			setColumns((prev) => {
+				// Primero agregamos el nuevo recordatorio
+				const updatedColumn = [...prev[columnId], newReminder];
+				// Luego ordenamos la columna
+				const sortedColumn = sortColumnByDate(updatedColumn);
+
+				// Actualizamos el estado con la columna ordenada
+				return {
+					...prev,
+					[columnId]: sortedColumn,
+				};
+			});
+
+			// Actualizar localStorage
+			localStorage.setItem(
+				'kanbanColumns',
+				JSON.stringify({
+					...columns,
+					[columnId]: sortColumnByDate([...columns[columnId], newReminder]),
+				})
+			);
+
+			toast.success('✔️ Recordatorio creado');
+		} catch (error) {
+			console.error('Error al crear el recordatorio:', error);
+			toast.error('Error al crear el recordatorio');
+		}
 	};
 
 	// Funciones de limpieza y manejo de modales

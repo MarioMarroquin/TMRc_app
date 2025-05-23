@@ -6,62 +6,33 @@ export const useListPersistence = (
 	completedList,
 	setCompletedList
 ) => {
-	// Cargar datos iniciales
+	// Un solo useEffect para ambas actualizaciones
 	useEffect(() => {
-		try {
-			const storedListData = JSON.parse(localStorage.getItem('listData')) || [];
-			const storedCompletedList =
-				JSON.parse(localStorage.getItem('completedList')) || [];
+		const saveToLocalStorage = () => {
+			try {
+				if (listData) {
+					localStorage.setItem('listData', JSON.stringify(listData));
+				}
+				if (completedList) {
+					localStorage.setItem('completedList', JSON.stringify(completedList));
+				}
+			} catch (error) {
+				console.error('Error saving data:', error);
+			}
+		};
 
-			setListData(storedListData);
-			setCompletedList(storedCompletedList);
-		} catch (error) {
-			console.error('Error al cargar datos del localStorage:', error);
-		}
-	}, []);
+		saveToLocalStorage();
+	}, [listData, completedList]);
 
-	// Persistir cambios en listData
-	useEffect(() => {
-		try {
-			localStorage.setItem('listData', JSON.stringify(listData));
-			// Notificar a otros componentes
-			window.dispatchEvent(new Event('listDataUpdate'));
-		} catch (error) {
-			console.error('Error al guardar listData en localStorage:', error);
-		}
-	}, [listData]);
-
-	// Persistir cambios en completedList
-	useEffect(() => {
-		try {
-			localStorage.setItem('completedList', JSON.stringify(completedList));
-			// Notificar a otros componentes
-			window.dispatchEvent(new Event('completedListUpdate'));
-		} catch (error) {
-			console.error('Error al guardar completedList en localStorage:', error);
-		}
-	}, [completedList]);
-
-	// Función auxiliar para actualizar listData
+	// Funciones auxiliares simplificadas
 	const updateListData = (newData) => {
-		try {
-			setListData(newData);
-			localStorage.setItem('listData', JSON.stringify(newData));
-			window.dispatchEvent(new Event('listDataUpdate'));
-		} catch (error) {
-			console.error('Error al actualizar listData:', error);
-		}
+		if (!newData) return;
+		setListData(newData);
 	};
 
-	// Función auxiliar para actualizar completedList
 	const updateCompletedList = (newData) => {
-		try {
-			setCompletedList(newData);
-			localStorage.setItem('completedList', JSON.stringify(newData));
-			window.dispatchEvent(new Event('completedListUpdate'));
-		} catch (error) {
-			console.error('Error al actualizar completedList:', error);
-		}
+		if (!newData) return;
+		setCompletedList(newData);
 	};
 
 	return {

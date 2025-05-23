@@ -91,7 +91,11 @@ export const CardEditModal = ({
 			return;
 		}
 
-		onSave(editedReminder);
+		// Mantener el tipo original del recordatorio
+		onSave({
+			...editedReminder,
+			type: reminder?.type || 'lead', // Preservar el tipo original
+		});
 
 		// Limpiar estados temporales
 		if (setTempRemovedItem) setTempRemovedItem(null);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
 	Dialog,
 	DialogTitle,
@@ -15,30 +15,52 @@ import {
 import toast from 'react-hot-toast';
 
 const QuickReminderModal = ({ open, columnId, onClose, onSave }) => {
-	const [title, setTitle] = useState('');
-	const [selectedTime, setSelectedTime] = useState('12:00');
-	const [type, setType] = useState('personal');
-	const [empresa, setEmpresa] = useState('');
-	const [cliente, setCliente] = useState('');
+	const [selectedDate, setSelectedDate] = useState('');
+	const [selectedTime, setSelectedTime] = useState('');
+	const [note, setNote] = useState('');
+
+	// Generar lista de fechas (6 días desde hoy)
+	const generateAvailableDates = () => {
+		const dates = [];
+		const today = new Date();
+		for (let i = 0; i < 6; i++) {
+			const date = new Date(today);
+			date.setDate(today.getDate() + i);
+			const formattedDate = date
+				.toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				})
+				.replace(/\//g, '/');
+			dates.push(formattedDate);
+		}
+		return dates;
+	};
+
+	// Generar lista de 10 horarios
+	const generateAvailableTimes = () => {
+		const times = [];
+		for (let hour = 8; hour <= 17; hour++) {
+			// 10 horas desde las 8:00 hasta las 17:00
+			times.push(`${hour.toString().padStart(2, '0')}:00`);
+		}
+		return times;
+	};
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
 
-		if (!title.trim() || !selectedTime) {
-			toast.error('Por favor completa todos los campos requeridos');
+		if (!selectedDate || !selectedTime || !note.trim()) {
+			toast.error('Por favor completa todos los campos');
 			return;
 		}
 
-		const today = new Date();
-		const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(
-			today.getMonth() + 1
-		).padStart(2, '0')}/${today.getFullYear()}`;
-
 		const newReminder = {
 			id: Date.now(),
-			title: title.trim(),
-			description: `${formattedDate} - ${selectedTime}`,
-			type: 'personal',
+			title: note.trim(),
+			description: `${selectedDate} - ${selectedTime}`,
+			type: 'personal', // Cambiado a 'personal' para nuevas cards
 		};
 
 		onSave(columnId, newReminder);
@@ -46,44 +68,59 @@ const QuickReminderModal = ({ open, columnId, onClose, onSave }) => {
 	};
 
 	const handleClose = () => {
-		setTitle('');
-		setSelectedTime('12:00');
+		setSelectedDate('');
+		setSelectedTime('');
+		setNote('');
 		onClose();
-	};
-
-	const handleTimeChange = (e) => {
-		const value = e.target.value;
-		setSelectedTime(value);
 	};
 
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
 			<form onSubmit={handleSubmit}>
-				<DialogTitle>Agregar Recordatorio Rápido</DialogTitle>
+				<DialogTitle>Agregar Recordatorio</DialogTitle>
 				<DialogContent>
-					<Stack spacing={2} sx={{ mt: 1 }}>
-						<TextField
-							autoFocus
-							label='Nota'
-							fullWidth
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
-							required
-						/>
+					<Stack spacing={2} sx={{ mt: 2 }}>
+						<FormControl fullWidth>
+							<InputLabel>Fecha</InputLabel>
+							<Select
+								value={selectedDate}
+								label='Fecha'
+								onChange={(e) => setSelectedDate(e.target.value)}
+								required
+							>
+								{generateAvailableDates().map((date) => (
+									<MenuItem key={date} value={date}>
+										{date}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+
+						<FormControl fullWidth>
+							<InputLabel>Hora</InputLabel>
+							<Select
+								value={selectedTime}
+								label='Hora'
+								onChange={(e) => setSelectedTime(e.target.value)}
+								required
+							>
+								{generateAvailableTimes().map((time) => (
+									<MenuItem key={time} value={time}>
+										{time}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
 
 						<TextField
-							label='Hora'
-							type='time'
-							value={selectedTime}
-							onChange={(e) => setSelectedTime(e.target.value)}
+							label='Nota'
+							multiline
+							rows={3}
+							value={note}
+							onChange={(e) => setNote(e.target.value)}
 							fullWidth
-							InputLabelProps={{
-								shrink: true,
-							}}
-							inputProps={{
-								step: 300, // 5 min
-							}}
 							required
+							placeholder='Escribe tu nota aquí...'
 						/>
 					</Stack>
 				</DialogContent>

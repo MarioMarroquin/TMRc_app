@@ -15,11 +15,9 @@ import {
 import DoneIcon from '@mui/icons-material/Done';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { useListPersistence } from './useListPersistence';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
-import { useResetData } from '@views/main/reminders/useResetData.js';
 
 const formatearFecha = (fechaStr) => {
 	if (!fechaStr) return 'N/A';
@@ -52,11 +50,6 @@ const ListReminder = ({
 }) => {
 	// Estado local para controlar si los datos ya fueron inicializados
 	const [isInitialized, setIsInitialized] = useState(false);
-	const { resetAllData } = useResetData(
-		setListData,
-		setCompletedList,
-		setDeletedItems
-	);
 
 	// Función para resetear datos
 	const resetListData = useCallback(() => {
@@ -86,8 +79,6 @@ const ListReminder = ({
 
 	const filteredData = useMemo(() => {
 		if (!listData) return [];
-
-		// Ordenar por fecha
 		return [...listData].sort((a, b) => {
 			const dateA = new Date(a.FECHA.replace(/\//g, '-'));
 			const dateB = new Date(b.FECHA.replace(/\//g, '-'));
@@ -160,67 +151,46 @@ const ListReminder = ({
 
 	useEffect(() => {
 		if (!isInitialized) {
-			const storedListData = localStorage.getItem('listData');
-			const storedCompletedList = localStorage.getItem('completedList');
-			const storedDeletedItems = localStorage.getItem('deletedItems');
+			try {
+				const storedListData = localStorage.getItem('listData');
+				const storedCompletedList = localStorage.getItem('completedList');
+				const storedDeletedItems = localStorage.getItem('deletedItems');
 
-			if (storedListData) {
-				try {
+				if (storedListData) {
 					setListData(JSON.parse(storedListData));
-				} catch (error) {
-					console.error('Error parsing listData:', error);
 				}
-			}
-
-			if (storedCompletedList) {
-				try {
+				if (storedCompletedList) {
 					setCompletedList(JSON.parse(storedCompletedList));
-				} catch (error) {
-					console.error('Error parsing completedList:', error);
 				}
-			}
-
-			if (storedDeletedItems && typeof setDeletedItems === 'function') {
-				try {
+				if (storedDeletedItems && typeof setDeletedItems === 'function') {
 					setDeletedItems(JSON.parse(storedDeletedItems));
-				} catch (error) {
-					console.error('Error parsing deletedItems:', error);
 				}
+				setIsInitialized(true);
+			} catch (error) {
+				console.error('Error loading initial data:', error);
 			}
-
-			setIsInitialized(true);
 		}
 	}, [isInitialized, setListData, setCompletedList, setDeletedItems]);
 
 	useEffect(() => {
 		if (isInitialized) {
-			localStorage.setItem('listData', JSON.stringify(listData));
-			localStorage.setItem('completedList', JSON.stringify(completedList));
-			if (deletedItems) {
-				localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+			try {
+				localStorage.setItem('listData', JSON.stringify(listData));
+				localStorage.setItem('completedList', JSON.stringify(completedList));
+				if (deletedItems) {
+					localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
+				}
+			} catch (error) {
+				console.error('Error saving data:', error);
 			}
 		}
-	}, [listData, completedList, deletedItems, isInitialized]);
+	}, [isInitialized, listData, completedList, deletedItems]);
 
 	return (
 		<>
 			{/* Agregar el botón de reseteo en la parte superior */}
 			<Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
 				<Typography variant='h6'>Lista de Recordatorios</Typography>
-				<Button
-					variant='contained'
-					color='warning'
-					onClick={resetAllData}
-					startIcon={<RestartAltIcon />}
-					sx={{
-						transition: 'transform 0.2s',
-						'&:hover': {
-							transform: 'scale(1.05)',
-						},
-					}}
-				>
-					Resetear Datos
-				</Button>
 			</Box>
 
 			<Grid container spacing={20} sx={{ flexDirection: 'column-reverse' }}>
