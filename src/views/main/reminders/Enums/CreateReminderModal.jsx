@@ -77,15 +77,42 @@ export const CreateReminderModal = ({ open, onClose, columns, setColumns }) => {
 		const newReminder = {
 			id: Date.now(),
 			title: title.trim(),
-			description: `${selectedDate} - ${selectedTime}`, // Ya está en el formato correcto
+			description: `${selectedDate} - ${selectedTime}`,
 			type: 'personal',
 		};
 
-		// Actualizar el estado de las columnas inmediatamente
-		setColumns((prev) => ({
-			...prev,
-			[selectedSection]: [...prev[selectedSection], newReminder],
-		}));
+		// Actualizar el estado de las columnas con ordenamiento
+		setColumns((prev) => {
+			// Agregar el nuevo recordatorio a la columna seleccionada
+			const updatedColumn = [...prev[selectedSection], newReminder];
+
+			// Ordenar por fecha (más recientes primero)
+			const sortedColumn = updatedColumn.sort((a, b) => {
+				try {
+					// Extraer fechas de la descripción
+					const [dateStrA] = a.description.split(' - ');
+					const [dateStrB] = b.description.split(' - ');
+
+					// Convertir dd/mm/yyyy a objetos Date
+					const [dayA, monthA, yearA] = dateStrA.split('/');
+					const [dayB, monthB, yearB] = dateStrB.split('/');
+
+					const dateA = new Date(yearA, monthA - 1, dayA);
+					const dateB = new Date(yearB, monthB - 1, dayB);
+
+					// Ordenar de más reciente a más antiguo
+					return dateB - dateA;
+				} catch (error) {
+					console.error('Error en ordenamiento:', error);
+					return 0;
+				}
+			});
+
+			return {
+				...prev,
+				[selectedSection]: sortedColumn,
+			};
+		});
 
 		// Limpiar el formulario
 		setSelectedDate('');

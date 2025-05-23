@@ -12,6 +12,7 @@ import {
 	Divider,
 	Fade,
 	Chip,
+	Button,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -23,8 +24,6 @@ import { CardEditModal } from './CardEditModal';
 import { useKanban } from './useKanban';
 import ButtonAddReminder from './ButtonAddReminder';
 import toast from 'react-hot-toast';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import { useResetData } from '@views/main/reminders/useResetData.js';
 
 const COLUMN_LABELS = {
 	VENCIDO: 'VENCIDO',
@@ -63,18 +62,7 @@ const Kanban = ({
 		setSourceColumnId,
 	} = useKanban();
 
-<<<<<<< HEAD
-	const deleteReminder = async (id, columnId) => {
-=======
-	const { resetAllData } = useResetData(
-		setListData,
-		setCompletedList,
-		setDeletedItems,
-		setColumns
-	);
-
 	const deleteReminder = (id, columnId) => {
->>>>>>> parent of 3a9f7c4 (feat: try to reset dat for working but it doesn't)
 		try {
 			if (!window.confirm('¿Estás seguro de eliminar este recordatorio?')) {
 				return;
@@ -122,17 +110,28 @@ const Kanban = ({
 		}
 	};
 
+	const [localCompletedList, setLocalCompletedList] = useState(() => {
+		try {
+			return JSON.parse(localStorage.getItem('completedList')) || [];
+		} catch (error) {
+			console.error('Error loading completedList:', error);
+			return [];
+		}
+	});
+
 	const handleComplete = async (reminder, columnId) => {
 		try {
-			// 1. Añadir a la lista de completados
+			// 1. Crear el item completado manteniendo toda la información original
 			const completedItem = {
 				...reminder,
 				completedDate: new Date().toISOString(),
+				originalColumn: columnId, // Guardamos la columna original
 			};
 
-			setCompletedList((prev) => [...prev, completedItem]);
+			// 2. Actualizar la lista de completados
+			setCompletedList((prev) => [...(prev || []), completedItem]);
 
-			// 2. Eliminar de las columnas del Kanban
+			// 3. Eliminar de las columnas del Kanban
 			setColumns((prev) => {
 				const newColumns = { ...prev };
 				newColumns[columnId] = newColumns[columnId].filter(
@@ -141,23 +140,16 @@ const Kanban = ({
 				return newColumns;
 			});
 
-			// 3. Actualizar listData
-			setListData((prev) =>
-				prev
+			// 4. Actualizar listData manteniendo la estructura de grupos
+			setListData((prev) => {
+				return prev
 					.map((group) => ({
 						...group,
 						LIST: group.LIST.filter((item) => item.id !== reminder.id),
 					}))
-					.filter((group) => group.LIST.length > 0)
-			);
+					.filter((group) => group.LIST.length > 0);
+			});
 
-			// 4. Actualizar localStorage
-			localStorage.setItem(
-				'completedList',
-				JSON.stringify([...completedList, completedItem])
-			);
-
-			// 5. Notificar éxito
 			toast.success('✔️ Recordatorio completado');
 		} catch (error) {
 			console.error('Error al completar el recordatorio:', error);
@@ -205,22 +197,6 @@ const Kanban = ({
 				</Box>
 
 				<Box display='flex' gap={2} alignItems='center'>
-					<Button
-						onClick={resetAllData}
-						variant='contained'
-						color='warning'
-						startIcon={<RestartAltIcon />}
-						sx={{
-							mb: 2,
-							transition: 'transform 0.2s',
-							'&:hover': {
-								transform: 'scale(1.05)',
-							},
-						}}
-					>
-						Reiniciar Datos
-					</Button>
-
 					<Tooltip title='Agregar nuevo recordatorio'>
 						<IconButton
 							size='small'
@@ -353,18 +329,19 @@ const Kanban = ({
 															>
 																<Chip
 																	label={
-																		reminder.type === 'lead'
-																			? 'LEAD'
-																			: 'Personal'
+																		reminder.type === 'personal'
+																			? 'Personal'
+																			: 'LEAD'
 																	}
 																	color={
-																		reminder.type === 'lead'
-																			? 'secondary'
-																			: 'primary'
+																		reminder.type === 'personal'
+																			? 'primary'
+																			: 'secondary'
 																	}
 																	size='small'
 																	sx={{ fontWeight: 'bold' }}
 																/>
+
 																<Box>
 																	<Tooltip title='Completar'>
 																		<IconButton
