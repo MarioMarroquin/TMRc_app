@@ -299,10 +299,14 @@ const Reminders = () => {
 						openEditDialog={openEditDialog}
 						selectedItem={selectedItem}
 						handleEditClick={handleEditClick}
-						deletedItems={deletedItems} // Añade esto
+						handleSaveEdit={handleSaveEdit}
+						handleCancelEdit={handleCancelEdit}
+						itemToEdit={itemToEdit}
+						setItemToEdit={setItemToEdit}
+						deletedItems={deletedItems}
 						setDeletedItems={setDeletedItems}
 						columns={columns}
-						setcolumns={setColumns}
+						setColumns={setColumns}
 					/>
 				</div>
 			</Fade>
@@ -341,9 +345,13 @@ const Reminders = () => {
 								variant='outlined'
 								fullWidth
 								value={itemToEdit?.FOLIO || ''}
-								onChange={(e) =>
-									setItemToEdit({ ...itemToEdit, FOLIO: e.target.value })
-								}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									setItemToEdit((prev) => ({
+										...prev,
+										FOLIO: newValue,
+									}));
+								}}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -365,9 +373,13 @@ const Reminders = () => {
 								variant='outlined'
 								fullWidth
 								value={itemToEdit?.SERVICIO || ''}
-								onChange={(e) =>
-									setItemToEdit({ ...itemToEdit, SERVICIO: e.target.value })
-								}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									setItemToEdit((prev) => ({
+										...prev,
+										SERVICIO: newValue,
+									}));
+								}}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -389,9 +401,13 @@ const Reminders = () => {
 								variant='outlined'
 								fullWidth
 								value={itemToEdit?.EMPRESA || ''}
-								onChange={(e) =>
-									setItemToEdit({ ...itemToEdit, EMPRESA: e.target.value })
-								}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									setItemToEdit((prev) => ({
+										...prev,
+										EMPRESA: newValue,
+									}));
+								}}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -413,9 +429,13 @@ const Reminders = () => {
 								variant='outlined'
 								fullWidth
 								value={itemToEdit?.CLIENTE || ''}
-								onChange={(e) =>
-									setItemToEdit({ ...itemToEdit, CLIENTE: e.target.value })
-								}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									setItemToEdit((prev) => ({
+										...prev,
+										CLIENTE: newValue,
+									}));
+								}}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -437,9 +457,13 @@ const Reminders = () => {
 								variant='outlined'
 								fullWidth
 								value={itemToEdit?.CONTACT || ''}
-								onChange={(e) =>
-									setItemToEdit({ ...itemToEdit, CONTACT: e.target.value })
-								}
+								onChange={(e) => {
+									const newValue = e.target.value;
+									setItemToEdit((prev) => ({
+										...prev,
+										CONTACT: newValue,
+									}));
+								}}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -456,7 +480,13 @@ const Reminders = () => {
 
 				<DialogActions sx={{ mt: 2 }}>
 					<Button onClick={handleCancelEdit}>Cancelar</Button>
-					<Button variant='contained' onClick={handleSaveEdit} color='primary'>
+					<Button
+						variant='contained'
+						onClick={() => {
+							handleSaveEdit(itemToEdit);
+						}}
+						color='primary'
+					>
 						Guardar
 					</Button>
 				</DialogActions>

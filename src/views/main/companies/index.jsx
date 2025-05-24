@@ -1,93 +1,117 @@
 import { useQuery } from '@apollo/client';
 import { GET_COMPANIES } from './requests';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import {
 	Box,
 	Button,
 	Card,
 	CardContent,
 	Grid,
-	LinearProgress,
 	Toolbar,
+	CircularProgress,
 } from '@mui/material';
-import CustomDataGrid from '@components/customDataGrid';
+import { AgGridReact } from 'ag-grid-react';
 import CompanyCreateDialog from './CompanyCreateDialog';
+import EditIcon from '@mui/icons-material/Edit';
+import useWindowDimensions from '@hooks/use-windowDimensions';
+
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
 
 const Companies = () => {
+	const { height } = useWindowDimensions();
 	const [companies, setCompanies] = useState([]);
-	const [countRows, setCountRows] = useState(0);
-	const [paginationModel, setPaginationModel] = useState({
-		page: 0,
-		pageSize: 5,
-	});
 
 	const { data, loading, refetch } = useQuery(GET_COMPANIES, {
 		variables: {
 			params: {
-				page: paginationModel.page,
-				pageSize: paginationModel.pageSize,
+				page: 0,
+				pageSize: 100, // Ajusta según necesites
 			},
 		},
 	});
 
-	useEffect(() => {
-		if (data) {
-			const aux = data.companies.results;
-			const auxCount = data.companies.info.count;
+	const defaultColDef = useMemo(() => {
+		return {
+			filter: true,
+			floatingFilter: true,
+		};
+	}, []);
 
-			setCountRows(auxCount);
-			setCompanies(aux);
-		}
-	}, [data]);
-
-	const headers = [
+	const columnDefs = [
+		{
+			field: 'id',
+			headerName: 'ID',
+			flex: 0.5,
+			filter: true,
+		},
 		{
 			field: 'name',
 			headerName: 'Nombre',
-			headerAlign: 'left',
-			align: 'center',
 			flex: 1,
-			minWidth: 200,
+			filter: true,
 		},
 		{
 			field: 'phoneNumber',
-			headerName: 'TELÉFONO',
-			headerAlign: 'left',
-			align: 'center',
-			minWidth: 150,
+			headerName: 'Teléfono',
+			flex: 1,
 			valueFormatter: (params) => {
 				return params.value?.replace('+52', '');
 			},
 		},
-
 		{
 			field: 'email',
-			headerName: 'CORREO',
-			headerAlign: 'left',
-			align: 'left',
-			width: 200,
+			headerName: 'Correo',
+			flex: 1.2,
 		},
-
 		{
 			field: 'website',
-			headerName: 'SITIO WEB',
-			headerAlign: 'left',
-			align: 'left',
-			width: 200,
+			headerName: 'Sitio Web',
+			flex: 1.2,
 		},
 		{
-			field: 'options',
-			headerName: 'Opciones',
-			headerAlign: 'left',
-			align: 'left',
-			width: 200,
-			renderCell: (params) => {
-				<Box sx={{ bgcolor: 'red', width: '100%' }}>
-					<Button>lol</Button>
-				</Box>;
-			},
+			headerName: 'Acciones',
+			flex: 1,
+			sortable: false,
+			filter: false,
+			cellRenderer: (params) => (
+				<Box
+					sx={{
+						display: 'flex',
+						gap: 1,
+						justifyContent: 'center',
+					}}
+				>
+					<Button
+						variant='contained'
+						size='small'
+						startIcon={<EditIcon />}
+						onClick={() => handleEdit(params.data)}
+						sx={{
+							minWidth: 'auto',
+							fontSize: '0.7rem',
+							padding: '3px 8px',
+						}}
+					>
+						Editar
+					</Button>
+				</Box>
+			),
 		},
 	];
+
+	const handleEdit = (company) => {
+		// Implementa la lógica de edición aquí
+		console.log('Editar compañía:', company);
+	};
+
+	if (loading) {
+		return (
+			<Box display='flex' justifyContent='center' mt={4}>
+				<CircularProgress />
+			</Box>
+		);
+	}
 
 	return (
 		<Fragment>
@@ -95,22 +119,26 @@ const Companies = () => {
 				<Grid item xs={12}>
 					<Card>
 						<CardContent>
-							<Toolbar variant={'dense'}>
+							<Toolbar variant='dense'>
 								<CompanyCreateDialog reloadCompanies={refetch} />
 							</Toolbar>
-							<CustomDataGrid
-								paginationMode={'server'}
-								rows={companies}
-								columns={headers}
-								loading={loading}
-								slots={{
-									loadingOverlay: LinearProgress,
+							<div
+								className='ag-theme-quartz'
+								style={{
+									height: height - 150,
+									width: '100%',
 								}}
-								slotProps={{ loadingOverlay: { color: 'secondary' } }}
-								rowCount={countRows}
-								paginationModel={paginationModel}
-								onPaginationModelChange={setPaginationModel}
-							/>
+							>
+								<AgGridReact
+									rowData={data?.companies?.results || []}
+									columnDefs={columnDefs}
+									defaultColDef={defaultColDef}
+									pagination={true}
+									paginationAutoPageSize={true}
+									animateRows={true}
+									getRowId={(params) => params.data.id}
+								/>
+							</div>
 						</CardContent>
 					</Card>
 				</Grid>

@@ -22,7 +22,7 @@ const Leads = lazy(() => import('./views/main/leads'));
 const LeadDetail = lazy(() => import('./views/main/leads/subviews/leadDetail'));
 const Maintenance = lazy(() => import('./views/main/maintenance'));
 const Users = lazy(() => import('./views/main/maintenance/users'));
-const Clients = lazy(() => import('./views/main/maintenance/clients'));
+const Clients = lazy(() => import('./views/main/clients'));
 const Companies = lazy(() => import('./views/main/companies'));
 const Brand = lazy(() => import('./views/main/brand'));
 
@@ -66,6 +66,15 @@ const mainRoutes = [
 		scopes: [SCOPES_GENERAL.total],
 	},
 	{
+		element: <Clients />,
+		icon: <Person />,
+		index: true,
+		name: 'Clientes',
+		path: '/clients',
+		active: true,
+		scopes: [SCOPES_GENERAL.total],
+	},
+	{
 		routes: [
 			{
 				// children: [{ path: ':id', element: <LeadDetail /> }],
@@ -75,15 +84,6 @@ const mainRoutes = [
 				name: 'Usuarios',
 				path: '/management/users',
 				active: false,
-				scopes: [SCOPES_GENERAL.total],
-			},
-			{
-				element: <Clients />,
-				icon: <Person />,
-				index: true,
-				name: 'Clientes',
-				path: '/clients',
-				active: true,
 				scopes: [SCOPES_GENERAL.total],
 			},
 		],

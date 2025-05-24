@@ -415,17 +415,9 @@ export const useReminders = () => {
 	};
 
 	const handleEditClick = (item, fecha) => {
-		// Aseguramos que todos los campos necesarios estén presentes
 		setItemToEdit({
-			id: item.id,
-			FOLIO: item.FOLIO || '',
-			SERVICIO: item.SERVICIO || '',
-			EMPRESA: item.EMPRESA || '',
-			CLIENTE: item.CLIENTE || '',
-			CONTACT: item.CONTACT || '',
-			HORA: item.HORA || '',
-			FECHA: fecha,
-			type: item.type || 'lead',
+			...item,
+			FECHA: fecha, // Aseguramos que la fecha se incluya
 		});
 		setOpenEditDialog(true);
 	};
@@ -474,6 +466,53 @@ export const useReminders = () => {
 		setSelectedCompletedItem(null);
 
 		toast.error('🗑️ Recordatorio eliminado');
+	};
+
+	const handleSaveEdit = (editedItem) => {
+		try {
+			// 1. Actualizar listData
+			const updatedListData = listData.map((group) => ({
+				...group,
+				LIST: group.LIST.map((item) =>
+					item.id === editedItem.id ? editedItem : item
+				),
+			}));
+
+			// 2. Actualizar el estado local
+			setListData(updatedListData);
+
+			// 3. Actualizar localStorage
+			localStorage.setItem('listData', JSON.stringify(updatedListData));
+
+			// 4. Actualizar el Kanban si es necesario
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				Object.keys(newColumns).forEach((columnId) => {
+					newColumns[columnId] = newColumns[columnId].map((item) =>
+						item.id === editedItem.id
+							? {
+									...item,
+									title: editedItem.SERVICIO,
+									description: `${editedItem.FECHA} - ${editedItem.HORA || ''}`,
+							  }
+							: item
+					);
+				});
+
+				// Guardar en localStorage
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				return newColumns;
+			});
+
+			// 5. Cerrar el diálogo y limpiar el estado
+			setOpenEditDialog(false);
+			setItemToEdit(null);
+
+			toast.success('✔️ Recordatorio actualizado');
+		} catch (error) {
+			console.error('Error al guardar cambios:', error);
+			toast.error('Error al actualizar el recordatorio');
+		}
 	};
 
 	const addReminderToColumn = (columnId, reminder) => {
@@ -745,6 +784,11 @@ export const useReminders = () => {
 		return () => window.removeEventListener('kanbanUpdate', handleKanbanUpdate);
 	}, []);
 
+	const handleCancelEdit = () => {
+		setOpenEditDialog(false);
+		setItemToEdit(null);
+	};
+
 	return {
 		listData,
 		setListData,
@@ -782,5 +826,7 @@ export const useReminders = () => {
 		completeReminder,
 		handleMarkAsCompleted,
 		sortRemindersByDate,
+		handleSaveEdit,
+		handleCancelEdit,
 	};
 };

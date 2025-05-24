@@ -204,6 +204,134 @@ const ListReminder = ({
 		}
 	}, [isInitialized, listData, completedList, deletedItems]);
 
+	useEffect(() => {
+		const syncEditChanges = () => {
+			try {
+				if (itemToEdit) {
+					// Actualizar listData
+					const updatedListData = listData.map((group) => ({
+						...group,
+						LIST: group.LIST.map((item) =>
+							item.id === itemToEdit.id ? itemToEdit : item
+						),
+					}));
+
+					// Guardar en localStorage
+					localStorage.setItem('listData', JSON.stringify(updatedListData));
+
+					// Actualizar Kanban
+					const updatedColumns = { ...columns };
+					Object.keys(updatedColumns).forEach((columnId) => {
+						updatedColumns[columnId] = updatedColumns[columnId].map((item) =>
+							item.id === itemToEdit.id
+								? {
+										...item,
+										title: itemToEdit.SERVICIO,
+										description: `${itemToEdit.FECHA} - ${
+											itemToEdit.HORA || ''
+										}`,
+								  }
+								: item
+						);
+					});
+					localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+					setColumns(updatedColumns);
+				}
+			} catch (error) {
+				console.error('Error al sincronizar cambios:', error);
+			}
+		};
+
+		syncEditChanges();
+	}, [itemToEdit]); // Se ejecuta cuando itemToEdit cambia
+
+	// 2. Efecto para mantener la sincronización entre vistas
+	useEffect(() => {
+		const syncViews = () => {
+			try {
+				// Emitir eventos de actualización para mantener sincronizadas las vistas
+				window.dispatchEvent(
+					new CustomEvent('listDataUpdate', { detail: listData })
+				);
+				window.dispatchEvent(
+					new CustomEvent('kanbanUpdate', { detail: columns })
+				);
+			} catch (error) {
+				console.error('Error al sincronizar vistas:', error);
+			}
+		};
+
+		syncViews();
+	}, [listData, columns]);
+
+	// 3. Efecto para cargar datos al iniciar y manejar actualizaciones
+	useEffect(() => {
+		const handleStorageChange = (e) => {
+			if (e.key === 'listData') {
+				try {
+					const newData = JSON.parse(e.newValue);
+					if (newData) {
+						setListData(newData);
+					}
+				} catch (error) {
+					console.error('Error al procesar cambios del storage:', error);
+				}
+			}
+		};
+
+		// Escuchar cambios en el localStorage
+		window.addEventListener('storage', handleStorageChange);
+
+		return () => {
+			window.removeEventListener('storage', handleStorageChange);
+		};
+	}, []);
+
+	// 4. Efecto para manejar la persistencia de los datos editados
+	useEffect(() => {
+		if (!isInitialized) {
+			return;
+		}
+
+		const persistEditedData = () => {
+			try {
+				const currentData = localStorage.getItem('listData');
+				const parsedData = currentData ? JSON.parse(currentData) : [];
+
+				// Verificar si hay cambios antes de actualizar
+				if (JSON.stringify(parsedData) !== JSON.stringify(listData)) {
+					localStorage.setItem('listData', JSON.stringify(listData));
+
+					// Actualizar también el estado de las columnas del Kanban
+					const updatedColumns = { ...columns };
+					listData.forEach((group) => {
+						group.LIST.forEach((item) => {
+							Object.keys(updatedColumns).forEach((columnId) => {
+								updatedColumns[columnId] = updatedColumns[columnId].map(
+									(kanbanItem) =>
+										kanbanItem.id === item.id
+											? {
+													...kanbanItem,
+													title: item.SERVICIO,
+													description: `${item.FECHA} - ${item.HORA || ''}`,
+											  }
+											: kanbanItem
+								);
+							});
+						});
+					});
+
+					setColumns(updatedColumns);
+					localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
+				}
+			} catch (error) {
+				console.error('Error al persistir datos editados:', error);
+			}
+		};
+
+		persistEditedData();
+	}, [listData, isInitialized]);
+
 	return (
 		<>
 			{/* Agregar el botón de reseteo en la parte superior */}
