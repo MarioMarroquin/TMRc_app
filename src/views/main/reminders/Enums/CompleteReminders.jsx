@@ -27,42 +27,40 @@ const CompleteList = ({
 }) => {
 	const handleUndoClick = (rowData) => {
 		try {
-			console.log('Datos del recordatorio a restaurar:', rowData);
+			// Obtener la fecha del registro completado
+			let fecha;
 
-			// Intentar obtener la fecha de todas las posibles fuentes
-			let fecha = rowData.originalDate || rowData.FECHA;
-
-			if (!fecha && rowData.completedDate) {
-				// Si no tenemos fecha original, usamos la fecha de completado
-				fecha = new Date(rowData.completedDate).toLocaleDateString('es-ES', {
-					day: '2-digit',
-					month: '2-digit',
-					year: 'numeric',
-				});
+			// Si el registro viene de Kanban, estará en un formato diferente
+			if (rowData.description) {
+				fecha = rowData.description.split(' - ')[0];
+			} else {
+				// Intentar obtener la fecha de diferentes propiedades
+				fecha = rowData.FECHA || rowData.fecha || rowData.originalDate;
 			}
 
-			// Si aún no hay fecha, intentar obtenerla del description
-			if (!fecha && rowData.description) {
-				[fecha] = rowData.description.split(' - ');
+			// Si aún no tenemos fecha, intentar crearla desde completedDate
+			if (!fecha && rowData.completedDate) {
+				const completedDate = new Date(rowData.completedDate);
+				const day = completedDate.getDate().toString().padStart(2, '0');
+				const month = (completedDate.getMonth() + 1)
+					.toString()
+					.padStart(2, '0');
+				const year = completedDate.getFullYear();
+				fecha = `${day}/${month}/${year}`;
 			}
 
 			if (!fecha) {
-				// Como último recurso, usar la fecha actual
-				fecha = new Date().toLocaleDateString('es-ES', {
-					day: '2-digit',
-					month: '2-digit',
-					year: 'numeric',
-				});
+				throw new Error('No se pudo determinar la fecha del recordatorio');
 			}
 
-			// Crear el objeto con todos los campos necesarios
+			// Crear el objeto para listData con los datos existentes
 			const listItem = {
 				id: rowData.id,
-				FOLIO: rowData.FOLIO || rowData.folio || '',
-				SERVICIO: rowData.SERVICIO || rowData.title || '',
-				EMPRESA: rowData.EMPRESA || rowData.empresa || '',
-				CLIENTE: rowData.CLIENTE || rowData.cliente || '',
-				CONTACT: rowData.CONTACT || rowData.contact || '',
+				FOLIO: rowData.FOLIO || '',
+				SERVICIO: rowData.SERVICIO || '',
+				EMPRESA: rowData.EMPRESA || '',
+				CLIENTE: rowData.CLIENTE || '',
+				CONTACT: rowData.CONTACT || '',
 				HORA: rowData.HORA || '',
 				type: rowData.type || 'lead',
 				FECHA: fecha,
@@ -84,32 +82,32 @@ const CompleteList = ({
 					});
 				}
 
+				// Guardar en localStorage
 				localStorage.setItem('listData', JSON.stringify(newListData));
 				return newListData;
 			});
 
-			// Determinar columna Kanban
+			// Determinar la columna Kanban
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
 
-			let targetColumn = 'POR VENCER';
-			try {
-				const [day, month, year] = fecha.split('/');
-				const itemDate = new Date(year, month - 1, day);
-				itemDate.setHours(0, 0, 0, 0);
+			const [day, month, year] = fecha.split('/');
+			const itemDate = new Date(year, month - 1, day);
+			itemDate.setHours(0, 0, 0, 0);
 
-				if (itemDate < today) {
-					targetColumn = 'VENCIDO';
-				} else if (itemDate.getTime() === today.getTime()) {
-					targetColumn = 'HOY';
-				}
-			} catch (e) {
-				console.warn('Error al procesar la fecha para columna Kanban:', e);
+			let targetColumn = 'POR VENCER';
+			const timeDiff = itemDate.getTime() - today.getTime();
+			const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+			if (dayDiff < 0) {
+				targetColumn = 'VENCIDO';
+			} else if (dayDiff === 0) {
+				targetColumn = 'HOY';
 			}
 
 			// Actualizar columnas Kanban
 			setColumns((prevColumns) => {
-				const newColumns = { ...prevColumns };
+				const newColumns = JSON.parse(JSON.stringify(prevColumns));
 				const kanbanItem = {
 					id: rowData.id,
 					title: listItem.SERVICIO,
@@ -119,11 +117,20 @@ const CompleteList = ({
 					cliente: listItem.CLIENTE,
 					contact: listItem.CONTACT,
 					folio: listItem.FOLIO,
+					originalDate: fecha,
 				};
 
 				if (!newColumns[targetColumn]) {
 					newColumns[targetColumn] = [];
 				}
+
+				// Remover el item de todas las columnas para evitar duplicados
+				Object.keys(newColumns).forEach((columnKey) => {
+					newColumns[columnKey] = newColumns[columnKey].filter(
+						(item) => item.id !== rowData.id
+					);
+				});
+
 				newColumns[targetColumn].push(kanbanItem);
 				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
@@ -138,7 +145,8 @@ const CompleteList = ({
 
 			toast.success('✔️ Recordatorio restaurado correctamente');
 		} catch (error) {
-			console.error('Error detallado:', error);
+			console.error('Error completo:', error);
+			console.error('Datos del registro que causó el error:', rowData);
 			toast.error(`Error al restaurar: ${error.message}`);
 		}
 	};
@@ -177,20 +185,32 @@ const CompleteList = ({
 		{
 			field: 'actions',
 			headerName: 'Acciones',
-			flex: 1.5,
+			flex: 2, // Aumentado el flex para dar más espacio
+			minWidth: 200, // Ancho mínimo para asegurar que los botones quepan
 			sortable: false,
 			filterable: false,
 			renderCell: (params) => (
-				<Box sx={{ display: 'flex', gap: 0.5 }}>
+				<Box
+					sx={{
+						display: 'flex',
+						gap: 1,
+						width: '100%',
+						justifyContent: 'center',
+						'& .MuiButton-root': {
+							whiteSpace: 'nowrap',
+							minWidth: 'auto',
+						},
+					}}
+				>
 					<Button
 						variant='contained'
 						size='small'
 						startIcon={<UndoIcon />}
 						onClick={() => handleUndoClick(params.row)}
 						sx={{
-							minWidth: 'auto',
-							fontSize: '0.7rem',
-							padding: '3px 6px',
+							fontSize: '0.75rem',
+							padding: '4px 8px',
+							height: '28px',
 						}}
 					>
 						Deshacer
@@ -202,9 +222,9 @@ const CompleteList = ({
 						startIcon={<DeleteIcon />}
 						onClick={() => handleDeleteCompletedClick(params.row)}
 						sx={{
-							minWidth: 'auto',
-							fontSize: '0.7rem',
-							padding: '3px 6px',
+							fontSize: '0.75rem',
+							padding: '4px 8px',
+							height: '28px',
 						}}
 					>
 						Eliminar
@@ -224,6 +244,14 @@ const CompleteList = ({
 					rowsPerPageOptions={[5, 10, 20]}
 					disableSelectionOnClick
 					getRowId={(row) => row.id}
+					sx={{
+						'& .MuiDataGrid-cell': {
+							padding: '8px',
+						},
+						'& .MuiDataGrid-columnHeader': {
+							padding: '8px',
+						},
+					}}
 				/>
 			</Box>
 

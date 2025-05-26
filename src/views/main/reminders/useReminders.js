@@ -414,11 +414,9 @@ export const useReminders = () => {
 		return null;
 	};
 
-	const handleEditClick = (item, fecha) => {
-		setItemToEdit({
-			...item,
-			FECHA: fecha, // Aseguramos que la fecha se incluya
-		});
+	const handleEditClick = (item) => {
+		setSelectedItem({ ...item }); // Guardar una copia del item original
+		setItemToEdit({ ...item }); // Crear una copia para editar
 		setOpenEditDialog(true);
 	};
 
@@ -468,51 +466,60 @@ export const useReminders = () => {
 		toast.error('🗑️ Recordatorio eliminado');
 	};
 
-	const handleSaveEdit = (editedItem) => {
-		try {
-			// 1. Actualizar listData
-			const updatedListData = listData.map((group) => ({
-				...group,
-				LIST: group.LIST.map((item) =>
-					item.id === editedItem.id ? editedItem : item
-				),
-			}));
-
-			// 2. Actualizar el estado local
-			setListData(updatedListData);
-
-			// 3. Actualizar localStorage
-			localStorage.setItem('listData', JSON.stringify(updatedListData));
-
-			// 4. Actualizar el Kanban si es necesario
-			setColumns((prevColumns) => {
-				const newColumns = { ...prevColumns };
-				Object.keys(newColumns).forEach((columnId) => {
-					newColumns[columnId] = newColumns[columnId].map((item) =>
-						item.id === editedItem.id
-							? {
-									...item,
-									title: editedItem.SERVICIO,
-									description: `${editedItem.FECHA} - ${editedItem.HORA || ''}`,
-							  }
-							: item
-					);
-				});
-
-				// Guardar en localStorage
-				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
-				return newColumns;
-			});
-
-			// 5. Cerrar el diálogo y limpiar el estado
-			setOpenEditDialog(false);
-			setItemToEdit(null);
-
-			toast.success('✔️ Recordatorio actualizado');
-		} catch (error) {
-			console.error('Error al guardar cambios:', error);
-			toast.error('Error al actualizar el recordatorio');
+	const handleSaveEdit = () => {
+		// Validar campos requeridos
+		if (!itemToEdit.FOLIO?.trim()) {
+			toast.error('El folio es requerido');
+			return;
 		}
+
+		if (!itemToEdit.SERVICIO?.trim()) {
+			toast.error('El servicio es requerido');
+			return;
+		}
+
+		// Validar formato del folio (por ejemplo, solo números y letras)
+		const folioRegex = /^[A-Za-z0-9-]+$/;
+		if (!folioRegex.test(itemToEdit.FOLIO)) {
+			toast.error('El folio solo puede contener letras, números y guiones');
+			return;
+		}
+
+		// Validar longitud máxima del servicio
+		if (itemToEdit.SERVICIO.length > 100) {
+			toast.error('El servicio no puede exceder los 100 caracteres');
+			return;
+		}
+
+		// Validar formato de email si existe
+		if (
+			itemToEdit.email &&
+			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(itemToEdit.email)
+		) {
+			toast.error('El formato del correo electrónico no es válido');
+			return;
+		}
+
+		// Validar formato de teléfono si existe (asumiendo formato mexicano)
+		if (itemToEdit.phoneNumber) {
+			const phoneRegex = /^\+?52?\d{10}$/;
+			if (!phoneRegex.test(itemToEdit.phoneNumber.replace(/\D/g, ''))) {
+				toast.error('El formato del teléfono no es válido (10 dígitos)');
+				return;
+			}
+		}
+
+		// Si todas las validaciones pasan, proceder con el guardado
+		const updatedListData = listData.map((group) => ({
+			...group,
+			LIST: group.LIST.map((item) =>
+				item.id === itemToEdit.id ? itemToEdit : item
+			),
+		}));
+
+		setListData(updatedListData);
+		handleCancelEdit();
+		toast.success('Registro actualizado correctamente');
 	};
 
 	const addReminderToColumn = (columnId, reminder) => {
@@ -785,8 +792,8 @@ export const useReminders = () => {
 	}, []);
 
 	const handleCancelEdit = () => {
+		setItemToEdit(selectedItem); // Restaurar al valor original
 		setOpenEditDialog(false);
-		setItemToEdit(null);
 	};
 
 	return {

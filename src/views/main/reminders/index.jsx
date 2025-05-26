@@ -20,13 +20,13 @@ import {
 } from '@mui/material';
 import PlaylistAddCheckCircleIcon from '@mui/icons-material/PlaylistAddCheckCircle';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
-
 import ListReminder from '@views/main/reminders/Enums/list.jsx';
 import Kanban from '@views/main/reminders/Enums/Kanban.jsx';
 import CompleteList from './Enums/CompleteReminders.jsx';
 import { reminderData } from './ReminderData.js';
 import ButtonAddReminder from '@views/main/reminders/Enums/ButtonAddReminder.jsx';
 import { useReminders } from '@views/main/reminders/useReminders.js';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Reminders = () => {
 	const {
@@ -333,9 +333,9 @@ const Reminders = () => {
 				fullWidth
 			>
 				<DialogTitle sx={{ mb: 3 }}>Editar Recordatorio</DialogTitle>
-
 				<DialogContent>
 					<Grid container spacing={3}>
+						{/* Folio */}
 						<Grid item xs={12} sm={6}>
 							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Folio
@@ -344,14 +344,24 @@ const Reminders = () => {
 								placeholder='Folio'
 								variant='outlined'
 								fullWidth
+								required
 								value={itemToEdit?.FOLIO || ''}
 								onChange={(e) => {
-									const newValue = e.target.value;
+									const value = e.target.value;
+									const isValid = /^[A-Za-z0-9-]+$/.test(value);
 									setItemToEdit((prev) => ({
 										...prev,
-										FOLIO: newValue,
+										FOLIO: value,
+										folioError:
+											value.trim() === ''
+												? 'El folio es requerido'
+												: !isValid
+												? 'Solo letras, números y guiones permitidos'
+												: '',
 									}));
 								}}
+								error={!!itemToEdit?.folioError}
+								helperText={itemToEdit?.folioError}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -364,6 +374,7 @@ const Reminders = () => {
 							/>
 						</Grid>
 
+						{/* Servicio */}
 						<Grid item xs={12} sm={6}>
 							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Servicio
@@ -372,14 +383,26 @@ const Reminders = () => {
 								placeholder='Servicio'
 								variant='outlined'
 								fullWidth
+								required
 								value={itemToEdit?.SERVICIO || ''}
 								onChange={(e) => {
-									const newValue = e.target.value;
+									const value = e.target.value;
 									setItemToEdit((prev) => ({
 										...prev,
-										SERVICIO: newValue,
+										SERVICIO: value,
+										servicioError:
+											value.trim() === ''
+												? 'El servicio es requerido'
+												: value.length > 100
+												? 'Máximo 100 caracteres'
+												: '',
 									}));
 								}}
+								error={!!itemToEdit?.servicioError}
+								helperText={
+									itemToEdit?.servicioError ||
+									`${(itemToEdit?.SERVICIO || '').length}/100`
+								}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -392,6 +415,7 @@ const Reminders = () => {
 							/>
 						</Grid>
 
+						{/* Empresa */}
 						<Grid item xs={12} sm={6}>
 							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Empresa
@@ -400,14 +424,26 @@ const Reminders = () => {
 								placeholder='Empresa'
 								variant='outlined'
 								fullWidth
+								required
 								value={itemToEdit?.EMPRESA || ''}
 								onChange={(e) => {
-									const newValue = e.target.value;
+									const value = e.target.value;
 									setItemToEdit((prev) => ({
 										...prev,
-										EMPRESA: newValue,
+										EMPRESA: value,
+										empresaError:
+											value.trim() === ''
+												? 'La empresa es requerida'
+												: value.length > 150
+												? 'Máximo 150 caracteres'
+												: '',
 									}));
 								}}
+								error={!!itemToEdit?.empresaError}
+								helperText={
+									itemToEdit?.empresaError ||
+									`${(itemToEdit?.EMPRESA || '').length}/150`
+								}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -420,6 +456,7 @@ const Reminders = () => {
 							/>
 						</Grid>
 
+						{/* Cliente */}
 						<Grid item xs={12} sm={6}>
 							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Cliente
@@ -428,14 +465,29 @@ const Reminders = () => {
 								placeholder='Cliente'
 								variant='outlined'
 								fullWidth
+								required
 								value={itemToEdit?.CLIENTE || ''}
 								onChange={(e) => {
-									const newValue = e.target.value;
+									const value = e.target.value;
+									const isValid = /^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/.test(value);
 									setItemToEdit((prev) => ({
 										...prev,
-										CLIENTE: newValue,
+										CLIENTE: value,
+										clienteError:
+											value.trim() === ''
+												? 'El cliente es requerido'
+												: !isValid
+												? 'Solo letras y espacios permitidos'
+												: value.length > 100
+												? 'Máximo 100 caracteres'
+												: '',
 									}));
 								}}
+								error={!!itemToEdit?.clienteError}
+								helperText={
+									itemToEdit?.clienteError ||
+									`${(itemToEdit?.CLIENTE || '').length}/100`
+								}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
@@ -448,6 +500,7 @@ const Reminders = () => {
 							/>
 						</Grid>
 
+						{/* Contacto */}
 						<Grid item xs={12}>
 							<Typography variant='body2' fontWeight='bold' sx={{ mb: 1 }}>
 								Contacto
@@ -456,35 +509,114 @@ const Reminders = () => {
 								placeholder='Contacto'
 								variant='outlined'
 								fullWidth
+								required
+								multiline
+								rows={2}
 								value={itemToEdit?.CONTACT || ''}
 								onChange={(e) => {
-									const newValue = e.target.value;
+									const value = e.target.value;
 									setItemToEdit((prev) => ({
 										...prev,
-										CONTACT: newValue,
+										CONTACT: value,
+										contactError:
+											value.trim() === ''
+												? 'El contacto es requerido'
+												: value.length > 200
+												? 'Máximo 200 caracteres'
+												: !value.includes('@') && value.trim() !== ''
+												? 'Debe incluir un correo electrónico'
+												: '',
 									}));
 								}}
+								error={!!itemToEdit?.contactError}
+								helperText={
+									itemToEdit?.contactError ||
+									`${(itemToEdit?.CONTACT || '').length}/200`
+								}
 								sx={{
 									'& .MuiOutlinedInput-root': {
 										borderRadius: '10px',
 										paddingRight: '5px',
-									},
-									'& .MuiInputBase-input': {
-										padding: '10px 14px',
 									},
 								}}
 							/>
 						</Grid>
 					</Grid>
 				</DialogContent>
-
-				<DialogActions sx={{ mt: 2 }}>
-					<Button onClick={handleCancelEdit}>Cancelar</Button>
+				<DialogActions>
 					<Button
-						variant='contained'
 						onClick={() => {
+							// Restaurar valores originales al cancelar
+							setItemToEdit(selectedItem);
+							handleCancelEdit();
+						}}
+						color='inherit'
+					>
+						Cancelar
+					</Button>
+
+					<Button
+						onClick={() => {
+							// Validaciones antes de guardar
+							const errors = [];
+
+							if (!itemToEdit?.FOLIO?.trim()) {
+								errors.push('El folio es requerido');
+							}
+
+							if (!itemToEdit?.SERVICIO?.trim()) {
+								errors.push('El servicio es requerido');
+							}
+
+							if (!itemToEdit?.EMPRESA?.trim()) {
+								errors.push('La empresa es requerida');
+							}
+
+							if (!itemToEdit?.CLIENTE?.trim()) {
+								errors.push('El cliente es requerido');
+							}
+
+							if (!itemToEdit?.CONTACT?.trim()) {
+								errors.push('El contacto es requerido');
+							}
+
+							// Validaciones específicas
+							if (!/^[A-Za-z0-9-]+$/.test(itemToEdit?.FOLIO || '')) {
+								errors.push(
+									'El folio solo puede contener letras, números y guiones'
+								);
+							}
+
+							if ((itemToEdit?.SERVICIO || '').length > 100) {
+								errors.push('El servicio no puede exceder los 100 caracteres');
+							}
+
+							if ((itemToEdit?.EMPRESA || '').length > 150) {
+								errors.push('La empresa no puede exceder los 150 caracteres');
+							}
+
+							if (
+								!/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/.test(itemToEdit?.CLIENTE || '')
+							) {
+								errors.push('El cliente solo puede contener letras y espacios');
+							}
+
+							if (
+								!itemToEdit?.CONTACT?.includes('@') &&
+								itemToEdit?.CONTACT?.trim() !== ''
+							) {
+								errors.push('El contacto debe incluir un correo electrónico');
+							}
+
+							if (errors.length > 0) {
+								errors.forEach((error) => toast.error(error));
+								return;
+							}
+
+							// Si todas las validaciones pasan, proceder con el guardado
 							handleSaveEdit(itemToEdit);
 						}}
+						variant='contained'
 						color='primary'
 					>
 						Guardar

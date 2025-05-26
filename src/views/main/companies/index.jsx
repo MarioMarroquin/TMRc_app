@@ -1,3 +1,4 @@
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import { useQuery } from '@apollo/client';
 import { GET_COMPANIES } from './requests';
 import { Fragment, useMemo, useState } from 'react';
@@ -26,7 +27,7 @@ const Companies = () => {
 		variables: {
 			params: {
 				page: 0,
-				pageSize: 100, // Ajusta según necesites
+				pageSize: 100,
 			},
 		},
 	});
@@ -101,7 +102,6 @@ const Companies = () => {
 	];
 
 	const handleEdit = (company) => {
-		// Implementa la lógica de edición aquí
 		console.log('Editar compañía:', company);
 	};
 
@@ -119,7 +119,23 @@ const Companies = () => {
 				<Grid item xs={12}>
 					<Card>
 						<CardContent>
-							<Toolbar variant='dense'>
+							<Toolbar
+								variant='dense'
+								sx={{
+									display: 'flex',
+									justifyContent: 'flex-end',
+									gap: 2,
+								}}
+							>
+								<Button
+									variant='contained'
+									startIcon={<FormatListNumberedIcon />}
+									onClick={() => {
+										console.log('Indexación clicked');
+									}}
+								>
+									Indexación
+								</Button>
 								<CompanyCreateDialog reloadCompanies={refetch} />
 							</Toolbar>
 							<div
