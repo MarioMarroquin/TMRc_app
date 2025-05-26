@@ -257,8 +257,8 @@ const Reminders = () => {
 						selectedCompletedItem={selectedCompletedItem}
 						columns={columns}
 						setColumns={setColumns}
+						listData={listData} // Agregar esta prop
 						setListData={setListData}
-						listData={listData}
 					/>
 					{completedList.length > 0 && (
 						<Button

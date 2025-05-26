@@ -15,7 +15,6 @@ import toast from 'react-hot-toast';
 const CompleteList = ({
 	completedList,
 	setCompletedList,
-	handleUndoCompleted,
 	handleDeleteCompletedClick,
 	handleConfirmCompletedDelete,
 	handleCancelCompletedDelete,
@@ -23,99 +22,127 @@ const CompleteList = ({
 	selectedCompletedItem,
 	columns,
 	setColumns,
+	listData,
+	setListData,
 }) => {
 	const handleUndoClick = (rowData) => {
 		try {
-			// 1. Remover de completedList
-			const newCompletedList = completedList.filter(
-				(completedItem) => completedItem.id !== rowData.id
-			);
-			setCompletedList(newCompletedList);
+			console.log('Datos del recordatorio a restaurar:', rowData);
 
-			// 2. Determinar la columna apropiada basada en la fecha
+			// Intentar obtener la fecha de todas las posibles fuentes
+			let fecha = rowData.originalDate || rowData.FECHA;
+
+			if (!fecha && rowData.completedDate) {
+				// Si no tenemos fecha original, usamos la fecha de completado
+				fecha = new Date(rowData.completedDate).toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				});
+			}
+
+			// Si aún no hay fecha, intentar obtenerla del description
+			if (!fecha && rowData.description) {
+				[fecha] = rowData.description.split(' - ');
+			}
+
+			if (!fecha) {
+				// Como último recurso, usar la fecha actual
+				fecha = new Date().toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				});
+			}
+
+			// Crear el objeto con todos los campos necesarios
+			const listItem = {
+				id: rowData.id,
+				FOLIO: rowData.FOLIO || rowData.folio || '',
+				SERVICIO: rowData.SERVICIO || rowData.title || '',
+				EMPRESA: rowData.EMPRESA || rowData.empresa || '',
+				CLIENTE: rowData.CLIENTE || rowData.cliente || '',
+				CONTACT: rowData.CONTACT || rowData.contact || '',
+				HORA: rowData.HORA || '',
+				type: rowData.type || 'lead',
+				FECHA: fecha,
+			};
+
+			// Actualizar listData
+			setListData((prevListData) => {
+				const newListData = [...prevListData];
+				const existingGroupIndex = newListData.findIndex(
+					(group) => group.FECHA === fecha
+				);
+
+				if (existingGroupIndex !== -1) {
+					newListData[existingGroupIndex].LIST.push(listItem);
+				} else {
+					newListData.push({
+						FECHA: fecha,
+						LIST: [listItem],
+					});
+				}
+
+				localStorage.setItem('listData', JSON.stringify(newListData));
+				return newListData;
+			});
+
+			// Determinar columna Kanban
 			const today = new Date();
 			today.setHours(0, 0, 0, 0);
 
-			const itemDate = new Date(rowData.FECHA.split('/').reverse().join('-'));
-			itemDate.setHours(0, 0, 0, 0);
-
 			let targetColumn = 'POR VENCER';
-			if (itemDate < today) {
-				targetColumn = 'VENCIDO';
-			} else if (itemDate.getTime() === today.getTime()) {
-				targetColumn = 'HOY';
+			try {
+				const [day, month, year] = fecha.split('/');
+				const itemDate = new Date(year, month - 1, day);
+				itemDate.setHours(0, 0, 0, 0);
+
+				if (itemDate < today) {
+					targetColumn = 'VENCIDO';
+				} else if (itemDate.getTime() === today.getTime()) {
+					targetColumn = 'HOY';
+				}
+			} catch (e) {
+				console.warn('Error al procesar la fecha para columna Kanban:', e);
 			}
 
-			// 3. Preparar el item para Kanban
-			const kanbanItem = {
-				id: rowData.id,
-				title: rowData.SERVICIO,
-				description: rowData.FECHA + (rowData.HORA ? ` - ${rowData.HORA}` : ''),
-				type: rowData.type || 'lead',
-				empresa: rowData.EMPRESA,
-				cliente: rowData.CLIENTE,
-				contact: rowData.CONTACT,
-				folio: rowData.FOLIO,
-			};
-
-			// 4. Preparar el item para List
-			const listItem = {
-				id: rowData.id,
-				FOLIO: rowData.FOLIO,
-				SERVICIO: rowData.SERVICIO,
-				EMPRESA: rowData.EMPRESA,
-				CLIENTE: rowData.CLIENTE,
-				CONTACT: rowData.CONTACT,
-				HORA: rowData.HORA,
-				type: rowData.type || 'lead',
-			};
-
-			// 5. Actualizar listData
-			setListData((prevListData) => {
-				const existingGroup = prevListData.find(
-					(group) => group.FECHA === rowData.FECHA
-				);
-
-				if (existingGroup) {
-					return prevListData.map((group) =>
-						group.FECHA === rowData.FECHA
-							? { ...group, LIST: [...group.LIST, listItem] }
-							: group
-					);
-				} else {
-					return [...prevListData, { FECHA: rowData.FECHA, LIST: [listItem] }];
-				}
-			});
-
-			// 6. Actualizar Kanban
+			// Actualizar columnas Kanban
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
-				newColumns[targetColumn] = [
-					...(newColumns[targetColumn] || []),
-					kanbanItem,
-				];
+				const kanbanItem = {
+					id: rowData.id,
+					title: listItem.SERVICIO,
+					description: `${fecha} - ${listItem.HORA}`,
+					type: listItem.type,
+					empresa: listItem.EMPRESA,
+					cliente: listItem.CLIENTE,
+					contact: listItem.CONTACT,
+					folio: listItem.FOLIO,
+				};
+
+				if (!newColumns[targetColumn]) {
+					newColumns[targetColumn] = [];
+				}
+				newColumns[targetColumn].push(kanbanItem);
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
 				return newColumns;
 			});
 
-			// 7. Actualizar localStorage
-			localStorage.setItem('completedList', JSON.stringify(newCompletedList));
+			// Remover de completedList
+			setCompletedList((prevList) => {
+				const newList = prevList.filter((item) => item.id !== rowData.id);
+				localStorage.setItem('completedList', JSON.stringify(newList));
+				return newList;
+			});
 
-			// 8. Disparar eventos de actualización
-			window.dispatchEvent(
-				new CustomEvent('listDataUpdate', { detail: listData })
-			);
-			window.dispatchEvent(
-				new CustomEvent('kanbanUpdate', { detail: columns })
-			);
-
-			toast.success('✔️ Recordatorio restaurado');
+			toast.success('✔️ Recordatorio restaurado correctamente');
 		} catch (error) {
-			console.error('Error al deshacer completado:', error);
-			toast.error('Error al restaurar el recordatorio');
+			console.error('Error detallado:', error);
+			toast.error(`Error al restaurar: ${error.message}`);
 		}
 	};
 
-	// Definición de las columnas para el DataGrid
 	const gridColumns = [
 		{ field: 'FOLIO', headerName: 'Folio', flex: 1 },
 		{ field: 'SERVICIO', headerName: 'Servicio', flex: 1.5 },
@@ -123,12 +150,28 @@ const CompleteList = ({
 		{ field: 'CLIENTE', headerName: 'Cliente', flex: 1.5 },
 		{ field: 'CONTACT', headerName: 'Contacto', flex: 1.5 },
 		{
+			field: 'originalDate',
+			headerName: 'Fecha Original',
+			flex: 1.5,
+			valueGetter: (params) => {
+				return (
+					params.row.originalDate ||
+					params.row.FECHA ||
+					(params.row.description ? params.row.description.split(' - ')[0] : '')
+				);
+			},
+		},
+		{
 			field: 'completedDate',
 			headerName: 'Fecha Completado',
 			flex: 1.5,
 			valueFormatter: (params) => {
 				if (!params.value) return '';
-				return new Date(params.value).toLocaleString('es-ES');
+				return new Date(params.value).toLocaleDateString('es-ES', {
+					day: '2-digit',
+					month: '2-digit',
+					year: 'numeric',
+				});
 			},
 		},
 		{
@@ -143,7 +186,7 @@ const CompleteList = ({
 						variant='contained'
 						size='small'
 						startIcon={<UndoIcon />}
-						onClick={() => handleUndoCompleted(params.row)} // Usar el prop en lugar de handleUndoClick
+						onClick={() => handleUndoClick(params.row)}
 						sx={{
 							minWidth: 'auto',
 							fontSize: '0.7rem',
@@ -152,7 +195,6 @@ const CompleteList = ({
 					>
 						Deshacer
 					</Button>
-
 					<Button
 						variant='contained'
 						color='error'
@@ -181,12 +223,7 @@ const CompleteList = ({
 					pageSize={5}
 					rowsPerPageOptions={[5, 10, 20]}
 					disableSelectionOnClick
-					initialState={{
-						sorting: {
-							sortModel: [{ field: 'completedDate', sort: 'desc' }],
-						},
-					}}
-					getRowId={(row) => row.id} // Asegura que cada fila tenga un ID único
+					getRowId={(row) => row.id}
 				/>
 			</Box>
 
