@@ -11,6 +11,11 @@ import {
 	Box,
 	Fade,
 	Tooltip,
+	Select,
+	MenuItem,
+	InputLabel,
+	FormControl,
+	TextField,
 } from '@mui/material';
 import DoneIcon from '@mui/icons-material/Done';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useListPersistence } from './useListPersistence';
 import toast from 'react-hot-toast';
 import { reminderData } from '@views/main/reminders/ReminderData.js';
+import AddIcon from '@mui/icons-material/Add';
 
 const formatearFecha = (fechaStr) => {
 	if (!fechaStr) return 'N/A';
@@ -47,9 +53,29 @@ const ListReminder = ({
 	handleMarkAsCompleted,
 	columns,
 	setColumns,
+	selectedView, // Añade esta prop
+	setSelectedView,
 }) => {
 	// Estado local para controlar si los datos ya fueron inicializados
 	const [isInitialized, setIsInitialized] = useState(false);
+	const [openAddDialog, setOpenAddDialog] = useState(false);
+	const [filteredListData, setFilteredListData] = useState([]); // Añade este estado
+	const [newRecord, setNewRecord] = useState({
+		fecha: new Date().toISOString().split('T')[0],
+		seccion: 'HOY',
+		FOLIO: '',
+		SERVICIO: '',
+		EMPRESA: '',
+		CLIENTE: '',
+		CONTACT: '',
+	});
+
+	// En handleAddRecord, actualiza el mapeo de secciones
+	const sectionMapping = {
+		HOY: 'hoy',
+		VENCIDO: 'pasado',
+		'POR VENCER': 'porVencer',
+	};
 
 	// Función para resetear datos
 	const resetListData = useCallback(() => {
@@ -295,18 +321,187 @@ const ListReminder = ({
 		persistEditedData();
 	}, [listData, isInitialized]); // Elimina columns de las dependencias
 
+	useEffect(() => {
+		const filterDataBySection = () => {
+			// Si no hay datos, retornar array vacío
+			if (!listData || listData.length === 0) {
+				return [];
+			}
+
+			// Si no hay vista seleccionada, mostrar todos los datos
+			if (!selectedView) {
+				return listData;
+			}
+
+			// Convertir la fecha actual a formato yyyy/mm/dd para comparación
+			const today = new Date();
+			const todayFormatted = today
+				.toISOString()
+				.split('T')[0]
+				.replace(/-/g, '/');
+
+			return listData.filter((group) => {
+				// Convertir la fecha del grupo al mismo formato para comparación
+				const groupDate = group.FECHA.split('/').reverse().join('/');
+
+				switch (selectedView.toLowerCase()) {
+					case 'hoy':
+						return groupDate === todayFormatted;
+					case 'pasado':
+						return new Date(groupDate) < new Date(todayFormatted);
+					case 'porvencer':
+						return new Date(groupDate) > new Date(todayFormatted);
+					default:
+						// Si la vista no coincide con ninguna opción, mostrar todos
+						return true;
+				}
+			});
+		};
+
+		// Aplicar el filtro y actualizar el estado
+		const filtered = filterDataBySection();
+		console.log('Vista seleccionada:', selectedView);
+		console.log('Datos filtrados:', filtered);
+		console.log('Datos originales:', listData);
+
+		// Si no hay datos filtrados o no hay vista seleccionada, mostrar todos los datos
+		setFilteredListData(filtered.length > 0 ? filtered : listData);
+	}, [listData, selectedView]);
+
+	const getNextId = useCallback(() => {
+		let maxId = 0;
+		listData.forEach((group) => {
+			group.LIST.forEach((item) => {
+				const currentId = parseInt(item.id);
+				if (currentId > maxId) maxId = currentId;
+			});
+		});
+		return (maxId + 1).toString();
+	}, [listData]);
+
+	const handleAddRecord = () => {
+		try {
+			const nextId = getNextId();
+			const formattedDate = new Date(newRecord.fecha)
+				.toLocaleDateString('es-ES', {
+					year: 'numeric',
+					month: '2-digit',
+					day: '2-digit',
+				})
+				.split('/')
+				.reverse()
+				.join('/');
+
+			const newItem = {
+				id: nextId,
+				FOLIO: newRecord.FOLIO,
+				SERVICIO: newRecord.SERVICIO,
+				EMPRESA: newRecord.EMPRESA,
+				CLIENTE: newRecord.CLIENTE,
+				CONTACT: newRecord.CONTACT,
+				FECHA: formattedDate,
+				seccion: newRecord.seccion,
+				type: 'lead',
+			};
+
+			// Actualizar listData
+			setListData((prevData) => {
+				const newData = [...(prevData || [])];
+				const dateGroup = newData.find(
+					(group) => group.FECHA === formattedDate
+				);
+
+				if (dateGroup) {
+					dateGroup.LIST = [...dateGroup.LIST, newItem];
+				} else {
+					newData.push({
+						FECHA: formattedDate,
+						LIST: [newItem],
+					});
+				}
+
+				// Ordenar por fecha
+				const sortedData = newData.sort((a, b) => {
+					const dateA = new Date(a.FECHA.split('/').reverse().join('-'));
+					const dateB = new Date(b.FECHA.split('/').reverse().join('-'));
+					return dateA - dateB;
+				});
+
+				localStorage.setItem('listData', JSON.stringify(sortedData));
+				return sortedData;
+			});
+
+			// Actualizar Kanban
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				const kanbanItem = {
+					id: nextId,
+					title: newRecord.SERVICIO,
+					description: `${formattedDate}`,
+					folio: newRecord.FOLIO,
+					empresa: newRecord.EMPRESA,
+					cliente: newRecord.CLIENTE,
+					contact: newRecord.CONTACT,
+					type: 'lead',
+				};
+
+				// Usar la sección seleccionada
+				const columnKey = newRecord.seccion;
+				if (!newColumns[columnKey]) {
+					newColumns[columnKey] = [];
+				}
+				newColumns[columnKey] = [...newColumns[columnKey], kanbanItem];
+
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				return newColumns;
+			});
+
+			// Limpiar y cerrar
+			setNewRecord({
+				fecha: new Date().toISOString().split('T')[0],
+				seccion: 'HOY',
+				FOLIO: '',
+				SERVICIO: '',
+				EMPRESA: '',
+				CLIENTE: '',
+				CONTACT: '',
+			});
+
+			setOpenAddDialog(false);
+			toast.success('✔️ Recordatorio agregado correctamente');
+		} catch (error) {
+			console.error('Error al agregar el recordatorio:', error);
+			toast.error('Error al agregar el recordatorio');
+		}
+	};
+
 	return (
 		<>
 			{/* Agregar el botón de reseteo en la parte superior */}
-			<Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+			<Box
+				sx={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					mb: 2,
+				}}
+			>
 				<Typography variant='h6'>Lista de Recordatorios</Typography>
+				<Button
+					variant='contained'
+					color='primary'
+					onClick={() => setOpenAddDialog(true)}
+					startIcon={<AddIcon />}
+				>
+					Nuevo Recordatorio
+				</Button>
 			</Box>
 
 			<Grid container spacing={20} sx={{ flexDirection: 'column-reverse' }}>
-				{!listData || listData.length === 0 ? (
+				{!filteredListData || filteredListData.length === 0 ? (
 					<NoDataMessage />
 				) : (
-					listData.map((item, index) => (
+					filteredListData.map((item, index) => (
 						<Grid item xs={12} key={index}>
 							<Paper elevation={3} sx={{ padding: '10px' }}>
 								<Typography
@@ -440,6 +635,147 @@ const ListReminder = ({
 					))
 				)}
 			</Grid>
+
+			<Dialog
+				open={openAddDialog}
+				onClose={() => setOpenAddDialog(false)}
+				maxWidth='md'
+				fullWidth
+			>
+				<DialogTitle>Nuevo Recordatorio</DialogTitle>
+				<DialogContent>
+					<Grid container spacing={3} sx={{ mt: 1 }}>
+						<Grid item xs={12} sm={6}>
+							<TextField
+								type='date'
+								label='Fecha'
+								value={newRecord.fecha}
+								onChange={(e) => {
+									const newDate = e.target.value;
+									const today = new Date().toISOString().split('T')[0];
+
+									// Determinar sección automáticamente basada en la fecha
+									let calculatedSection;
+									if (newDate === today) {
+										calculatedSection = 'HOY';
+									} else if (newDate < today) {
+										calculatedSection = 'VENCIDO';
+									} else {
+										calculatedSection = 'POR VENCER';
+									}
+
+									setNewRecord((prev) => ({
+										...prev,
+										fecha: newDate,
+										seccion: calculatedSection,
+									}));
+								}}
+								fullWidth
+								InputLabelProps={{
+									shrink: true,
+								}}
+							/>
+						</Grid>
+
+						{/* Campo de sección */}
+						<Grid item xs={12} sm={6}>
+							<FormControl fullWidth>
+								<InputLabel>Sección</InputLabel>
+								<Select
+									value={newRecord.seccion}
+									onChange={(e) =>
+										setNewRecord((prev) => ({
+											...prev,
+											seccion: e.target.value,
+										}))
+									}
+								>
+									<MenuItem value='VENCIDO'>Vencido</MenuItem>
+									<MenuItem value='HOY'>Hoy</MenuItem>
+									<MenuItem value='POR VENCER'>Por Vencer</MenuItem>
+								</Select>
+							</FormControl>
+						</Grid>
+
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								label='Folio'
+								value={newRecord.FOLIO}
+								onChange={(e) => {
+									const value = e.target.value.toUpperCase();
+									if (/^[A-Z0-9]*$/.test(value) && value.length <= 15) {
+										setNewRecord((prev) => ({
+											...prev,
+											FOLIO: value,
+										}));
+									}
+								}}
+								required
+							/>
+						</Grid>
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								label='Servicio'
+								value={newRecord.SERVICIO}
+								onChange={(e) =>
+									setNewRecord((prev) => ({
+										...prev,
+										SERVICIO: e.target.value,
+									}))
+								}
+								required
+							/>
+						</Grid>
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								label='Empresa'
+								value={newRecord.EMPRESA}
+								onChange={(e) =>
+									setNewRecord((prev) => ({
+										...prev,
+										EMPRESA: e.target.value,
+									}))
+								}
+							/>
+						</Grid>
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								label='Cliente'
+								value={newRecord.CLIENTE}
+								onChange={(e) =>
+									setNewRecord((prev) => ({
+										...prev,
+										CLIENTE: e.target.value,
+									}))
+								}
+							/>
+						</Grid>
+						<Grid item xs={12}>
+							<TextField
+								fullWidth
+								label='Contacto'
+								value={newRecord.CONTACT}
+								onChange={(e) =>
+									setNewRecord((prev) => ({
+										...prev,
+										CONTACT: e.target.value,
+									}))
+								}
+							/>
+						</Grid>
+					</Grid>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setOpenAddDialog(false)}>Cancelar</Button>
+					<Button onClick={handleAddRecord} variant='contained' color='primary'>
+						Agregar
+					</Button>
+				</DialogActions>
+			</Dialog>
 
 			<Dialog open={openDialog} onClose={handleCancelDelete}>
 				<DialogTitle>¿Estás seguro?</DialogTitle>

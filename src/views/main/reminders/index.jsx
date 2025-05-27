@@ -319,6 +319,8 @@ const Reminders = () => {
 						setDeletedItems={setDeletedItems}
 						columns={columns}
 						setColumns={setColumns}
+						selectedView={selectedView} // Añade esta prop
+						setSelectedView={setSelectedView}
 					/>
 				</div>
 			</Fade>
