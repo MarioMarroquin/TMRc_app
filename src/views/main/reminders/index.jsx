@@ -71,6 +71,10 @@ const Reminders = () => {
 					'POR VENCER': [],
 			  };
 	});
+	const [deletedItems, setDeletedItems] = useState(() => {
+		const stored = localStorage.getItem('deletedItems');
+		return stored ? JSON.parse(stored) : [];
+	});
 
 	useEffect(() => {
 		const handleListDataUpdate = (event) => {
@@ -109,11 +113,16 @@ const Reminders = () => {
 
 		setListData(storedListData);
 		setCompletedList(storedCompleted);
-	}, []);
+	}, []); // Solo se ejecuta al montar el componente
 
 	useEffect(() => {
-		localStorage.setItem('listData', JSON.stringify(listData));
-		localStorage.setItem('completedList', JSON.stringify(completedList));
+		// Agregar una validación para evitar guardados innecesarios
+		if (listData && listData.length > 0) {
+			localStorage.setItem('listData', JSON.stringify(listData));
+		}
+		if (completedList && completedList.length > 0) {
+			localStorage.setItem('completedList', JSON.stringify(completedList));
+		}
 	}, [listData, completedList]);
 
 	const filteredListData = Array.isArray(listData)
@@ -125,15 +134,18 @@ const Reminders = () => {
 	const [lastListView, setLastListView] = useState('hoy');
 
 	useEffect(() => {
-		if (showList) {
-			setLastListView(selectedView); // Guarda el último selectedView válido de la lista
-		}
-	}, [selectedView, showList]);
+		if (listData && showList) {
+			// Solo ejecutar cuando showList cambie y listData exista
+			const filteredData = listData
+				.map((group) => ({
+					...group,
+					LIST: group.LIST.filter((item) => !deletedItems.includes(item.id)),
+				}))
+				.filter((group) => group.LIST.length > 0);
 
-	const [deletedItems, setDeletedItems] = useState(() => {
-		const stored = localStorage.getItem('deletedItems');
-		return stored ? JSON.parse(stored) : [];
-	});
+			setListData(filteredData);
+		}
+	}, [showList, deletedItems]);
 
 	useEffect(() => {
 		localStorage.setItem('deletedItems', JSON.stringify(deletedItems));
@@ -347,30 +359,22 @@ const Reminders = () => {
 								required
 								value={itemToEdit?.FOLIO || ''}
 								onChange={(e) => {
-									const value = e.target.value;
-									const isValid = /^[A-Za-z0-9-]+$/.test(value);
+									const value = e.target.value.toUpperCase();
+									const isValid = /^[A-Z0-9]*$/.test(value);
 									setItemToEdit((prev) => ({
 										...prev,
 										FOLIO: value,
-										folioError:
-											value.trim() === ''
-												? 'El folio es requerido'
-												: !isValid
-												? 'Solo letras, números y guiones permitidos'
-												: '',
+										folioError: !value.trim()
+											? 'El folio es requerido'
+											: !isValid
+											? 'Solo letras y números permitidos'
+											: value.length > 15
+											? 'Máximo 15 caracteres'
+											: '',
 									}));
 								}}
 								error={!!itemToEdit?.folioError}
 								helperText={itemToEdit?.folioError}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: '10px',
-										paddingRight: '5px',
-									},
-									'& .MuiInputBase-input': {
-										padding: '10px 14px',
-									},
-								}}
 							/>
 						</Grid>
 
@@ -380,6 +384,7 @@ const Reminders = () => {
 								Servicio
 							</Typography>
 							<TextField
+								select
 								placeholder='Servicio'
 								variant='outlined'
 								fullWidth
@@ -390,29 +395,19 @@ const Reminders = () => {
 									setItemToEdit((prev) => ({
 										...prev,
 										SERVICIO: value,
-										servicioError:
-											value.trim() === ''
-												? 'El servicio es requerido'
-												: value.length > 100
-												? 'Máximo 100 caracteres'
-												: '',
+										servicioError: !value ? 'El servicio es requerido' : '',
 									}));
 								}}
 								error={!!itemToEdit?.servicioError}
-								helperText={
-									itemToEdit?.servicioError ||
-									`${(itemToEdit?.SERVICIO || '').length}/100`
-								}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: '10px',
-										paddingRight: '5px',
-									},
-									'& .MuiInputBase-input': {
-										padding: '10px 14px',
-									},
+								helperText={itemToEdit?.servicioError}
+								SelectProps={{
+									native: true,
 								}}
-							/>
+							>
+								<option value=''>Seleccione un servicio</option>
+								<option value='VENTA'>VENTA</option>
+								<option value='RENTA'>RENTA</option>
+							</TextField>
 						</Grid>
 
 						{/* Empresa */}
@@ -431,28 +426,19 @@ const Reminders = () => {
 									setItemToEdit((prev) => ({
 										...prev,
 										EMPRESA: value,
-										empresaError:
-											value.trim() === ''
-												? 'La empresa es requerida'
-												: value.length > 150
-												? 'Máximo 150 caracteres'
-												: '',
+										empresaError: !value.trim()
+											? 'La empresa es requerida'
+											: value.length > 100
+											? 'Máximo 100 caracteres'
+											: '',
 									}));
 								}}
 								error={!!itemToEdit?.empresaError}
 								helperText={
 									itemToEdit?.empresaError ||
-									`${(itemToEdit?.EMPRESA || '').length}/150`
+									`${(itemToEdit?.EMPRESA || '').length}/100`
 								}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: '10px',
-										paddingRight: '5px',
-									},
-									'& .MuiInputBase-input': {
-										padding: '10px 14px',
-									},
-								}}
+								inputProps={{ maxLength: 100 }}
 							/>
 						</Grid>
 
@@ -469,34 +455,32 @@ const Reminders = () => {
 								value={itemToEdit?.CLIENTE || ''}
 								onChange={(e) => {
 									const value = e.target.value;
-									const isValid = /^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/.test(value);
+									// Validación para nombre propio
+									const isValid =
+										/^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*)*$/.test(
+											value
+										);
+									const formattedValue = value
+										.split(' ')
+										.map(
+											(word) =>
+												word.charAt(0).toUpperCase() +
+												word.slice(1).toLowerCase()
+										)
+										.join(' ');
+
 									setItemToEdit((prev) => ({
 										...prev,
-										CLIENTE: value,
-										clienteError:
-											value.trim() === ''
-												? 'El cliente es requerido'
-												: !isValid
-												? 'Solo letras y espacios permitidos'
-												: value.length > 100
-												? 'Máximo 100 caracteres'
-												: '',
+										CLIENTE: formattedValue,
+										clienteError: !value.trim()
+											? 'El cliente es requerido'
+											: !isValid
+											? 'Formato inválido. Ejemplo: Juan Pérez'
+											: '',
 									}));
 								}}
 								error={!!itemToEdit?.clienteError}
-								helperText={
-									itemToEdit?.clienteError ||
-									`${(itemToEdit?.CLIENTE || '').length}/100`
-								}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: '10px',
-										paddingRight: '5px',
-									},
-									'& .MuiInputBase-input': {
-										padding: '10px 14px',
-									},
-								}}
+								helperText={itemToEdit?.clienteError}
 							/>
 						</Grid>
 
@@ -515,106 +499,65 @@ const Reminders = () => {
 								value={itemToEdit?.CONTACT || ''}
 								onChange={(e) => {
 									const value = e.target.value;
+									const isValid = /^[A-Za-záéíóúÁÉÍÓÚñÑ\s]*$/.test(value);
 									setItemToEdit((prev) => ({
 										...prev,
 										CONTACT: value,
-										contactError:
-											value.trim() === ''
-												? 'El contacto es requerido'
-												: value.length > 200
-												? 'Máximo 200 caracteres'
-												: !value.includes('@') && value.trim() !== ''
-												? 'Debe incluir un correo electrónico'
-												: '',
+										contactError: !value.trim()
+											? 'El contacto es requerido'
+											: !isValid
+											? 'Solo se permiten letras'
+											: value.length > 15
+											? 'Máximo 15 caracteres'
+											: '',
 									}));
 								}}
 								error={!!itemToEdit?.contactError}
 								helperText={
 									itemToEdit?.contactError ||
-									`${(itemToEdit?.CONTACT || '').length}/200`
+									`${(itemToEdit?.CONTACT || '').length}/15`
 								}
-								sx={{
-									'& .MuiOutlinedInput-root': {
-										borderRadius: '10px',
-										paddingRight: '5px',
-									},
-								}}
+								inputProps={{ maxLength: 15 }}
 							/>
 						</Grid>
 					</Grid>
 				</DialogContent>
 				<DialogActions>
-					<Button
-						onClick={() => {
-							// Restaurar valores originales al cancelar
-							setItemToEdit(selectedItem);
-							handleCancelEdit();
-						}}
-						color='inherit'
-					>
+					<Button onClick={handleCancelEdit} color='inherit'>
 						Cancelar
 					</Button>
-
 					<Button
 						onClick={() => {
-							// Validaciones antes de guardar
 							const errors = [];
 
-							if (!itemToEdit?.FOLIO?.trim()) {
-								errors.push('El folio es requerido');
+							if (!itemToEdit?.FOLIO?.trim() || !!itemToEdit?.folioError) {
+								errors.push('Revise el campo Folio');
 							}
-
-							if (!itemToEdit?.SERVICIO?.trim()) {
-								errors.push('El servicio es requerido');
+							if (!itemToEdit?.SERVICIO || !!itemToEdit?.servicioError) {
+								errors.push('Seleccione un servicio');
 							}
-
-							if (!itemToEdit?.EMPRESA?.trim()) {
-								errors.push('La empresa es requerida');
+							if (!itemToEdit?.EMPRESA?.trim() || !!itemToEdit?.empresaError) {
+								errors.push('Revise el campo Empresa');
 							}
-
-							if (!itemToEdit?.CLIENTE?.trim()) {
-								errors.push('El cliente es requerido');
+							if (!itemToEdit?.CLIENTE?.trim() || !!itemToEdit?.clienteError) {
+								errors.push('Revise el campo Cliente');
 							}
-
-							if (!itemToEdit?.CONTACT?.trim()) {
-								errors.push('El contacto es requerido');
-							}
-
-							// Validaciones específicas
-							if (!/^[A-Za-z0-9-]+$/.test(itemToEdit?.FOLIO || '')) {
-								errors.push(
-									'El folio solo puede contener letras, números y guiones'
-								);
-							}
-
-							if ((itemToEdit?.SERVICIO || '').length > 100) {
-								errors.push('El servicio no puede exceder los 100 caracteres');
-							}
-
-							if ((itemToEdit?.EMPRESA || '').length > 150) {
-								errors.push('La empresa no puede exceder los 150 caracteres');
-							}
-
 							if (
-								!/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/.test(itemToEdit?.CLIENTE || '')
+								!itemToEdit?.CONTACT?.trim() ||
+								!!itemToEdit?.contactError ||
+								itemToEdit?.CONTACT?.length > 15
 							) {
-								errors.push('El cliente solo puede contener letras y espacios');
-							}
-
-							if (
-								!itemToEdit?.CONTACT?.includes('@') &&
-								itemToEdit?.CONTACT?.trim() !== ''
-							) {
-								errors.push('El contacto debe incluir un correo electrónico');
+								errors.push('Revise el campo Contacto');
 							}
 
 							if (errors.length > 0) {
-								errors.forEach((error) => toast.error(error));
+								toast.error(errors[0]);
 								return;
 							}
 
-							// Si todas las validaciones pasan, proceder con el guardado
 							handleSaveEdit(itemToEdit);
+							handleCancelEdit();
+							toast.success('✔️ Cambios guardados correctamente');
 						}}
 						variant='contained'
 						color='primary'

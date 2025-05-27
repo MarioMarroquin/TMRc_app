@@ -170,6 +170,7 @@ const ListReminder = ({
 	useEffect(() => {
 		if (!isInitialized) {
 			try {
+				// Cargar datos iniciales una sola vez
 				const storedListData = localStorage.getItem('listData');
 				const storedCompletedList = localStorage.getItem('completedList');
 				const storedDeletedItems = localStorage.getItem('deletedItems');
@@ -188,7 +189,7 @@ const ListReminder = ({
 				console.error('Error loading initial data:', error);
 			}
 		}
-	}, [isInitialized, setListData, setCompletedList, setDeletedItems]);
+	}, [isInitialized]);
 
 	useEffect(() => {
 		if (isInitialized) {
@@ -204,64 +205,26 @@ const ListReminder = ({
 		}
 	}, [isInitialized, listData, completedList, deletedItems]);
 
-	useEffect(() => {
-		const syncEditChanges = () => {
-			try {
-				if (itemToEdit) {
-					// Actualizar listData
-					const updatedListData = listData.map((group) => ({
-						...group,
-						LIST: group.LIST.map((item) =>
-							item.id === itemToEdit.id ? itemToEdit : item
-						),
-					}));
-
-					// Guardar en localStorage
-					localStorage.setItem('listData', JSON.stringify(updatedListData));
-
-					// Actualizar Kanban
-					const updatedColumns = { ...columns };
-					Object.keys(updatedColumns).forEach((columnId) => {
-						updatedColumns[columnId] = updatedColumns[columnId].map((item) =>
-							item.id === itemToEdit.id
-								? {
-										...item,
-										title: itemToEdit.SERVICIO,
-										description: `${itemToEdit.FECHA} - ${
-											itemToEdit.HORA || ''
-										}`,
-								  }
-								: item
-						);
-					});
-					localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
-					setColumns(updatedColumns);
-				}
-			} catch (error) {
-				console.error('Error al sincronizar cambios:', error);
-			}
-		};
-
-		syncEditChanges();
-	}, [itemToEdit]); // Se ejecuta cuando itemToEdit cambia
-
 	// 2. Efecto para mantener la sincronización entre vistas
 	useEffect(() => {
 		const syncViews = () => {
 			try {
-				// Emitir eventos de actualización para mantener sincronizadas las vistas
-				window.dispatchEvent(
-					new CustomEvent('listDataUpdate', { detail: listData })
-				);
-				window.dispatchEvent(
-					new CustomEvent('kanbanUpdate', { detail: columns })
-				);
+				const event = new CustomEvent('viewSync', {
+					detail: {
+						listData,
+						columns,
+					},
+				});
+				window.dispatchEvent(event);
+				16;
 			} catch (error) {
 				console.error('Error al sincronizar vistas:', error);
 			}
 		};
 
-		syncViews();
+		// Agregar un debounce para evitar actualizaciones frecuentes
+		const timeoutId = setTimeout(syncViews, 500);
+		return () => clearTimeout(timeoutId);
 	}, [listData, columns]);
 
 	// 3. Efecto para cargar datos al iniciar y manejar actualizaciones
@@ -321,7 +284,7 @@ const ListReminder = ({
 						});
 					});
 
-					setColumns(updatedColumns);
+					setColumns(updatedColumns); // Esta línea causa el ciclo
 					localStorage.setItem('kanbanColumns', JSON.stringify(updatedColumns));
 				}
 			} catch (error) {
@@ -330,7 +293,7 @@ const ListReminder = ({
 		};
 
 		persistEditedData();
-	}, [listData, isInitialized]);
+	}, [listData, isInitialized]); // Elimina columns de las dependencias
 
 	return (
 		<>

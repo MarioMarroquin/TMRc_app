@@ -414,9 +414,14 @@ export const useReminders = () => {
 		return null;
 	};
 
-	const handleEditClick = (item) => {
-		setSelectedItem({ ...item }); // Guardar una copia del item original
-		setItemToEdit({ ...item }); // Crear una copia para editar
+	const handleEditClick = (item, fecha) => {
+		const editItem = {
+			...item,
+			FECHA: fecha, // Asegurarse de que la fecha se incluya
+			originalFecha: fecha, // Guardar la fecha original por si cambia
+		};
+		setItemToEdit(editItem);
+		// También debes tener una función que abra el diálogo
 		setOpenEditDialog(true);
 	};
 
@@ -466,60 +471,69 @@ export const useReminders = () => {
 		toast.error('🗑️ Recordatorio eliminado');
 	};
 
-	const handleSaveEdit = () => {
-		// Validar campos requeridos
-		if (!itemToEdit.FOLIO?.trim()) {
-			toast.error('El folio es requerido');
-			return;
-		}
-
-		if (!itemToEdit.SERVICIO?.trim()) {
-			toast.error('El servicio es requerido');
-			return;
-		}
-
-		// Validar formato del folio (por ejemplo, solo números y letras)
-		const folioRegex = /^[A-Za-z0-9-]+$/;
-		if (!folioRegex.test(itemToEdit.FOLIO)) {
-			toast.error('El folio solo puede contener letras, números y guiones');
-			return;
-		}
-
-		// Validar longitud máxima del servicio
-		if (itemToEdit.SERVICIO.length > 100) {
-			toast.error('El servicio no puede exceder los 100 caracteres');
-			return;
-		}
-
-		// Validar formato de email si existe
-		if (
-			itemToEdit.email &&
-			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(itemToEdit.email)
-		) {
-			toast.error('El formato del correo electrónico no es válido');
-			return;
-		}
-
-		// Validar formato de teléfono si existe (asumiendo formato mexicano)
-		if (itemToEdit.phoneNumber) {
-			const phoneRegex = /^\+?52?\d{10}$/;
-			if (!phoneRegex.test(itemToEdit.phoneNumber.replace(/\D/g, ''))) {
-				toast.error('El formato del teléfono no es válido (10 dígitos)');
+	const handleSaveEdit = (editedItem) => {
+		try {
+			// Validar que tengamos todos los campos requeridos
+			if (!editedItem || !editedItem.FOLIO || !editedItem.SERVICIO) {
+				toast.error('Todos los campos requeridos deben estar completos');
 				return;
 			}
+
+			// 1. Actualizar listData
+			setListData((prevData) => {
+				const newData = prevData.map((group) => {
+					if (group.FECHA === editedItem.FECHA) {
+						return {
+							...group,
+							LIST: group.LIST.map((item) =>
+								item.id === editedItem.id ? editedItem : item
+							),
+						};
+					}
+					return group;
+				});
+
+				// Guardar en localStorage
+				localStorage.setItem('listData', JSON.stringify(newData));
+				return newData;
+			});
+
+			// 2. Actualizar Kanban
+			setColumns((prevColumns) => {
+				const newColumns = { ...prevColumns };
+				Object.keys(newColumns).forEach((columnId) => {
+					newColumns[columnId] = newColumns[columnId].map((item) =>
+						item.id === editedItem.id
+							? {
+									...item,
+									title: editedItem.SERVICIO,
+									description: `${editedItem.FECHA} - ${editedItem.HORA || ''}`,
+									folio: editedItem.FOLIO,
+									empresa: editedItem.EMPRESA,
+									cliente: editedItem.CLIENTE,
+									contact: editedItem.CONTACT,
+							  }
+							: item
+					);
+				});
+
+				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				return newColumns;
+			});
+
+			// 3. Limpiar estado y cerrar diálogo
+			setItemToEdit(null);
+			setOpenEditDialog(false);
+
+			// 4. Notificar éxito
+			toast.success('✔️ Recordatorio actualizado correctamente');
+
+			// 5. Forzar actualización de vistas
+			window.dispatchEvent(new Event('storageUpdate'));
+		} catch (error) {
+			console.error('Error al guardar la edición:', error);
+			toast.error('Error al guardar los cambios');
 		}
-
-		// Si todas las validaciones pasan, proceder con el guardado
-		const updatedListData = listData.map((group) => ({
-			...group,
-			LIST: group.LIST.map((item) =>
-				item.id === itemToEdit.id ? itemToEdit : item
-			),
-		}));
-
-		setListData(updatedListData);
-		handleCancelEdit();
-		toast.success('Registro actualizado correctamente');
 	};
 
 	const addReminderToColumn = (columnId, reminder) => {
