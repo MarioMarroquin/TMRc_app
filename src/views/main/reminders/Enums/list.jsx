@@ -381,82 +381,86 @@ const ListReminder = ({
 
 	const handleAddRecord = () => {
 		try {
-			const nextId = getNextId();
-			const formattedDate = new Date(newRecord.fecha)
-				.toLocaleDateString('es-ES', {
-					year: 'numeric',
-					month: '2-digit',
-					day: '2-digit',
-				})
-				.split('/')
-				.reverse()
-				.join('/');
+			// Validar los campos requeridos
+			if (!newRecord.FOLIO || !newRecord.SERVICIO) {
+				toast.error('Por favor complete los campos requeridos');
+				return;
+			}
 
-			const newItem = {
-				id: nextId,
+			// Obtener la fecha actual en formato correcto
+			const currentDate = new Date(newRecord.fecha);
+			const formattedDate = `${currentDate
+				.getDate()
+				.toString()
+				.padStart(2, '0')}/${(currentDate.getMonth() + 1)
+				.toString()
+				.padStart(2, '0')}/${currentDate.getFullYear()}`;
+
+			// Crear el nuevo recordatorio con la estructura correcta
+			const recordToAdd = {
+				id: Date.now().toString(),
 				FOLIO: newRecord.FOLIO,
 				SERVICIO: newRecord.SERVICIO,
 				EMPRESA: newRecord.EMPRESA,
 				CLIENTE: newRecord.CLIENTE,
 				CONTACT: newRecord.CONTACT,
+				HORA: newRecord.HORA || '',
 				FECHA: formattedDate,
-				seccion: newRecord.seccion,
 				type: 'lead',
+				seccion: newRecord.seccion,
 			};
 
-			// Actualizar listData
+			// Actualizar listData con la estructura correcta
 			setListData((prevData) => {
-				const newData = [...(prevData || [])];
-				const dateGroup = newData.find(
+				// Buscar si ya existe un grupo con la misma fecha
+				const existingGroupIndex = prevData.findIndex(
 					(group) => group.FECHA === formattedDate
 				);
 
-				if (dateGroup) {
-					dateGroup.LIST = [...dateGroup.LIST, newItem];
+				if (existingGroupIndex !== -1) {
+					// Si existe el grupo, añadir el registro a su LIST
+					const newData = [...prevData];
+					newData[existingGroupIndex] = {
+						...newData[existingGroupIndex],
+						LIST: [...newData[existingGroupIndex].LIST, recordToAdd],
+					};
+					return newData;
 				} else {
-					newData.push({
-						FECHA: formattedDate,
-						LIST: [newItem],
-					});
+					// Si no existe el grupo, crear uno nuevo
+					return [
+						...prevData,
+						{
+							FECHA: formattedDate,
+							LIST: [recordToAdd],
+						},
+					];
 				}
-
-				// Ordenar por fecha
-				const sortedData = newData.sort((a, b) => {
-					const dateA = new Date(a.FECHA.split('/').reverse().join('-'));
-					const dateB = new Date(b.FECHA.split('/').reverse().join('-'));
-					return dateA - dateB;
-				});
-
-				localStorage.setItem('listData', JSON.stringify(sortedData));
-				return sortedData;
 			});
 
-			// Actualizar Kanban
+			// También actualizar las columnas del Kanban
 			setColumns((prevColumns) => {
 				const newColumns = { ...prevColumns };
-				const kanbanItem = {
-					id: nextId,
-					title: newRecord.SERVICIO,
-					description: `${formattedDate}`,
-					folio: newRecord.FOLIO,
-					empresa: newRecord.EMPRESA,
-					cliente: newRecord.CLIENTE,
-					contact: newRecord.CONTACT,
-					type: 'lead',
-				};
-
-				// Usar la sección seleccionada
-				const columnKey = newRecord.seccion;
-				if (!newColumns[columnKey]) {
-					newColumns[columnKey] = [];
-				}
-				newColumns[columnKey] = [...newColumns[columnKey], kanbanItem];
-
-				localStorage.setItem('kanbanColumns', JSON.stringify(newColumns));
+				newColumns[recordToAdd.seccion] = [
+					...newColumns[recordToAdd.seccion],
+					{
+						id: recordToAdd.id,
+						title: recordToAdd.SERVICIO,
+						description: `${recordToAdd.FECHA} - ${recordToAdd.HORA || ''}`,
+						...recordToAdd,
+					},
+				];
 				return newColumns;
 			});
 
-			// Limpiar y cerrar
+			// Actualizar la vista según la sección seleccionada
+			const viewMapping = {
+				VENCIDO: 'pasado',
+				HOY: 'hoy',
+				'POR VENCER': 'porVencer',
+			};
+			setSelectedView(viewMapping[recordToAdd.seccion]);
+
+			// Limpiar el formulario y cerrar el diálogo
 			setNewRecord({
 				fecha: new Date().toISOString().split('T')[0],
 				seccion: 'HOY',
@@ -465,10 +469,11 @@ const ListReminder = ({
 				EMPRESA: '',
 				CLIENTE: '',
 				CONTACT: '',
+				HORA: '',
 			});
-
 			setOpenAddDialog(false);
-			toast.success('✔️ Recordatorio agregado correctamente');
+
+			toast.success('✔️ Recordatorio agregado exitosamente');
 		} catch (error) {
 			console.error('Error al agregar el recordatorio:', error);
 			toast.error('Error al agregar el recordatorio');
@@ -679,7 +684,7 @@ const ListReminder = ({
 
 						{/* Campo de sección */}
 						<Grid item xs={12} sm={6}>
-							<FormControl fullWidth>
+							<FormControl fullWidth sx={{ mt: 2 }}>
 								<InputLabel>Sección</InputLabel>
 								<Select
 									value={newRecord.seccion}

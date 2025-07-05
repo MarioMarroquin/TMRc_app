@@ -24,6 +24,7 @@ import { Add, Person } from '@mui/icons-material';
 import { DateTimeField } from '@mui/x-date-pickers';
 import { ROLES } from '@config/permisissions/permissions';
 import useLeadCreate from '@views/main/leads/DialogLeadCreate/useLeadCreate';
+import toast from 'react-hot-toast';
 
 const DialogLeadCreate = ({ refetchRequests }) => {
 	const theme = useTheme();
@@ -39,7 +40,9 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 		handleInputLead,
 		cleanStates,
 		userRole,
-		onFinish,
+		validationDialog,
+		closeValidationDialog,
+		validateBeforeCreate,
 	} = useLeadCreate(refetchRequests, toggleDialog, isVisible);
 
 	// const isAv = () => {
@@ -384,7 +387,64 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 					<Button variant={'outlined'} onClick={toggleDialog}>
 						Cerrar
 					</Button>
-					<Button onClick={onFinish}>Guardar</Button>
+					<Button onClick={() => validateBeforeCreate()}>Guardar</Button>
+				</DialogActions>
+			</Dialog>
+			<Dialog
+				open={validationDialog.open}
+				onClose={closeValidationDialog}
+				maxWidth='sm'
+				fullWidth
+			>
+				<DialogTitle>
+					{validationDialog.entityType === 'COMPANY'
+						? 'Compañía Existente'
+						: 'Cliente Existente'}
+				</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						{`Se ha encontrado ${
+							validationDialog.entityType === 'COMPANY'
+								? 'una compañía'
+								: 'un cliente'
+						} 
+						con el nombre "${validationDialog.entityName}". 
+						¿Desea usar el registro existente o crear uno nuevo?`}
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={async () => {
+							try {
+								await validationDialog.onCreateNew();
+								toggleDialog();
+								toast.success('✅ Registro creado exitosamente');
+							} catch (error) {
+								toast.error('❌ Error al crear el registro');
+							}
+						}}
+					>
+						Crear Nuevo
+					</Button>
+					<Button
+						onClick={async () => {
+							try {
+								await validationDialog.onUseExisting();
+								toggleDialog();
+								toast.success(
+									'✅ Registro creado exitosamente usando entidad existente'
+								);
+							} catch (error) {
+								toast.error(
+									'❌ Error al crear el registro con entidad existente'
+								);
+							}
+						}}
+						variant='contained'
+						color='primary'
+					>
+						Usar Existente
+					</Button>
 				</DialogActions>
 			</Dialog>
 		</Fragment>

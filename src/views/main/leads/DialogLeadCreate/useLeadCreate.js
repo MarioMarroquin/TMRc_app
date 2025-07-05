@@ -17,6 +17,18 @@ import useLeadBrand from '@views/main/leads/DialogLeadCreate/useLeadBrand';
 import useLeadCompany from '@views/main/leads/DialogLeadCreate/useLeadCompany';
 import useLeadClient from '@views/main/leads/DialogLeadCreate/useLeadClient';
 import { CREATE_REQUEST } from '@views/main/requests/mutationRequests';
+import { gql } from '@apollo/client';
+
+const VALIDATE_ENTITY = gql`
+	query ValidateEntity($name: String!, $type: String!) {
+		validateEntity(name: $name, type: $type) {
+			entityData
+			entityId
+			entityType
+			exists
+		}
+	}
+`;
 
 const BlankData = {
 	requestDate: new Date(),
@@ -41,10 +53,30 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 	const useBrand = useLeadBrand();
 	const useCompany = useLeadCompany();
 	const useClient = useLeadClient();
+	const [validateEntity] = useLazyQuery(VALIDATE_ENTITY);
 
 	const [lead, setLead] = useState(BlankData);
 
 	const [createRequest] = useMutation(CREATE_REQUEST);
+	const [validationDialog, setValidationDialog] = useState({
+		open: false,
+		entityType: null,
+		entityName: '',
+		entityData: null,
+		onUseExisting: null,
+		onCreateNew: null,
+	});
+
+	const closeValidationDialog = () => {
+		setValidationDialog({
+			open: false,
+			entityType: null,
+			entityName: '',
+			entityData: null,
+			onUseExisting: null,
+			onCreateNew: null,
+		});
+	};
 
 	const { loading, loadingOn, loadingOff } = useLoaderContext();
 
@@ -59,11 +91,6 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		useCompany.clean();
 		useClient.clean();
 		setLead(BlankData);
-
-		// setSearchedCompanies([]);
-		// setSearchedClients([]);
-		// setSearchedBrands([]);
-		// setSearchedSellers([]);
 	};
 
 	const check = () => {
@@ -115,22 +142,11 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 
 		if (!useCompany.company.id) {
 			if (useCompany.company.name) {
-				// if (!company.phoneNumber && !company.email) {
-				// 	toast.error('Agrega una forma de contacto');
-				// 	return true;
-				// }
-
 				if (useCompany.company.phoneNumber)
 					if (useCompany.company.phoneNumber.length < 10) {
 						toast.error('Número incompleto');
 						return true;
 					}
-
-				// if (company.email)
-				// 	if (!EMAIL.test(company.email)) {
-				// 		toast.error('Revisa el email');
-				// 		return true;
-				// 	}
 			}
 		}
 
@@ -142,9 +158,162 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		return false;
 	};
 
-	const onFinish = (e) => {
-		e.preventDefault();
+	const createNewLead = async (entityType = null, entityId = null) => {
+		try {
+			loadingOn();
 
+			const finalRequest = {
+				...lead,
+				sellerId: useSeller.selectedSeller.id,
+				brandId: useBrand.brand.id ?? null,
+				brand: useBrand.brand.name
+					? (({ id, ...rest }) => ({
+							...rest,
+					  }))(useBrand.brand)
+					: null,
+				clientId:
+					entityType === 'CLIENT' ? entityId : useClient.client.id ?? null,
+				client:
+					!useClient.client.id &&
+					useClient.client.firstName &&
+					useClient.client.lastName
+						? {
+								firstName: useClient.client.firstName,
+								lastName: useClient.client.lastName,
+								phoneNumber: useClient.client.phoneNumber || null,
+								email: useClient.client.email || null,
+						  }
+						: null,
+				companyId:
+					entityType === 'COMPANY' ? entityId : useCompany.company.id ?? null,
+				company:
+					!useCompany.company.id && useCompany.company.name
+						? {
+								name: useCompany.company.name,
+								phoneNumber: useCompany.company.phoneNumber || null,
+								email: useCompany.company.email || null,
+						  }
+						: null,
+			};
+
+			const result = await createRequest({
+				variables: { request: finalRequest },
+			});
+
+			if (result?.data?.createRequest) {
+				toast.success('¡Solicitud creada exitosamente!');
+				cleanStates();
+				toggleDialog();
+				await refetchRequests();
+			}
+		} catch (error) {
+			console.error('Error al crear solicitud:', error);
+			toast.error(`Error al crear la solicitud: ${error.message}`);
+		} finally {
+			loadingOff();
+			closeValidationDialog();
+		}
+	};
+
+	const validateBeforeCreate = async () => {
+		if (check()) return;
+
+		try {
+			let validationResult = null;
+			let validationType = null;
+			let entityName = '';
+			let entityData = null;
+
+			// Validar compañía primero
+			if (useCompany.company.name && !useCompany.company.id) {
+				const companyResult = await validateEntity({
+					variables: {
+						name: useCompany.company.name,
+						type: 'COMPANY',
+					},
+				});
+
+				if (companyResult.data?.validateEntity.exists) {
+					validationType = 'COMPANY';
+					entityName = useCompany.company.name;
+					entityData = JSON.parse(companyResult.data.validateEntity.entityData);
+					validationResult = companyResult.data.validateEntity;
+				}
+			}
+
+			// Validar cliente si no hay compañía para validar
+			if (
+				!validationResult &&
+				useClient.client.firstName &&
+				useClient.client.lastName &&
+				!useClient.client.id
+			) {
+				const fullName =
+					`${useClient.client.firstName} ${useClient.client.lastName}`.trim();
+				const clientResult = await validateEntity({
+					variables: {
+						name: fullName,
+						type: 'CLIENT',
+					},
+				});
+
+				if (clientResult.data?.validateEntity.exists) {
+					validationType = 'CLIENT';
+					entityName = fullName;
+					entityData = JSON.parse(clientResult.data.validateEntity.entityData);
+					validationResult = clientResult.data.validateEntity;
+				}
+			}
+
+			// Si encontramos una entidad existente, mostrar diálogo
+			if (validationResult) {
+				setValidationDialog({
+					open: true,
+					entityType: validationType,
+					entityName,
+					entityData,
+					onUseExisting: async () => {
+						try {
+							await createNewLead(validationType, validationResult.entityId);
+							toast.success(
+								'✅ Registro creado exitosamente usando entidad existente'
+							);
+							toggleDialog();
+						} catch (error) {
+							toast.error(
+								'❌ Error al crear el registro con entidad existente'
+							);
+						}
+					},
+					onCreateNew: async () => {
+						try {
+							await createNewLead();
+							toast.success('✅ Registro creado exitosamente');
+							toggleDialog();
+						} catch (error) {
+							toast.error('❌ Error al crear nueva entidad');
+						}
+					},
+				});
+				return;
+			}
+
+			// Si no hay validaciones pendientes, crear directamente
+			try {
+				await createNewLead();
+				toast.success('✅ Registro creado exitosamente');
+				toggleDialog();
+			} catch (error) {
+				toast.error('❌ Error al crear el registro');
+			}
+		} catch (error) {
+			console.error('Error en validación:', error);
+			toast.error('Error al validar los datos');
+		}
+	};
+
+	const onFinish = async (e) => {
+		e?.preventDefault();
 		loadingOn();
 
 		if (check()) {
@@ -152,9 +321,15 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 			return;
 		}
 
+		const shouldProceed = await validateBeforeCreate();
+		if (!shouldProceed) {
+			loadingOff();
+			return;
+		}
+
 		const finalRequest = {
 			...lead,
-			sellerId: useSeller.selectedSeller.id, // tiene que tener de a fuerza
+			sellerId: useSeller.selectedSeller.id,
 			brandId: useBrand.brand.id ?? null,
 			brand: useBrand.brand.name
 				? (({ id, ...rest }) => ({
@@ -163,33 +338,26 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 				: null,
 			clientId: useClient.client.id ?? null,
 			client:
-				useClient.client.firstName && useClient.client.lastName
-					? (({ id, name, ...rest }) => ({
-							...rest,
-					  }))(useClient.client)
+				!useClient.client.id &&
+				useClient.client.firstName &&
+				useClient.client.lastName
+					? {
+							firstName: useClient.client.firstName,
+							lastName: useClient.client.lastName,
+							phoneNumber: useClient.client.phoneNumber || null,
+							email: useClient.client.email || null,
+					  }
 					: null,
 			companyId: useCompany.company.id ?? null,
-			company: useCompany.company.name
-				? (({ id, ...rest }) => ({ ...rest }))(useCompany.company)
-				: null,
+			company:
+				!useCompany.company.id && useCompany.company.name
+					? {
+							name: useCompany.company.name,
+							phoneNumber: useCompany.company.phoneNumber || null,
+							email: useCompany.company.email || null,
+					  }
+					: null,
 		};
-
-		// console.log('comp', company);
-		// console.log('akliii', finalRequest);
-
-		if (!finalRequest.clientId && finalRequest.client) {
-			if (!finalRequest.client.email.length) finalRequest.client.email = null;
-
-			if (!finalRequest.client.phoneNumber.length)
-				finalRequest.client.phoneNumber = null;
-		}
-
-		if (!finalRequest.companyId && finalRequest.company) {
-			if (!finalRequest.company.email.length) finalRequest.company.email = null;
-
-			if (!finalRequest.company.phoneNumber.length)
-				finalRequest.company.phoneNumber = null;
-		}
 
 		createRequest({ variables: { request: finalRequest } })
 			.then((res) => {
@@ -206,7 +374,7 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 			})
 			.catch((err) => {
 				console.log('Error', err);
-				toast.error('Ocurrio un error');
+				toast.error('Ocurrió un error');
 				loadingOff();
 			});
 	};
@@ -231,6 +399,9 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		cleanStates,
 		userRole: role,
 		onFinish,
+		validationDialog,
+		closeValidationDialog,
+		validateBeforeCreate,
 	};
 };
 
