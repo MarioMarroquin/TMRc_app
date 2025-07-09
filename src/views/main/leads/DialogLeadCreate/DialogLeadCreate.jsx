@@ -397,29 +397,35 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 				fullWidth
 			>
 				<DialogTitle>
-					{validationDialog.entityType === 'COMPANY'
+					{validationDialog.entityType === 'BRAND'
+						? 'Marca Existente'
+						: validationDialog.entityType === 'COMPANY'
 						? 'Compañía Existente'
 						: 'Cliente Existente'}
 				</DialogTitle>
 				<DialogContent>
 					<DialogContentText>
 						{`Se ha encontrado ${
-							validationDialog.entityType === 'COMPANY'
+							validationDialog.entityType === 'BRAND'
+								? 'una marca'
+								: validationDialog.entityType === 'COMPANY'
 								? 'una compañía'
 								: 'un cliente'
-						} 
-						con el nombre "${validationDialog.entityName}". 
-						¿Desea usar el registro existente o crear uno nuevo?`}
+						} con el nombre "${validationDialog.entityName}". 
+            ¿Desea usar el registro existente o crear uno nuevo?`}
 					</DialogContentText>
 				</DialogContent>
+
 				<DialogActions>
 					<Button
 						onClick={async () => {
+							console.log('Click en Crear Nuevo');
 							try {
 								await validationDialog.onCreateNew();
-								toggleDialog();
+								closeValidationDialog();
 								toast.success('✅ Registro creado exitosamente');
 							} catch (error) {
+								console.error('Error al crear nuevo:', error);
 								toast.error('❌ Error al crear el registro');
 							}
 						}}
@@ -428,13 +434,15 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 					</Button>
 					<Button
 						onClick={async () => {
+							console.log('Click en Usar Existente');
 							try {
 								await validationDialog.onUseExisting();
-								toggleDialog();
+								closeValidationDialog();
 								toast.success(
 									'✅ Registro creado exitosamente usando entidad existente'
 								);
 							} catch (error) {
+								console.error('Error al usar existente:', error);
 								toast.error(
 									'❌ Error al crear el registro con entidad existente'
 								);

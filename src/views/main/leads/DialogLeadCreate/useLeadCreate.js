@@ -165,12 +165,13 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 			const finalRequest = {
 				...lead,
 				sellerId: useSeller.selectedSeller.id,
-				brandId: useBrand.brand.id ?? null,
-				brand: useBrand.brand.name
-					? (({ id, ...rest }) => ({
-							...rest,
-					  }))(useBrand.brand)
-					: null,
+				brandId: entityType === 'BRAND' ? entityId : useBrand.brand.id ?? null,
+				brand:
+					!useBrand.brand.id && useBrand.brand.name
+						? (({ id, ...rest }) => ({
+								...rest,
+						  }))(useBrand.brand)
+						: null,
 				clientId:
 					entityType === 'CLIENT' ? entityId : useClient.client.id ?? null,
 				client:
@@ -219,31 +220,135 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		if (check()) return;
 
 		try {
-			let validationResult = null;
-			let validationType = null;
-			let entityName = '';
-			let entityData = null;
+			// Validar SOLO la marca primero
+			if (useBrand.brand.name && !useBrand.brand.id) {
+				const brandName = useBrand.brand.name.trim().toUpperCase();
+				console.log('Validando marca (normalizada):', brandName);
 
-			// Validar compañía primero
+				const brandResult = await validateEntity({
+					variables: {
+						name: brandName,
+						type: 'BRAND',
+					},
+				});
+
+				console.log('Respuesta completa de validación:', brandResult);
+
+				if (!brandResult.data?.validateEntity) {
+					console.error('No se recibió respuesta de validación');
+					toast.error('Error en la validación de marca');
+					return;
+				}
+
+				if (brandResult.data.validateEntity.exists) {
+					console.log(
+						'Marca existente encontrada:',
+						brandResult.data.validateEntity
+					);
+					setValidationDialog({
+						open: true,
+						entityType: 'BRAND',
+						entityName: brandName,
+						entityData: brandResult.data.validateEntity.entityData
+							? JSON.parse(brandResult.data.validateEntity.entityData)
+							: {},
+						onUseExisting: async () => {
+							try {
+								await createNewLead(
+									'BRAND',
+									brandResult.data.validateEntity.entityId
+								);
+								toast.success('✅ Registro creado usando marca existente');
+								toggleDialog();
+							} catch (error) {
+								console.error('Error al usar marca existente:', error);
+								toast.error(
+									'❌ Error al crear el registro con marca existente'
+								);
+							} finally {
+								closeValidationDialog();
+							}
+						},
+						onCreateNew: async () => {
+							try {
+								await createNewLead();
+								toast.success('✅ Registro creado con nueva marca');
+								toggleDialog();
+							} catch (error) {
+								console.error('Error al crear nueva marca:', error);
+								toast.error('❌ Error al crear el registro con nueva marca');
+							} finally {
+								closeValidationDialog();
+							}
+						},
+					});
+					return;
+				} else {
+					// Si la marca no existe, confirmar antes de crear
+					const shouldCreate = window.confirm(
+						`La marca "${brandName}" no fue encontrada. ¿Desea crear una nueva marca?`
+					);
+
+					if (shouldCreate) {
+						await createNewLead();
+						toast.success('✅ Registro creado con nueva marca');
+						toggleDialog();
+					}
+					return;
+				}
+			}
+
+			// Validar compañía
 			if (useCompany.company.name && !useCompany.company.id) {
 				const companyResult = await validateEntity({
 					variables: {
-						name: useCompany.company.name,
+						name: useCompany.company.name.trim(),
 						type: 'COMPANY',
 					},
 				});
 
 				if (companyResult.data?.validateEntity.exists) {
-					validationType = 'COMPANY';
-					entityName = useCompany.company.name;
-					entityData = JSON.parse(companyResult.data.validateEntity.entityData);
-					validationResult = companyResult.data.validateEntity;
+					setValidationDialog({
+						open: true,
+						entityType: 'COMPANY',
+						entityName: useCompany.company.name,
+						entityData: JSON.parse(
+							companyResult.data.validateEntity.entityData
+						),
+						onUseExisting: async () => {
+							try {
+								await createNewLead(
+									'COMPANY',
+									companyResult.data.validateEntity.entityId
+								);
+								toast.success(
+									'✅ Registro creado exitosamente usando compañía existente'
+								);
+								toggleDialog();
+							} catch (error) {
+								toast.error(
+									'❌ Error al crear el registro con compañía existente'
+								);
+							}
+							closeValidationDialog();
+						},
+						onCreateNew: async () => {
+							try {
+								await createNewLead();
+								toast.success('✅ Registro creado exitosamente');
+								toggleDialog();
+							} catch (error) {
+								toast.error('❌ Error al crear nueva compañía');
+							}
+							closeValidationDialog();
+						},
+					});
+					return;
 				}
 			}
 
-			// Validar cliente si no hay compañía para validar
+			// Validar cliente
 			if (
-				!validationResult &&
 				useClient.client.firstName &&
 				useClient.client.lastName &&
 				!useClient.client.id
@@ -258,125 +363,51 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 				});
 
 				if (clientResult.data?.validateEntity.exists) {
-					validationType = 'CLIENT';
-					entityName = fullName;
-					entityData = JSON.parse(clientResult.data.validateEntity.entityData);
-					validationResult = clientResult.data.validateEntity;
+					setValidationDialog({
+						open: true,
+						entityType: 'CLIENT',
+						entityName: fullName,
+						entityData: JSON.parse(clientResult.data.validateEntity.entityData),
+						onUseExisting: async () => {
+							try {
+								await createNewLead(
+									'CLIENT',
+									clientResult.data.validateEntity.entityId
+								);
+								toast.success(
+									'✅ Registro creado exitosamente usando cliente existente'
+								);
+								toggleDialog();
+							} catch (error) {
+								toast.error(
+									'❌ Error al crear el registro con cliente existente'
+								);
+							}
+							closeValidationDialog();
+						},
+						onCreateNew: async () => {
+							try {
+								await createNewLead();
+								toast.success('✅ Registro creado exitosamente');
+								toggleDialog();
+							} catch (error) {
+								toast.error('❌ Error al crear nuevo cliente');
+							}
+							closeValidationDialog();
+						},
+					});
+					return;
 				}
 			}
 
-			// Si encontramos una entidad existente, mostrar diálogo
-			if (validationResult) {
-				setValidationDialog({
-					open: true,
-					entityType: validationType,
-					entityName,
-					entityData,
-					onUseExisting: async () => {
-						try {
-							await createNewLead(validationType, validationResult.entityId);
-							toast.success(
-								'✅ Registro creado exitosamente usando entidad existente'
-							);
-							toggleDialog();
-						} catch (error) {
-							toast.error(
-								'❌ Error al crear el registro con entidad existente'
-							);
-						}
-					},
-					onCreateNew: async () => {
-						try {
-							await createNewLead();
-							toast.success('✅ Registro creado exitosamente');
-							toggleDialog();
-						} catch (error) {
-							toast.error('❌ Error al crear nueva entidad');
-						}
-					},
-				});
-				return;
-			}
-
-			// Si no hay validaciones pendientes, crear directamente
-			try {
-				await createNewLead();
-				toast.success('✅ Registro creado exitosamente');
-				toggleDialog();
-			} catch (error) {
-				toast.error('❌ Error al crear el registro');
-			}
+			// Si no hay entidades existentes, crear directamente
+			await createNewLead();
+			toast.success('✅ Registro creado exitosamente');
+			toggleDialog();
 		} catch (error) {
 			console.error('Error en validación:', error);
 			toast.error('Error al validar los datos');
 		}
-	};
-
-	const onFinish = async (e) => {
-		e?.preventDefault();
-		loadingOn();
-
-		if (check()) {
-			loadingOff();
-			return;
-		}
-
-		const shouldProceed = await validateBeforeCreate();
-		if (!shouldProceed) {
-			loadingOff();
-			return;
-		}
-
-		const finalRequest = {
-			...lead,
-			sellerId: useSeller.selectedSeller.id,
-			brandId: useBrand.brand.id ?? null,
-			brand: useBrand.brand.name
-				? (({ id, ...rest }) => ({
-						...rest,
-				  }))(useBrand.brand)
-				: null,
-			clientId: useClient.client.id ?? null,
-			client:
-				!useClient.client.id &&
-				useClient.client.firstName &&
-				useClient.client.lastName
-					? {
-							firstName: useClient.client.firstName,
-							lastName: useClient.client.lastName,
-							phoneNumber: useClient.client.phoneNumber || null,
-							email: useClient.client.email || null,
-					  }
-					: null,
-			companyId: useCompany.company.id ?? null,
-			company:
-				!useCompany.company.id && useCompany.company.name
-					? {
-							name: useCompany.company.name,
-							phoneNumber: useCompany.company.phoneNumber || null,
-							email: useCompany.company.email || null,
-					  }
-					: null,
-		};
-
-		createRequest({ variables: { request: finalRequest } })
-			.then((res) => {
-				if (!res.errors) {
-					toast.success('Solicitud creada');
-					refetchRequests();
-					toggleDialog();
-				} else {
-					console.log('Errores', res.errors);
-					toast.error('Error al crear');
-				}
-				cleanStates();
-				loadingOff();
-			})
-			.catch((err) => {
-				console.log('Error', err);
-				toast.error('Ocurrió un error');
-				loadingOff();
-			});
 	};
 
 	useEffect(() => {
@@ -388,6 +419,10 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		}
 	}, [isVisible]);
 
+	useEffect(() => {
+		console.log('Estado del diálogo de validación:', validationDialog);
+	}, [validationDialog]);
+
 	return {
 		useSeller,
 		useBrand,
@@ -398,7 +433,6 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		handleInputLead,
 		cleanStates,
 		userRole: role,
-		onFinish,
 		validationDialog,
 		closeValidationDialog,
 		validateBeforeCreate,

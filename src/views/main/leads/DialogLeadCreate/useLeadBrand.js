@@ -4,7 +4,7 @@ import { GET_BRANDS } from '@views/main/requests/queryRequests';
 import { useLazyQuery } from '@apollo/client';
 
 const BlankBrand = {
-	id: undefined, // " "
+	id: null,
 	name: '',
 };
 
@@ -14,6 +14,20 @@ const useLeadBrand = () => {
 	const [searchBrands, { loading }] = useLazyQuery(GET_BRANDS);
 	const debouncedBrand = useDebounce(brand.name, 700);
 
+	useEffect(() => {
+		console.log('Buscando marca:', brand.name);
+		searchBrands({ variables: { text: brand.name } }).then((res) => {
+			if (!res.error) {
+				const aux = res.data.searchBrands.results;
+				console.log('Marcas encontradas:', aux);
+				setFoundBrands(aux);
+			} else {
+				console.error('Error en búsqueda:', res.error);
+			}
+		});
+	}, [debouncedBrand]);
+
+	// Buscar marcas cuando cambia el texto
 	useEffect(() => {
 		searchBrands({ variables: { text: brand.name } }).then((res) => {
 			if (!res.error) {
@@ -25,53 +39,51 @@ const useLeadBrand = () => {
 		});
 	}, [debouncedBrand]);
 
-	// const handleInputOnChangeBrand = (event, value) => {
-	const handleSelectedBrand = (event, value) => {
-		if (!value) {
+	const handleSelectedBrand = (event, newValue) => {
+		if (typeof newValue === 'string') {
 			setBrand({
-				...brand,
-				id: undefined,
-				name: '',
+				id: null,
+				name: newValue,
+			});
+		} else if (newValue && newValue.id) {
+			setBrand({
+				id: newValue.id,
+				name: newValue.name,
 			});
 		} else {
-			setBrand({
-				...brand,
-				id: value.id,
-				name: value.name,
-			});
+			clean();
 		}
 	};
 
-	// const handleInputChangeBrand = (event, value) => {
-	const handleInputBrand = (event, value) => {
-		const actualId = brand.id;
-		const lastName = brand.name;
+	const handleInputBrand = (event, newInputValue) => {
+		const currentId = brand.id;
+		const previousName = brand.name;
 
-		if (!value) {
+		if (!newInputValue) {
 			setBrand({
-				...brand,
-				id: undefined,
+				id: null,
 				name: '',
 			});
 		} else if (
-			lastName.length > value.length ||
-			(lastName.length < value.length && actualId)
+			previousName.length > newInputValue.length ||
+			(previousName.length < newInputValue.length && currentId)
 		) {
+			// Si se está borrando texto o escribiendo con un ID existente
 			setBrand({
-				...brand,
-				id: undefined,
-				name: value,
+				id: null,
+				name: newInputValue,
 			});
 		} else {
 			setBrand({
 				...brand,
-				name: value,
+				name: newInputValue,
 			});
 		}
 	};
 
 	const clean = () => {
 		setBrand(BlankBrand);
+		setFoundBrands([]);
 	};
 
 	return {
