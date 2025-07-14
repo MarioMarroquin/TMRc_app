@@ -59,4 +59,5 @@ export const PERMISSIONS = {
 		SCOPES_REQUEST_DETAILS.commentOperator,
 		SCOPES_REMINDERS.total,
 	],
+	[ROLES.marketing]: [SCOPES_REQUEST.total, SCOPES_REMINDERS.total],
 };
