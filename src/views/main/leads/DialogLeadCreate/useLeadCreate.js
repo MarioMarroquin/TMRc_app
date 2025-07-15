@@ -159,11 +159,6 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 	};
 
 	const createNewLead = async (entityType = null, entityId = null) => {
-		// Primero ejecutamos la validación básica
-		if (check()) {
-			return; // Si hay errores en la validación, detenemos la creación
-		}
-
 		try {
 			loadingOn();
 
@@ -441,7 +436,6 @@ const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 		validationDialog,
 		closeValidationDialog,
 		validateBeforeCreate,
-		createNewLead,
 	};
 };
 

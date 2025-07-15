@@ -12,14 +12,10 @@ import LogRocket from 'logrocket';
 import TMRLogo from '@utils/logo/TMR_logo.svg';
 import { logRocketApiKey } from '@config/environment'; // theme css file
 import 'ag-grid-community/styles/ag-grid.css'; // Mandatory CSS required by the Data Grid
-import 'ag-grid-community/styles/ag-theme-quartz.css';
-import PermissionsGate from '@components/PermissionsGate'; // Optional Theme applied to the Data Grid
+import 'ag-grid-community/styles/ag-theme-quartz.css'; // Optional Theme applied to the Data Grid
 
 const routeGenerator = (route) => {
-	const { children, path, element, index, nested, routes, scopes, active } =
-		route;
-
-	if (!active) return;
+	const { children, path, element, index, nested, routes } = route;
 
 	if (nested) {
 		return routes.map((route) => routeGenerator(route));
@@ -27,34 +23,13 @@ const routeGenerator = (route) => {
 		// if children, checks if index of main Outlet, if not renders inside direct parent
 		if (children) {
 			return (
-				<Route
-					key={path}
-					path={path}
-					element={
-						!index ? (
-							<PermissionsGate scopes={scopes}>{element}</PermissionsGate>
-						) : undefined
-					}
-				>
-					{index && (
-						<Route
-							index
-							element={
-								<PermissionsGate scopes={scopes}>{element}</PermissionsGate>
-							}
-						/>
-					)}
+				<Route key={path} path={path} element={!index ? element : undefined}>
+					{index && <Route index element={element} />}
 					{children.map((route) => routeGenerator(route))}
 				</Route>
 			);
 		} else {
-			return (
-				<Route
-					key={path}
-					path={path}
-					element={<PermissionsGate scopes={scopes}>{element}</PermissionsGate>}
-				/>
-			);
+			return <Route key={path} path={path} element={element} />;
 		}
 	}
 };

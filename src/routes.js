@@ -12,9 +12,6 @@ import { lazy } from 'react';
 import { Typography } from '@mui/material';
 import Reminders from '@views/main/reminders';
 import {
-	SCOPES_BRANDS,
-	SCOPES_CLIENTS,
-	SCOPES_COMPANIES,
 	SCOPES_GENERAL as Scopes_REQUEST,
 	SCOPES_GENERAL,
 	SCOPES_REMINDERS,
@@ -31,14 +28,7 @@ const Brand = lazy(() => import('./views/main/brand'));
 
 const mainRoutes = [
 	{
-		children: [
-			{
-				path: ':id',
-				element: <LeadDetail />,
-				scopes: [SCOPES_GENERAL.total, SCOPES_REQUEST.total],
-				active: true,
-			},
-		],
+		children: [{ path: ':id', element: <LeadDetail /> }],
 		element: <Leads />,
 		icon: <AllInbox />,
 		index: true,
@@ -54,7 +44,7 @@ const mainRoutes = [
 		index: true,
 		name: 'Recordatorios',
 		path: '/reminders',
-		active: false,
+		active: true,
 		scopes: [SCOPES_GENERAL.total, SCOPES_REMINDERS.total],
 	},
 	{
@@ -63,8 +53,8 @@ const mainRoutes = [
 		index: true,
 		name: 'Compañias',
 		path: '/companies',
-		active: false,
-		scopes: [SCOPES_GENERAL.total, SCOPES_COMPANIES.total],
+		active: true,
+		scopes: [SCOPES_GENERAL.total],
 	},
 	{
 		element: <Brand />,
@@ -72,8 +62,8 @@ const mainRoutes = [
 		index: true,
 		name: 'Marca',
 		path: '/brand',
-		active: false,
-		scopes: [SCOPES_GENERAL.total, SCOPES_BRANDS.total],
+		active: true,
+		scopes: [SCOPES_GENERAL.total],
 	},
 	{
 		element: <Clients />,
@@ -81,8 +71,8 @@ const mainRoutes = [
 		index: true,
 		name: 'Clientes',
 		path: '/clients',
-		active: false,
-		scopes: [SCOPES_GENERAL.total, SCOPES_CLIENTS.total],
+		active: true,
+		scopes: [SCOPES_GENERAL.total],
 	},
 	{
 		routes: [
@@ -93,7 +83,7 @@ const mainRoutes = [
 				index: true,
 				name: 'Usuarios',
 				path: '/management/users',
-				active: true,
+				active: false,
 				scopes: [SCOPES_GENERAL.total],
 			},
 		],
@@ -102,7 +92,6 @@ const mainRoutes = [
 		mainName: 'Administración',
 		nested: true,
 		active: true,
-		scopes: [SCOPES_GENERAL.total],
 	},
 	// {
 	// 	name: 'Mantenimiento',

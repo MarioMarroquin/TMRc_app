@@ -8,6 +8,10 @@ export const ROLES = {
 
 export const SCOPES_GENERAL = {
 	total: 'TOTAL',
+	view: 'view',
+	create: 'create',
+	edit: 'edit',
+	delete: 'delete',
 };
 
 export const SCOPES_REQUEST = {
@@ -32,39 +36,12 @@ export const SCOPES_REQUEST_DETAILS = {
 	commentManager: 'commentManager',
 };
 
-export const SCOPES_COMPANIES = {
-	total: 'total',
-	interact: 'interact',
-	edit: 'edit',
-	commentOperator: 'commentOperator',
-	commentManager: 'commentManager',
-};
-
-export const SCOPES_BRANDS = {
-	total: 'total',
-	interact: 'interact',
-	edit: 'edit',
-	commentOperator: 'commentOperator',
-	commentManager: 'commentManager',
-};
-
-export const SCOPES_CLIENTS = {
-	total: 'total',
-	interact: 'interact',
-	edit: 'edit',
-	commentOperator: 'commentOperator',
-	commentManager: 'commentManager',
-};
-
 export const PERMISSIONS = {
 	[ROLES.admin]: [SCOPES_GENERAL.total],
 	[ROLES.desk]: [
 		SCOPES_REQUEST.total,
 		SCOPES_REQUEST.export,
 		SCOPES_REMINDERS.total,
-		SCOPES_COMPANIES.total,
-		SCOPES_BRANDS.total,
-		SCOPES_CLIENTS.total,
 	],
 	[ROLES.salesManager]: [
 		SCOPES_REQUEST.total,
@@ -74,9 +51,6 @@ export const PERMISSIONS = {
 		SCOPES_REQUEST_DETAILS.edit,
 		SCOPES_REQUEST_DETAILS.commentManager,
 		SCOPES_REMINDERS.total,
-		SCOPES_COMPANIES.total,
-		SCOPES_BRANDS.total,
-		SCOPES_CLIENTS.total,
 	],
 	[ROLES.salesOperator]: [
 		SCOPES_REQUEST.total,
@@ -84,8 +58,6 @@ export const PERMISSIONS = {
 		SCOPES_REQUEST_DETAILS.edit,
 		SCOPES_REQUEST_DETAILS.commentOperator,
 		SCOPES_REMINDERS.total,
-		SCOPES_COMPANIES.interact,
-		SCOPES_CLIENTS.interact,
 	],
 	[ROLES.marketing]: [SCOPES_REQUEST.total, SCOPES_REMINDERS.total],
 };
