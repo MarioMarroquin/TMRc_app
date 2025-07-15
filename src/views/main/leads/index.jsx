@@ -155,11 +155,22 @@ const Leads = (props) => {
 	//
 
 	useEffect(() => {
-		if (role !== ROLES.salesOperator)
-			searchSellers().then((res) => {
-				const aux = res.data.sellers.results;
-				setSellersList(aux);
-			});
+		if (role !== ROLES.salesOperator) {
+			searchSellers()
+				.then((res) => {
+					if (res.data?.sellers?.results) {
+						const aux = res.data.sellers.results;
+						setSellersList(aux);
+					} else {
+						console.warn('No se encontraron vendedores');
+						setSellersList([]);
+					}
+				})
+				.catch((error) => {
+					console.error('Error al buscar vendedores:', error);
+					setSellersList([]);
+				});
+		}
 	}, []);
 
 	return (

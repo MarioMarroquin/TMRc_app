@@ -15,16 +15,27 @@ const useLeadBrand = () => {
 	const debouncedBrand = useDebounce(brand.name, 700);
 
 	useEffect(() => {
-		console.log('Buscando marca:', brand.name);
-		searchBrands({ variables: { text: brand.name } }).then((res) => {
-			if (!res.error) {
-				const aux = res.data.searchBrands.results;
-				console.log('Marcas encontradas:', aux);
-				setFoundBrands(aux);
-			} else {
-				console.error('Error en búsqueda:', res.error);
-			}
-		});
+		if (brand.name) {
+			// Solo buscar si hay texto
+			console.log('Buscando marca:', brand.name);
+			searchBrands({ variables: { text: brand.name } })
+				.then((res) => {
+					if (!res.error && res.data?.searchBrands?.results) {
+						const aux = res.data.searchBrands.results;
+						console.log('Marcas encontradas:', aux);
+						setFoundBrands(aux);
+					} else {
+						console.error('Error en búsqueda:', res.error);
+						setFoundBrands([]);
+					}
+				})
+				.catch((error) => {
+					console.error('Error al buscar marcas:', error);
+					setFoundBrands([]);
+				});
+		} else {
+			setFoundBrands([]);
+		}
 	}, [debouncedBrand]);
 
 	// Buscar marcas cuando cambia el texto
@@ -68,7 +79,6 @@ const useLeadBrand = () => {
 			previousName.length > newInputValue.length ||
 			(previousName.length < newInputValue.length && currentId)
 		) {
-			// Si se está borrando texto o escribiendo con un ID existente
 			setBrand({
 				id: null,
 				name: newInputValue,
