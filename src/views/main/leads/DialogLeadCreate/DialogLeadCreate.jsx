@@ -43,6 +43,7 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 		validationDialog,
 		closeValidationDialog,
 		validateBeforeCreate,
+		createNewLead,
 	} = useLeadCreate(refetchRequests, toggleDialog, isVisible);
 
 	// const isAv = () => {
@@ -387,7 +388,13 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 					<Button variant={'outlined'} onClick={toggleDialog}>
 						Cerrar
 					</Button>
-					<Button onClick={() => validateBeforeCreate()}>Guardar</Button>
+					<Button
+						variant='contained'
+						color='primary'
+						onClick={() => createNewLead()}
+					>
+						Guardar
+					</Button>
 				</DialogActions>
 			</Dialog>
 			<Dialog
@@ -417,6 +424,13 @@ const DialogLeadCreate = ({ refetchRequests }) => {
 				</DialogContent>
 
 				<DialogActions>
+					<Button
+						variant='text'
+						onClick={closeValidationDialog}
+						sx={{ mr: 'auto' }}
+					>
+						Cancelar
+					</Button>
 					<Button
 						onClick={async () => {
 							console.log('Click en Crear Nuevo');

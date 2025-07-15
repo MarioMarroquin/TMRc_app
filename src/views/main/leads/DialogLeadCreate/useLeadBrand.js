@@ -14,29 +14,30 @@ const useLeadBrand = () => {
 	const [searchBrands, { loading }] = useLazyQuery(GET_BRANDS);
 	const debouncedBrand = useDebounce(brand.name, 700);
 
+	// Cargar todas las marcas al iniciar el componente
 	useEffect(() => {
-		console.log('Buscando marca:', brand.name);
-		searchBrands({ variables: { text: brand.name } }).then((res) => {
-			if (!res.error) {
+		searchBrands({ variables: { text: '' } }).then((res) => {
+			if (res?.data?.searchBrands?.results) {
 				const aux = res.data.searchBrands.results;
-				console.log('Marcas encontradas:', aux);
 				setFoundBrands(aux);
-			} else {
-				console.error('Error en búsqueda:', res.error);
 			}
 		});
-	}, [debouncedBrand]);
+	}, []);
 
-	// Buscar marcas cuando cambia el texto
+	// Buscar marcas cuando se escribe
 	useEffect(() => {
-		searchBrands({ variables: { text: brand.name } }).then((res) => {
-			if (!res.error) {
-				const aux = res.data.searchBrands.results;
-				setFoundBrands(aux);
-			} else {
-				console.log(res.error);
-			}
-		});
+		if (brand.name) {
+			console.log('Buscando marca:', brand.name);
+			searchBrands({ variables: { text: brand.name } }).then((res) => {
+				if (res?.data?.searchBrands?.results) {
+					const aux = res.data.searchBrands.results;
+					console.log('Marcas encontradas:', aux);
+					setFoundBrands(aux);
+				} else if (res.error) {
+					console.error('Error en búsqueda:', res.error);
+				}
+			});
+		}
 	}, [debouncedBrand]);
 
 	const handleSelectedBrand = (event, newValue) => {
@@ -68,7 +69,6 @@ const useLeadBrand = () => {
 			previousName.length > newInputValue.length ||
 			(previousName.length < newInputValue.length && currentId)
 		) {
-			// Si se está borrando texto o escribiendo con un ID existente
 			setBrand({
 				id: null,
 				name: newInputValue,
@@ -83,7 +83,7 @@ const useLeadBrand = () => {
 
 	const clean = () => {
 		setBrand(BlankBrand);
-		setFoundBrands([]);
+		// No limpiamos foundBrands para mantener las opciones disponibles
 	};
 
 	return {

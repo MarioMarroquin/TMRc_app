@@ -155,11 +155,17 @@ const Leads = (props) => {
 	//
 
 	useEffect(() => {
-		if (role !== ROLES.salesOperator)
+		if (role !== ROLES.salesOperator) {
 			searchSellers().then((res) => {
-				const aux = res.data.sellers.results;
-				setSellersList(aux);
+				if (res?.data?.sellers?.results) {
+					const aux = res.data.sellers.results;
+					setSellersList(aux);
+				} else {
+					console.error('Error al obtener vendedores:', res.error);
+					setSellersList([]);
+				}
 			});
+		}
 	}, []);
 
 	return (

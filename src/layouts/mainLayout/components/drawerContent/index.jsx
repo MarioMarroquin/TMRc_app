@@ -77,48 +77,54 @@ const DrawerContent = () => {
 						if (nested) {
 							return (
 								<>
-									<ListItemButton
-										disableRipple
-										disableTouchRipple
-										key={path}
-										selected={location.includes(mainPath)}
-										onClick={() => {
-											handleListNest(mainName, mainPath);
-										}}
-										disabled={!active}
-										sx={{
-											color: '#1313134F',
-											m: 4,
-											pl: 0,
-											borderRadius: 8,
-											'&:hover': {
-												backgroundColor: 'transparent',
-											},
-											'&.Mui-selected': {
-												backgroundColor: 'transparent',
-												color: theme.palette.primary.main,
+									<PermissionsGate scopes={os}>
+										<ListItemButton
+											disableRipple
+											disableTouchRipple
+											key={path}
+											selected={location.includes(mainPath)}
+											onClick={() => {
+												handleListNest(mainName, mainPath);
+											}}
+											disabled={!active}
+											sx={{
+												color: '#1313134F',
+												m: 4,
+												pl: 0,
+												borderRadius: 8,
 												'&:hover': {
 													backgroundColor: 'transparent',
 												},
-											},
-										}}
-									>
-										<ListItemIcon
-											sx={{
-												color: 'inherit',
-												justifyContent: 'center',
+												'&.Mui-selected': {
+													backgroundColor: 'transparent',
+													color: theme.palette.primary.main,
+													'&:hover': {
+														backgroundColor: 'transparent',
+													},
+												},
 											}}
 										>
-											{openNest === mainName ? <ExpandLess /> : <ExpandMore />}
-										</ListItemIcon>
-										<ListItemText
-											primary={mainName}
-											primaryTypographyProps={{
-												fontSize: 14,
-												fontWeight: 700,
-											}}
-										/>
-									</ListItemButton>
+											<ListItemIcon
+												sx={{
+													color: 'inherit',
+													justifyContent: 'center',
+												}}
+											>
+												{openNest === mainName ? (
+													<ExpandLess />
+												) : (
+													<ExpandMore />
+												)}
+											</ListItemIcon>
+											<ListItemText
+												primary={mainName}
+												primaryTypographyProps={{
+													fontSize: 14,
+													fontWeight: 700,
+												}}
+											/>
+										</ListItemButton>
+									</PermissionsGate>
 									<Collapse
 										in={openNest === mainName}
 										timeout='auto'

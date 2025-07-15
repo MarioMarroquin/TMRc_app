@@ -75,7 +75,7 @@ const UsersGrid = ({ users, doubleClickAction }) => {
 					</CellStackRender>
 					<Switch
 						checked={data.active}
-						onChange={() => toggleActive(data.id)}
+						// onChange={() => toggleActive(data.id)}
 						size='small'
 					/>
 				</Box>
