@@ -27,6 +27,7 @@ const exportExcelReport = (data) => {
 		{ header: 'COMENTARIOS EXTRA', key: 'extraComments', width: 40 },
 		{ header: 'ESTATUS', key: 'requestStatus', width: 15 },
 		{ header: 'VENTA', key: 'isSale', width: 10 },
+		{ header: 'ASIGNADO POR', key: 'createdBy', width: 20 },
 	];
 
 	auxData.sort(function (a, b) {
@@ -60,6 +61,7 @@ const exportExcelReport = (data) => {
 			extraComments: obj?.extraComments,
 			requestStatus: RequestStatus[obj.requestStatus],
 			isSale: obj.isSale ? 'SI' : 'NO',
+			createdBy: `${obj.createdBy?.firstName} ${obj.createdBy?.lastName}`,
 		});
 	});
 

@@ -30,7 +30,7 @@ const BlankData = {
 	isSale: null,
 };
 
-const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+const EMAIL = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,8}$/;
 
 const useLeadCreate = (refetchRequests, toggleDialog, isVisible) => {
 	const {

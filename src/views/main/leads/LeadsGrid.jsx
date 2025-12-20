@@ -148,6 +148,7 @@ const LeadsGrid = ({ rows, doubleClickAction, gridRef }) => {
 			headerName: 'Email de Cliente',
 			valueGetter: ({ data }) => data.client?.email,
 		},
+		{ field: 'comments', headerName: 'Comentarios' },
 		{ field: 'extraComments', headerName: 'Observaciones' },
 		{
 			field: 'createdAt',
