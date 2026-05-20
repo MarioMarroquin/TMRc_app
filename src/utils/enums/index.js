@@ -15,6 +15,8 @@ const ContactMedium = [
 	'FACEBOOK',
 	'INSTAGRAM',
 	'MERCADO LIBRE',
+	'CAMPAÑA WHATSAPP',
+	'CAMPAÑA CORREO',
 ];
 
 const ProductStatus = {
